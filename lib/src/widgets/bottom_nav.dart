@@ -1,8 +1,8 @@
-import 'package:arab_socials/src/screens/business/businessscreen.dart';
-import 'package:arab_socials/src/screens/events/eventscreen.dart';
-import 'package:arab_socials/src/screens/homepage/homescreen.dart';
-import 'package:arab_socials/src/screens/members/memberscreen.dart';
-import 'package:arab_socials/src/screens/profile/profilescreen.dart';
+import 'package:arab_socials/src/view/business/businessscreen.dart';
+import 'package:arab_socials/src/view/events/eventscreen.dart';
+import 'package:arab_socials/src/view/homepage/homescreen.dart';
+import 'package:arab_socials/src/view/members/memberscreen.dart';
+import 'package:arab_socials/src/view/profile/profilescreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';

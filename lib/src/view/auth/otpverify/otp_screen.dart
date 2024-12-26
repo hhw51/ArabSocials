@@ -1,6 +1,6 @@
-import 'package:arab_socials/src/screens/auth/sign_up/pages/sign_up_page.dart';
-import 'package:arab_socials/src/screens/homepage/homescreen.dart';
-import 'package:arab_socials/src/screens/navbar/pages/bottom_nav.dart';
+import 'package:arab_socials/src/view/auth/sign_up/pages/sign_up_page.dart';
+import 'package:arab_socials/src/view/homepage/homescreen.dart';
+import 'package:arab_socials/src/widgets/bottom_nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';

@@ -1,5 +1,5 @@
-import 'package:arab_socials/src/screens/auth/otpverify/otp_screen.dart';
-import 'package:arab_socials/src/screens/auth/sign_in/pages/sign_in_page.dart';
+import 'package:arab_socials/src/view/auth/otpverify/otp_screen.dart';
+import 'package:arab_socials/src/view/auth/sign_in/pages/sign_in_page.dart';
 import 'package:arab_socials/src/widgets/textfieled_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';

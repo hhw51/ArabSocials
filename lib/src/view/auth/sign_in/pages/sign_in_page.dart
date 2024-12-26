@@ -1,4 +1,4 @@
-import 'package:arab_socials/src/screens/auth/sign_up/pages/sign_up_page.dart';
+import 'package:arab_socials/src/view/auth/sign_up/pages/sign_up_page.dart';
 import 'package:arab_socials/src/widgets/textfieled_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';

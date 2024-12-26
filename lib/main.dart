@@ -1,4 +1,4 @@
-import 'package:arab_socials/src/screens/auth/splash_steps/splash.dart';
+import 'package:arab_socials/src/view/auth/splash_steps/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
