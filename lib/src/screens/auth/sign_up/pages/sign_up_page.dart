@@ -1,0 +1,257 @@
+import 'package:arab_socials/src/screens/auth/otpverify/otp_screen.dart';
+import 'package:arab_socials/src/screens/auth/sign_in/pages/sign_in_page.dart';
+import 'package:arab_socials/src/widgets/textfieled_widget.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+class SignUpScreen extends StatelessWidget {
+  SignUpScreen({super.key});
+
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController accountController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
+  final RxBool rememberMe = false.obs;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_outlined, color: Color.fromARGB(255, 35, 94, 77),size: 30,),
+                    onPressed: () => Get.back(),
+                  ),
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      "CREATE YOUR ACCOUNT",
+                      style: GoogleFonts.playfairDisplaySc(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 15.h),
+                  CustomTextField(
+                    controller: nameController,
+                   // labelText: "Full Name",
+                    hintText: "Full name",
+                    prefixIcon: Icons.person_outline,
+                  ),
+                  CustomTextField(
+                    controller: emailController,
+                   // labelText: "Email Address",
+                    hintText: "abc@email.com",
+                    prefixIcon: Icons.email_outlined,
+                  ),
+                  CustomDropdown(
+                    controller: accountController,
+                   // labelText: "Account Type",
+                    hintText: "Account type",
+                    prefixIcon: Icons.person_2_outlined,
+                    items: [
+                      "Admin",
+                      "User",
+                    ], 
+                    onChanged: (value) {
+                      print("Selected Account Type: $value");
+                    },
+                  ),
+                  CustomTextField(
+                    controller: passwordController,
+                   // labelText: "Password",
+                    hintText: "Your password",
+                    isPassword: true,
+                    prefixIcon: Icons.lock_outline,
+                    suffixIcon: Icons.visibility_off_rounded
+                  ),
+                  CustomTextField(
+                    controller: confirmPasswordController,
+                  //  labelText: "Confirm Password",
+                    hintText: "Confirm password",
+                    isPassword: true,
+                    prefixIcon: Icons.lock_outline,
+                    suffixIcon: Icons.visibility_off,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Obx(
+                        () => Row(
+                          children: [
+                            Transform.scale(
+                              scale: 0.8,
+                              child: Switch(
+                                value: rememberMe.value,
+                                onChanged: (value) => rememberMe.value = value,
+                                activeColor: Colors.white,
+                                activeTrackColor:
+                                    const Color.fromARGB(255, 35, 94, 77),
+                              ),
+                            ),
+                            Text(
+                              "Remember Me",
+                              style: TextStyle(
+                                  fontSize: 14.sp, color: Colors.black,fontWeight: FontWeight.w400),
+                            ),
+                          ],
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {},
+                        child: Text(
+                          "Forgot Password?",
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: Colors.black,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 10.h),
+                  ElevatedButton(
+                    onPressed: () {
+                         Get.to(() => OtpVerifyScreen());
+                     },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 35, 94, 77),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      minimumSize: Size(double.infinity, 56.h),
+                    ),
+                    child: Text(
+                      "SIGN UP",
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20.h),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Divider(
+                          color: Colors.grey[200],
+                          thickness: 1.0,
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 10.w),
+                        child: Text(
+                          "or",
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Divider(
+                          color: Colors.grey[200],
+                          thickness: 1.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20.h),
+                  ElevatedButton.icon(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      minimumSize: Size(double.infinity, 52.h),
+                    ),
+                    icon: Image.asset(
+                      'assets/icons/google.png',
+                      width: 20.w,
+                      height: 20.h,
+                    ),
+                    label: Text(
+                      "Continue with Google",
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 10.h),
+                  ElevatedButton.icon(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      minimumSize: Size(double.infinity, 52.h),
+                    ),
+                    icon: Image.asset(
+                      'assets/icons/facebook.png',
+                      width: 20.w,
+                      height: 20.h,
+                    ),
+                    label: Text(
+                      "Continue with Facebook",
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20.h),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Already have an account?",
+                        style: TextStyle(
+                          fontSize: 15.sp,
+                          color: Colors.grey[900],
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                             Get.to(() => Signinscreen());
+                        },
+                        child: Text(
+                          "Sign in",
+                          style: TextStyle(
+                            fontSize: 15.sp,
+                             color: const Color.fromARGB(255, 63, 90, 227),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
