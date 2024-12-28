@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
             iconTheme: const IconThemeData( color: Color.fromARGB(255, 225, 173, 116),),
             useMaterial3: true,
           ),
-          home:  const Eventscreen(),
+          home:  const Splashscreen(),
         );
       },
     );
