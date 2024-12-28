@@ -47,7 +47,7 @@ class CustomTextFormField extends StatelessWidget {
               ),
             ),
           ),
-          style: const TextStyle(fontSize: 16),
+          style: const TextStyle(fontSize: 14),
         ),
       ),
     );

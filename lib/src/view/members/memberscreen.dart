@@ -67,79 +67,83 @@ class _MemberscreenState extends State<Memberscreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-         backgroundColor: const Color.fromARGB(255, 250, 244, 228),
-        body: SizedBox(
-          height: double.infinity,
-          width: double.infinity,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24.w),
-                child: Row(
-                
-                  children:  [
-                    SizedBox(
-                      child: Icon(
-                        Icons.arrow_back,
-                        color: Color.fromARGB(255, 35, 94, 77),
-                        size: 24,
+          backgroundColor: const Color.fromARGB(255, 250, 244, 228),
+          body: SizedBox(
+            height: double.infinity,
+            width: double.infinity,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24.w),
+                  child: Row(
+                    children: [
+                      const SizedBox(
+                        child: Icon(
+                          Icons.arrow_back,
+                          color: Color.fromARGB(255, 35, 94, 77),
+                          size: 24,
+                        ),
                       ),
-                    ),
-                    SizedBox(width:3.w),
-                    Expanded(child: SizedBox()),
-                  SizedBox(width:3.w),        CustomContainer(
-                      text: "Favourite",
-                      icon: Icons.location_on,
-                    ),      SizedBox(width:3.w),
-                    CustomContainer(
-                      text: "Location",
-                      icon: Icons.location_on,
-                    ),      SizedBox(width:3.w),
-                    CustomContainer(
-                      text: "Profession",
-                      icon: Icons.location_on,
-                    )
-                  ],
-                ),
-              ),
-              SizedBox(height: 16.h),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24.w),
-                child: Text(
-                  "EXPLORE MEMBERS",
-                  style: GoogleFonts.playfairDisplaySc(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black,
+                      SizedBox(width: 3.w),
+                      Expanded(child: SizedBox()),
+                      SizedBox(width: 3.w),
+                      const CustomContainer(
+                        text: "Favourite",
+                        icon: Icons.favorite_border,
+                      ),
+                      SizedBox(width: 3.w),
+                      const CustomContainer(
+                        text: "Location",
+                        icon: Icons.location_on_outlined,
+                      ),
+                      SizedBox(width: 3.w),
+                      const CustomContainer(
+                        text: "Profession",
+                         image: "assets/icons/calculator.png",
+                      )
+                    ],
                   ),
                 ),
-              ),
-              SizedBox(height: 12.h),
-              Padding(
-                padding:  EdgeInsets.symmetric(horizontal: 12.w),
-                child: const CustomTextFormField(
-                  hintText: "Member Names or profession",
+                SizedBox(height: 16.h),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24.w),
+                  child: Text(
+                    "EXPLORE MEMBERS",
+                    style: GoogleFonts.playfairDisplaySc(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
+                    ),
+                  ),
                 ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  padding: EdgeInsets.zero,
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: members.length,
-                  itemBuilder: (context, index) {
-                    final member = members[index];
-                    return MemberTile(
-                      imagePath: member["imagePath"]!,
-                      name: member["name"]!,
-                      profession: member["profession"]!,
-                      location: member["location"]!,
-                      isCircular: false,
-                    );
-                  },
+                SizedBox(height: 12.h),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12.w),
+                  child: const CustomTextFormField(
+                    hintText: "Member names or professions",
+                  ),
                 ),
-              )
-            ],
-          ),
-        )),
-    );}}
+                Expanded(
+                  child: ListView.builder(
+                    padding: EdgeInsets.zero,
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: members.length,
+                    itemBuilder: (context, index) {
+                      final member = members[index];
+                      return MemberTile(
+                        imagePath: member["imagePath"]!,
+                        name: member["name"]!,
+                        profession: member["profession"]!,
+                        location: member["location"]!,
+                        isCircular: false,
+                      );
+                    },
+                  ),
+                )
+              ],
+            ),
+          )),
+    );
+  }
+}

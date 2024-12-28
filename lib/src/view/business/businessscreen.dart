@@ -94,11 +94,11 @@ class _BusinessscreenState extends State<Businessscreen> {
                     ),        SizedBox(width: 5.w,),
                     const CustomContainer(
                       text: "Location",
-                      icon: Icons.location_on,
+                      icon: Icons.location_on_outlined,
                     ),        SizedBox(width: 5.w,),
                     const CustomContainer(
                       text: "Catagories",
-                      icon: Icons.category,
+                      icon: Icons.widgets_outlined,
                     )
                   ],
                 ),

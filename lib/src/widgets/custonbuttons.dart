@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 class CustomContainer extends StatefulWidget {
   final String text;
-  final IconData icon;
+  final IconData? icon; 
+  final String? image; 
 
   const CustomContainer({
     Key? key,
     required this.text,
-    required this.icon,
+    this.icon, 
+    this.image, 
   }) : super(key: key);
 
   @override
@@ -36,11 +41,23 @@ class _CustomContainerState extends State<CustomContainer> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              widget.icon,
-              color: _isTapped ? Colors.white : Colors.black,
-              size: 18,
-            ),
+            if (widget.icon != null)
+              Icon(
+                widget.icon,
+                color: _isTapped ? Colors.white : Colors.green,
+                size: 18,
+              )
+            else if (widget.image != null)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4.r), 
+                child: Image.asset(
+                  widget.image!,
+                  height: 16.h,
+                  width: 16.w,
+                    color: _isTapped ? Colors.white : Colors.green,
+                  fit: BoxFit.cover,
+                ),
+              ),
             const SizedBox(width: 4),
             Text(
               widget.text,
@@ -57,17 +74,18 @@ class _CustomContainerState extends State<CustomContainer> {
   }
 }
 
+
 class Custombutton extends StatefulWidget {
   final String text;
-  final IconData? icon; // Optional icon
-  final String? image; // Optional image
-  final Color color; // Background color
+  final IconData? icon; 
+  final String? image; 
+  final Color color; 
 
   const Custombutton({
     Key? key,
     required this.text,
-    this.icon, // Allow either an icon
-    this.image, // Or an image
+    this.icon, 
+    this.image, 
     required this.color,
   }) : super(key: key);
 
@@ -114,6 +132,47 @@ class _CustombuttonState extends State<Custombutton> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+ 
+
+
+
+
+class CustomIntrestsContainer extends StatefulWidget {
+  final String text;
+  final Color color;
+
+  const CustomIntrestsContainer({
+    Key? key,
+    required this.text,
+    required this.color,
+  }) : super(key: key);
+
+  @override
+  State<CustomIntrestsContainer> createState() =>
+      _CustomIntrestsContainerState();
+}
+
+class _CustomIntrestsContainerState extends State<CustomIntrestsContainer> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+     margin: const EdgeInsets.symmetric(horizontal: 3),
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      decoration: BoxDecoration(
+        color: widget.color, 
+        borderRadius: BorderRadius.circular(10.r), 
+      ),
+      child: Text(
+        widget.text,
+        style: TextStyle(
+          color: Colors.white, 
+          fontWeight: FontWeight.w500,
+          fontSize: 12.sp,
+        ),
       ),
     );
   }

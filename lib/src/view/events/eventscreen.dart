@@ -12,7 +12,7 @@ class Eventscreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-         backgroundColor: const Color.fromARGB(255, 250, 244, 228),
+        backgroundColor: const Color.fromARGB(255, 250, 244, 228),
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -37,19 +37,19 @@ class Eventscreen extends StatelessWidget {
                   ),
                   const CustomContainer(
                     text: "Saved",
-                    icon: Icons.bookmark,
+                    icon: Icons.bookmark_border,
                   ),
                   const CustomContainer(
                     text: "Location",
-                    icon: Icons.location_on,
+                    icon: Icons.location_on_outlined,
                   ),
                   const CustomContainer(
                     text: "Date",
-                    icon: Icons.date_range,
+                    image: "assets/icons/calculator.png",
                   ),
                   const CustomContainer(
                     text: "Type",
-                    icon: Icons.filter_alt,
+                    icon: Icons.filter_alt_outlined,
                   ),
                 ],
               ),
@@ -62,30 +62,30 @@ class Eventscreen extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 child: Row(
                   children: [
-                   Row(
-  children: [
-    Custombutton(
-      text: "Sports",
-      icon: Icons.sports_basketball,
-      color: const Color.fromARGB(255, 240, 99, 90),
-    ),
-    Custombutton(
-      text: "Music",
-       image:  "assets/icons/musicicon.png",
-      color: const Color.fromARGB(255, 245, 151, 98),
-    ),
-    Custombutton(
-      text: "Food",
-     image:  "assets/icons/foodicon.png",
-      color: const Color.fromARGB(255, 41, 214, 151),
-    ),
-    Custombutton(
-      text: "Drawing",
-      image: "assets/icons/painticon.png",
-      color: const Color.fromARGB(255, 70, 205, 251),
-    ),
-  ],
-)
+                    Row(
+                      children: [
+                        Custombutton(
+                          text: "Sports",
+                          icon: Icons.sports_basketball,
+                          color: const Color.fromARGB(255, 240, 99, 90),
+                        ),
+                        Custombutton(
+                          text: "Music",
+                          image: "assets/icons/musicicon.png",
+                          color: const Color.fromARGB(255, 245, 151, 98),
+                        ),
+                        Custombutton(
+                          text: "Food",
+                          image: "assets/icons/foodicon.png",
+                          color: const Color.fromARGB(255, 41, 214, 151),
+                        ),
+                        Custombutton(
+                          text: "Drawing",
+                          image: "assets/icons/painticon.png",
+                          color: const Color.fromARGB(255, 70, 205, 251),
+                        ),
+                      ],
+                    )
                   ],
                 ),
               ),
@@ -115,7 +115,7 @@ class Eventscreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 22),
               child: Container(
-                height: 530.h,
+                height: 535.h,
                 child: ListView.builder(
                   itemCount: eventModelList.length,
                   itemBuilder: (context, index) {
@@ -153,43 +153,45 @@ class Eventscreen extends StatelessWidget {
                                     ),
                                   ),
                                   Positioned(
-                                  top: 8.h,
-                                  left: 8.w,
-                                  child: Container(
-                                    height: 34.h,
-                                    width: 36.w,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(6.r),
-                                    ),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          model.day ?? '',
-                                          style: GoogleFonts.playfairDisplaySc(
-                                            fontSize: 14.sp,
-                                            color: Colors.green,
-                                            fontWeight: FontWeight.w700,
+                                    top: 8.h,
+                                    left: 8.w,
+                                    child: Container(
+                                      height: 34.h,
+                                      width: 36.w,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(6.r),
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            model.day ?? '',
+                                            style: GoogleFonts
+                                                .playfairDisplaySc(
+                                              fontSize: 14.sp,
+                                              color: Colors.green,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        Text(
-                                          model.month ?? '',
-                                          style: GoogleFonts.playfairDisplaySc(
-                                            fontSize: 8.sp,
-                                            color: Colors.green,
-                                            fontWeight: FontWeight.w700,
+                                          Text(
+                                            model.month ?? '',
+                                            style: GoogleFonts
+                                                .playfairDisplaySc(
+                                              fontSize: 8.sp,
+                                              color: Colors.green,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                ),
                                   Positioned(
                                     top: 10.h,
                                     right: 12.w,
@@ -214,7 +216,8 @@ class Eventscreen extends StatelessWidget {
                                 children: [
                                   // Title
                                   Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 6),
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 6),
                                     child: Row(
                                       children: [
                                         Text(
@@ -222,16 +225,18 @@ class Eventscreen extends StatelessWidget {
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: GoogleFonts.playfairDisplaySc(
-                                  fontSize: 12.sp,
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.w700,)
+                                            fontSize: 12.sp,
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.w700,
+                                          ),
                                         ),
                                         Spacer(),
                                         Container(
                                           height: 20.h,
                                           width: 20.h,
                                           decoration: BoxDecoration(
-                                               color: Color.fromARGB(255, 35, 94, 77),
+                                              color: Color.fromARGB(
+                                                  255, 35, 94, 77),
                                               borderRadius:
                                                   BorderRadius.circular(6)),
                                           child: Icon(
@@ -243,7 +248,6 @@ class Eventscreen extends StatelessWidget {
                                       ],
                                     ),
                                   ),
-                                 
                                   Row(
                                     children: [
                                       Container(
@@ -279,19 +283,21 @@ class Eventscreen extends StatelessWidget {
                                         model.subtitle ?? '',
                                         style: TextStyle(
                                           fontSize: 12.sp,
-                                          color:
-                                              Color.fromARGB(255, 35, 94, 77),
+                                          color: Color.fromARGB(
+                                              255, 35, 94, 77),
                                           fontWeight: FontWeight.w700,
                                         ),
                                       ),
                                     ],
                                   ),
                                   Padding(
-                                   padding: const EdgeInsets.symmetric(vertical: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 4),
                                     child: Row(
                                       children: [
                                         Icon(
-                                          model.locationIcon ?? Icons.location_on,
+                                          model.locationIcon ??
+                                              Icons.location_on,
                                           size: 16.sp,
                                           color: Colors.grey,
                                         ),
@@ -323,6 +329,34 @@ class Eventscreen extends StatelessWidget {
             ),
           ],
         ),
+      floatingActionButton: Padding(
+  padding: EdgeInsets.only(bottom: 10.h, right: 10.w), 
+  child: Container(
+    height: 40.h, 
+    decoration: BoxDecoration(
+      color: const Color.fromARGB(255, 35, 94, 77), 
+      borderRadius: BorderRadius.circular(15.r), 
+    ),
+    child: TextButton(
+      onPressed: () {
+      },
+      style: TextButton.styleFrom(
+        padding: EdgeInsets.symmetric(horizontal: 16.w), 
+      ),
+      child: Text(
+        "PROMOTE",
+        style: TextStyle(
+          fontSize: 14.sp, 
+          fontWeight: FontWeight.w700, 
+          color: const Color.fromARGB(255, 250, 244, 228), 
+        ),
+      ),
+    ),
+  ),
+),
+floatingActionButtonLocation: FloatingActionButtonLocation.endFloat, // Positioned at the right-end
+
+
       ),
     );
   }

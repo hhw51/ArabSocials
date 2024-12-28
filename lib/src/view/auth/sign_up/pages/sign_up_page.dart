@@ -98,9 +98,6 @@ class SignUpScreen extends StatelessWidget {
                               child: Switch(
                                 value: rememberMe.value,
                                 onChanged: (value) => rememberMe.value = value,
-                                activeColor: Colors.white,
-                                activeTrackColor:
-                                    const Color.fromARGB(255, 35, 94, 77),
                               ),
                             ),
                             Text(

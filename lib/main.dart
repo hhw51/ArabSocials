@@ -25,6 +25,11 @@ class MyApp extends StatelessWidget {
             colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
             textTheme: const TextTheme(bodyMedium: TextStyle(color: Colors.white)),
             iconTheme: const IconThemeData( color: Color.fromARGB(255, 225, 173, 116),),
+             switchTheme: SwitchThemeData(
+           thumbColor: WidgetStateProperty.all(Colors.white),
+            trackColor: WidgetStateProperty.all(const Color.fromARGB(255, 35, 94, 77)),
+           overlayColor: WidgetStateProperty.all(const Color.fromARGB(255, 35, 94, 77).withOpacity(0.3)),
+      ),
             useMaterial3: true,
           ),
           home:  const Splashscreen(),
