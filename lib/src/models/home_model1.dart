@@ -8,8 +8,8 @@ class HomescreenModel {
   String? image3;
   String? subtitle;
   IconData? imageIcon;
-  String? day; // New field for the day
-  String? month; // New field for the month
+  String? day; 
+  String? month; 
   IconData? locationIcon;
   String? locationText;
 

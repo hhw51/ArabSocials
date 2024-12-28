@@ -57,16 +57,17 @@ class _CustomContainerState extends State<CustomContainer> {
   }
 }
 
-
 class Custombutton extends StatefulWidget {
   final String text;
-  final IconData icon;
-  final Color color; // Background color of the button
+  final IconData? icon; // Optional icon
+  final String? image; // Optional image
+  final Color color; // Background color
 
   const Custombutton({
     Key? key,
     required this.text,
-    required this.icon,
+    this.icon, // Allow either an icon
+    this.image, // Or an image
     required this.color,
   }) : super(key: key);
 
@@ -75,49 +76,44 @@ class Custombutton extends StatefulWidget {
 }
 
 class _CustombuttonState extends State<Custombutton> {
-  bool _isTapped = false;
-
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _isTapped = !_isTapped; // Toggle the state
-        });
-      },
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 6), // Horizontal spacing between buttons
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12), // Padding inside the button
-        decoration: BoxDecoration(
-          color: _isTapped ? Colors.grey[300] : widget.color, // Change color when tapped
-          borderRadius: BorderRadius.circular(20), // Rounded corners
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1), // Subtle shadow
-              offset: const Offset(0, 2),
-              blurRadius: 4,
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      decoration: BoxDecoration(
+        color: widget.color,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (widget.icon != null) 
             Icon(
               widget.icon,
-              color: _isTapped ? Colors.black : Colors.white, // Icon color changes on tap
+              color: Colors.white,
               size: 20,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              widget.text,
-              style: TextStyle(
-                color: _isTapped ? Colors.black : Colors.white, // Text color changes on tap
-                fontWeight: FontWeight.bold,
-                fontSize: 14.sp,
+            )
+          else if (widget.image != null) 
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                widget.image!,
+                height: 18,
+                width: 18,
+                fit: BoxFit.cover,
               ),
             ),
-          ],
-        ),
+          const SizedBox(width: 6),
+          Text(
+            widget.text,
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w500,
+              fontSize: 14.sp,
+            ),
+          ),
+        ],
       ),
     );
   }

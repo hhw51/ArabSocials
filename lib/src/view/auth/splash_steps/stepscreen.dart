@@ -16,17 +16,21 @@ class Stepscreen extends StatelessWidget {
       backgroundColor: const Color.fromARGB(255, 35, 94, 77),
       body: Stack(
         children: [
-          // Static Background Image
-          Container(
-            height: 650.h,
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/logo/stepimage.png'),
-                fit: BoxFit.cover,
+          // Dynamic Background Image
+          Obx(() {
+            final step = controller.currentStep.value;
+            return Container(
+              height: 650.h,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage(controller.getCurrentStepImage(step)),
+                  fit: BoxFit.cover,
+                ),
               ),
-            ),
-          ),
+            );
+          }),
+
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
@@ -63,6 +67,7 @@ class Stepscreen extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: 18.sp,
                                       fontWeight: FontWeight.w400,
+                                      color: Colors.white,
                                     ),
                                   ))
                               .toList(),
@@ -85,7 +90,7 @@ class Stepscreen extends StatelessWidget {
                               minimumSize: Size(double.infinity, 55.h),
                             ),
                             onPressed: () {
-                             Get.to(() => const Signinscreen());
+                              Get.to(() => const Signinscreen());
                             },
                             child: Text(
                               "GET STARTED",
