@@ -1,4 +1,5 @@
 import 'package:arab_socials/src/view/auth/splash_steps/splash.dart';
+import 'package:arab_socials/src/view/events/eventscreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
@@ -22,10 +23,11 @@ class MyApp extends StatelessWidget {
             scaffoldBackgroundColor: const Color.fromARGB(255, 250, 244, 228),
             fontFamily: 'PlayfairDisplaySC',
             colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-            textTheme: TextTheme(bodyMedium: TextStyle(color: Colors.white)),
+            textTheme: const TextTheme(bodyMedium: TextStyle(color: Colors.white)),
+            iconTheme: const IconThemeData( color: Color.fromARGB(255, 225, 173, 116),),
             useMaterial3: true,
           ),
-          home:  const Splashscreen(),
+          home:  const Eventscreen(),
         );
       },
     );
