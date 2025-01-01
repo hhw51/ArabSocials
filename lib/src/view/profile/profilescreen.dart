@@ -1,7 +1,10 @@
+import 'package:arab_socials/src/controllers/navigation_controller.dart';
 import 'package:arab_socials/src/widgets/custom_profiletext.dart';
 import 'package:arab_socials/src/widgets/custonbuttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -16,6 +19,7 @@ class _ProfilescreenState extends State<Profilescreen> {
   @override
   Widget build(BuildContext context) {
     final RxBool rememberMe = true.obs;
+    final NavigationController navigationController = Get.put(NavigationController());
 
     return SafeArea(
       child: Scaffold(
@@ -27,18 +31,23 @@ class _ProfilescreenState extends State<Profilescreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.arrow_back,
-                      color: Color.fromARGB(255, 35, 94, 77),
-                      size: 24,
+                    InkWell(
+                        onTap: () {
+                      navigationController.updateIndex(3);
+                    }, 
+                      child: const Icon(
+                        Icons.arrow_back,
+                        color: Color.fromARGB(255, 35, 94, 77),
+                        size: 24,
+                      ),
                     ),
-                    Spacer(),
-                    CustomContainer(
+                    const Spacer(),
+                    const CustomContainer(
                       text: "Edit Profile",
-                      icon: Icons.edit_document,
+                     image: "assets/icons/editprofile.png",
                     ),
                   ],
                 ),

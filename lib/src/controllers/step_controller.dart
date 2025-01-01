@@ -4,6 +4,7 @@ import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 class StepsController extends GetxController {
   var currentStep = 0.obs;
 
+
   void nextStep() {
     if (currentStep.value < 2) {
       currentStep.value++;

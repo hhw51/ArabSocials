@@ -1,3 +1,4 @@
+import 'package:arab_socials/src/controllers/navigation_controller.dart';
 import 'package:arab_socials/src/view/business/businessscreen.dart';
 import 'package:arab_socials/src/view/events/eventscreen.dart';
 import 'package:arab_socials/src/view/homepage/homescreen.dart';
@@ -15,21 +16,26 @@ class BottomNav extends StatefulWidget {
 }
 
 class _BottomNavState extends State<BottomNav> {
+    final NavigationController navigationController = Get.put(NavigationController());
+
   final RxInt _currentIndex = 0.obs;
 
   final List<Widget> _screens = [
-    const Homescreen(),
-    const Eventscreen(),
-    const Memberscreen(),
-    const Businessscreen(),
-    const Profilescreen(),
+     Homescreen(),
+     Eventscreen(),
+     Memberscreen(),
+     Businessscreen(),
+     Profilescreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Obx(
       () => Scaffold(
-        body: _screens[_currentIndex.value],
+        body: Obx(() {
+        // Using the currentIndex from the controller
+        return _screens[navigationController.currentIndex.value];
+      }),
         bottomNavigationBar: Container(
           height: 72.h,
           decoration: const BoxDecoration(
@@ -41,8 +47,8 @@ class _BottomNavState extends State<BottomNav> {
           child: BottomNavigationBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
-            currentIndex: _currentIndex.value,
-            onTap: (index) => _currentIndex.value = index,
+            currentIndex: navigationController.currentIndex.value,
+            onTap: (index) => navigationController.currentIndex.value = index,
             type: BottomNavigationBarType.fixed,
             selectedFontSize: 12,
             unselectedFontSize: 12,
@@ -94,8 +100,7 @@ class _BottomNavState extends State<BottomNav> {
               ),
             ],
           ),
-        ),
-      ),
+        ),)
     );
   }
 }

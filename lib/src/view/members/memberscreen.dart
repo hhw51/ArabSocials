@@ -1,18 +1,22 @@
+import 'package:arab_socials/src/controllers/navigation_controller.dart';
 import 'package:arab_socials/src/widgets/custonbuttons.dart';
 import 'package:arab_socials/src/widgets/member_tiles.dart';
 import 'package:arab_socials/src/widgets/textfomr_feild.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class Memberscreen extends StatefulWidget {
-  const Memberscreen({super.key});
+   Memberscreen({super.key});
 
   @override
   State<Memberscreen> createState() => _MemberscreenState();
 }
 
 class _MemberscreenState extends State<Memberscreen> {
+  final NavigationController navigationController = Get.put(NavigationController());
   final List<Map<String, String>> members = [
     {
       "name": "Alex Lee",
@@ -78,7 +82,10 @@ class _MemberscreenState extends State<Memberscreen> {
                   padding: EdgeInsets.symmetric(horizontal: 24.w),
                   child: Row(
                     children: [
-                      const SizedBox(
+                      InkWell(
+                          onTap: () {
+                      navigationController.updateIndex(1);
+                    }, 
                         child: Icon(
                           Icons.arrow_back,
                           color: Color.fromARGB(255, 35, 94, 77),

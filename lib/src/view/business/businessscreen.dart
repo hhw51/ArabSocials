@@ -1,8 +1,10 @@
+import 'package:arab_socials/src/controllers/navigation_controller.dart';
 import 'package:arab_socials/src/widgets/custonbuttons.dart';
 import 'package:arab_socials/src/widgets/member_tiles.dart';
 import 'package:arab_socials/src/widgets/textfomr_feild.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class Businessscreen extends StatefulWidget {
@@ -13,6 +15,7 @@ class Businessscreen extends StatefulWidget {
 }
 
 class _BusinessscreenState extends State<Businessscreen> {
+  final NavigationController navigationController = Get.put(NavigationController());
   final List<Map<String, String>> members = [
     {
       "name": "Alex Lee",
@@ -79,7 +82,10 @@ class _BusinessscreenState extends State<Businessscreen> {
                 child: Row(
                  
                   children:  [
-                    const SizedBox(
+                    InkWell(
+                        onTap: () {
+                      navigationController.updateIndex(2);
+                    }, 
                       child: Icon(
                         Icons.arrow_back,
                         color: Color.fromARGB(255, 35, 94, 77),

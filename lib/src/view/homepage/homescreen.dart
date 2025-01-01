@@ -323,7 +323,7 @@ class _HomescreenState extends State<Homescreen> {
                                     style: TextStyle(
                                       fontSize: 14.sp,
                                       fontWeight: FontWeight.w700,
-                                      color: Colors.white,
+                                      color: const Color.fromARGB(255, 250, 244, 228),
                                     ),
                                   ),
                                 ),
@@ -447,7 +447,7 @@ class _HomescreenState extends State<Homescreen> {
                                       style: TextStyle(
                                         fontSize: 14.sp,
                                         fontWeight: FontWeight.w700,
-                                        color: Colors.white,
+                                        color: const Color.fromARGB(255, 250, 244, 228),
                                       ),
                                     ),
                                   ),

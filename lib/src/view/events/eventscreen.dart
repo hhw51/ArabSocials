@@ -1,12 +1,17 @@
+import 'package:arab_socials/src/controllers/navigation_controller.dart';
 import 'package:arab_socials/src/models/event_model.dart';
 import 'package:arab_socials/src/widgets/custonbuttons.dart';
 import 'package:arab_socials/src/widgets/textfomr_feild.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class Eventscreen extends StatelessWidget {
-  const Eventscreen({super.key});
+    
+
+   Eventscreen({super.key});
+  final NavigationController navigationController = Get.put(NavigationController());
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +26,10 @@ class Eventscreen extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: 22.w),
               child: Row(
                 children: [
-                  const SizedBox(
+                  InkWell(
+                    onTap: () {
+                      navigationController.updateIndex(0);
+                    }, 
                     child: Icon(
                       Icons.arrow_back,
                       color: Color.fromARGB(255, 35, 94, 77),
