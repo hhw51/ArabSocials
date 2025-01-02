@@ -1,7 +1,7 @@
 import 'package:arab_socials/src/controllers/navigation_controller.dart';
 import 'package:arab_socials/src/models/event_model.dart';
 import 'package:arab_socials/src/widgets/custonbuttons.dart';
-import 'package:arab_socials/src/widgets/popup_home.dart';
+import 'package:arab_socials/src/widgets/popup_event.dart';
 import 'package:arab_socials/src/widgets/textfomr_feild.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -259,7 +259,7 @@ class Eventscreen extends StatelessWidget {
                                             Spacer(),
                                             GestureDetector(
                                                onTapDown: (details) {
-                                                 showCustomPopupMenu(context, details.globalPosition);
+                                                 showCustomPopupMenu(context);
                                                },
                                                child: Container(
                                                  height: 20.h,

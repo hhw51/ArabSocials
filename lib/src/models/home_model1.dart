@@ -27,7 +27,6 @@ class HomescreenModel {        /////////////////////FIRST MODEL HOMESCREEN//////
     this.isBookmarked = false, 
   });
 }
-
 List<HomescreenModel> homescreenModelList = [
   HomescreenModel(
     title: "INTERNATIONAL BAND MUUSJX",

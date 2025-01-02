@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 
-void showCustomPopupMenu(BuildContext context, Offset offset) {
+void showCustomPopupMenu(BuildContext context) {
+  // Get screen size
+  final screenSize = MediaQuery.of(context).size;
+
+  // Calculate center offset
+  final centerOffset = Offset(screenSize.width / 2, screenSize.height / 2);
+
+  // Show the menu
   showMenu(
     color: const Color.fromARGB(255, 255, 255, 255),
     context: context,
     position: RelativeRect.fromLTRB(
-      offset.dx,
-      offset.dy,
-      MediaQuery.of(context).size.width - offset.dx,
-      MediaQuery.of(context).size.height - offset.dy,
+      centerOffset.dx - 27, // Adjust for popup width
+      centerOffset.dy - 108,  // Adjust for popup height
+      centerOffset.dx + 100,
+      centerOffset.dy + 50,
     ),
     items: [
       const PopupMenuItem(
@@ -43,7 +50,6 @@ void showCustomPopupMenu(BuildContext context, Offset offset) {
       ),
     ],
   ).then((value) {
-    // Handle menu item selection
     if (value != null) {
       if (value == 'register') {
         print('Register selected');
