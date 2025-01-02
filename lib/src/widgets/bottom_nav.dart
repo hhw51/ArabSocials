@@ -16,16 +16,14 @@ class BottomNav extends StatefulWidget {
 }
 
 class _BottomNavState extends State<BottomNav> {
-    final NavigationController navigationController = Get.put(NavigationController());
-
-  final RxInt _currentIndex = 0.obs;
+  final NavigationController navigationController = Get.put(NavigationController());
 
   final List<Widget> _screens = [
-     Homescreen(),
-     Eventscreen(),
-     Memberscreen(),
-     Businessscreen(),
-     Profilescreen(),
+    Homescreen(),
+    Eventscreen(),
+    Memberscreen(),
+    Businessscreen(),
+    Profilescreen(),
   ];
 
   @override
@@ -33,9 +31,8 @@ class _BottomNavState extends State<BottomNav> {
     return Obx(
       () => Scaffold(
         body: Obx(() {
-        // Using the currentIndex from the controller
-        return _screens[navigationController.currentIndex.value];
-      }),
+          return _screens[navigationController.currentIndex.value];
+        }),
         bottomNavigationBar: Container(
           height: 72.h,
           decoration: const BoxDecoration(
@@ -44,63 +41,68 @@ class _BottomNavState extends State<BottomNav> {
               top: Radius.circular(36),
             ),
           ),
-          child: BottomNavigationBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            currentIndex: navigationController.currentIndex.value,
-            onTap: (index) => navigationController.currentIndex.value = index,
-            type: BottomNavigationBarType.fixed,
-            selectedFontSize: 12,
-            unselectedFontSize: 12,
-            selectedItemColor: const Color.fromARGB(255, 225, 173, 116),
-            unselectedItemColor: const Color.fromARGB(255, 190, 218, 165),
-            showUnselectedLabels: true,
-            items: [
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.home_filled),
-                activeIcon: Icon(Icons.home_filled),
-                label: 'Home',
-              ),
-              BottomNavigationBarItem(
-                icon: Image.asset(
-                  'assets/icons/events.png',
-                  width: 22.w,
-                  height: 23.h,
-                ),
-                activeIcon: Image.asset(
-                  'assets/icons/activebusiness.png',
-                  width: 22.w,
-                  height: 23.h,
-                ),
-                label: 'Events',
-              ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.group_outlined),
-                activeIcon: Icon(Icons.group),
-                label: 'Members',
-              ),
-              BottomNavigationBarItem(
-               icon: Image.asset(
-                  'assets/icons/business.png',
-                  width: 22.w,
-                  height: 23.h,
-                ),
-                activeIcon: Image.asset(
-                  'assets/icons/business.png',
-                  width: 22.w,
-                  height: 23.h,
-                  color: const Color.fromARGB(255, 225, 173, 116),
-                ),
-                label: 'Businesses',
-              ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.person_2_rounded),
-                activeIcon: Icon(Icons.person_2_rounded),
-                label: 'Profile',
-              ),
-            ],
+          child: Theme(
+    data: Theme.of(context).copyWith(
+      splashColor: Colors.transparent, 
+      highlightColor: Colors.transparent, 
+    ),
+    child: BottomNavigationBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      currentIndex: navigationController.currentIndex.value,
+      onTap: (index) => navigationController.updateIndex(index),
+      enableFeedback: false, 
+      type: BottomNavigationBarType.fixed,
+      selectedFontSize: 12,
+      unselectedFontSize: 12,
+      selectedItemColor: const Color.fromARGB(255, 225, 173, 116),
+      unselectedItemColor: const Color.fromARGB(255, 190, 218, 165),
+      showUnselectedLabels: true,
+      items: [
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.home_filled),
+          activeIcon: Icon(Icons.home_filled),
+          label: 'Home',
+        ),
+        BottomNavigationBarItem(
+          icon: Image.asset(
+            'assets/icons/events.png',
+            width: 22.w,
+            height: 23.h,
           ),
-        ),)
-    );
-  }
-}
+          activeIcon: Image.asset(
+            'assets/icons/activebusiness.png',
+            width: 22.w,
+            height: 23.h,
+          ),
+          label: 'Events',
+        ),
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.group_outlined),
+          activeIcon: Icon(Icons.group),
+          label: 'Members',
+        ),
+        BottomNavigationBarItem(
+          icon: Image.asset(
+            'assets/icons/business.png',
+            width: 22.w,
+            height: 23.h,
+          ),
+          activeIcon: Image.asset(
+            'assets/icons/business.png',
+            width: 22.w,
+            height: 23.h,
+            color: const Color.fromARGB(255, 225, 173, 116),
+          ),
+          label: 'Businesses',
+        ),
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.person_2_rounded),
+          activeIcon: Icon(Icons.person_2_rounded),
+          label: 'Profile',
+        ),
+      ],
+    ),
+  ),
+),
+      ));}}

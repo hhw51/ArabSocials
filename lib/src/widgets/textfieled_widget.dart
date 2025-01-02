@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
   //final String labelText;
-  final String hintText;
+  final String hintText;         /////////////////////TEXTFIELDS IN SIGNIN, SUGNUP///////////////////////////////
   final bool isPassword;
   final IconData? prefixIcon;
   final IconData? suffixIcon;

@@ -7,7 +7,7 @@ class CustomTextFormField extends StatelessWidget {
   const CustomTextFormField({
     Key? key,
     required this.hintText,
-  }) : super(key: key);
+  }) : super(key: key);             ////////////////////////SEARCH FIELDS IN SCREEN///////////////////////////
 
   @override
   Widget build(BuildContext context) {

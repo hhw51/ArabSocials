@@ -7,12 +7,11 @@ class EventModel {
   String? image2;
   String? image3;
   String? subtitle;
-  IconData? bookmarkIcon;
   String? day;
   String? month;
   IconData? locationIcon;
   String? locationText;
-
+  bool isBookmarked;
   EventModel({
     this.mainImage,
     this.title,
@@ -22,9 +21,9 @@ class EventModel {
     this.subtitle,
     this.day,
     this.month,
-    this.bookmarkIcon,
     this.locationIcon,
     this.locationText,
+    this.isBookmarked = false,
   });
 }
 
@@ -37,7 +36,6 @@ List<EventModel> eventModelList = [
     image3: "assets/logo/image3.png",
     day: "12",
     month: "JULY",
-    bookmarkIcon: Icons.bookmark,
     locationIcon: Icons.location_on,
     subtitle: "+25 Going",
     locationText: "45 Park Lane, New York, USA",
@@ -50,7 +48,6 @@ List<EventModel> eventModelList = [
     image3: "assets/logo/image3.png",
     day: "20",
     month: "JUNE",
-    bookmarkIcon: Icons.bookmark_border,
     locationIcon: Icons.location_on,
     subtitle: "+50 Going",
     locationText: "123 Main Street, Los Angeles, USA",
@@ -63,7 +60,6 @@ List<EventModel> eventModelList = [
     image3: "assets/logo/image3.png",
     day: "5",
     month: "JUNE",
-    bookmarkIcon: Icons.bookmark,
     locationIcon: Icons.location_on,
     subtitle: "+100 Going",
     locationText: "789 Beach Avenue, Miami, USA",

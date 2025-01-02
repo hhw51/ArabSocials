@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class CustomContainer extends StatefulWidget {
   final String text;
@@ -12,7 +13,7 @@ class CustomContainer extends StatefulWidget {
   const CustomContainer({
     Key? key,
     required this.text,
-    this.icon, 
+    this.icon,                           ////////////////////////GERRNBUTTON IN APPBAR IN ALL SCREENS////////////////////////////////
     this.image, 
   }) : super(key: key);
 
@@ -75,6 +76,10 @@ class _CustomContainerState extends State<CustomContainer> {
 }
 
 
+
+
+///////////////////////////////////EVENTSCREEN SPORTS, MUSIC OR.............BUTTON////////////////////////////
+
 class Custombutton extends StatefulWidget {
   final String text;
   final IconData? icon; 
@@ -114,7 +119,7 @@ class _CustombuttonState extends State<Custombutton> {
             )
           else if (widget.image != null) 
             ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(8.r),
               child: Image.asset(
                 widget.image!,
                 height: 18,
@@ -138,7 +143,7 @@ class _CustombuttonState extends State<Custombutton> {
 }
  
 
-
+/////////////////////////IN PROFILESCREEN INTERESTS CONTAINER/////////////////////////////////
 
 
 class CustomIntrestsContainer extends StatefulWidget {
@@ -173,6 +178,72 @@ class _CustomIntrestsContainerState extends State<CustomIntrestsContainer> {
           fontWeight: FontWeight.w500,
           fontSize: 12.sp,
         ),
+      ),
+    );
+  }
+}
+
+
+
+
+
+
+////////////////////////IN HOMESCREEN HEAD TEXT AND SEE ALL BUTTON//////////////////////////////////////
+
+
+
+class SectionHeader extends StatelessWidget {
+  final String title; 
+  final String actionText; 
+  final VoidCallback? onTap; 
+
+  const SectionHeader({
+    Key? key,
+    required this.title,
+    this.actionText = "See all",
+    this.onTap,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 10.h),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: GoogleFonts.playfairDisplaySc(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w700,
+              color: Colors.black,
+            ),
+          ),
+          Row(
+            children: [
+              GestureDetector(
+                onTap: onTap,
+                child: Text(
+                  actionText,
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w400,
+                    color: const Color.fromARGB(255, 143, 146, 137),
+                  ),
+                ),
+              ),
+              SizedBox(width: 5.w),
+              GestureDetector(
+                onTap: onTap,
+                child: Icon(
+                  Icons.arrow_forward_ios_outlined,
+                  size: 16.sp,
+                  color: const Color.fromARGB(255, 35, 94, 77),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

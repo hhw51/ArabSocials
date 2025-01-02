@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 
-class HomescreenModel {
+class HomescreenModel {        /////////////////////FIRST MODEL HOMESCREEN//////////////////
   String? mainImage;
   String? title;
   String? image1;
   String? image2;
   String? image3;
   String? subtitle;
-  IconData? imageIcon;
-  String? day; 
-  String? month; 
+  String? day;
+  String? month;
   IconData? locationIcon;
   String? locationText;
+  bool isBookmarked; 
 
   HomescreenModel({
     this.mainImage,
@@ -22,50 +22,45 @@ class HomescreenModel {
     this.subtitle,
     this.day,
     this.month,
-    this.imageIcon,
     this.locationIcon,
     this.locationText,
+    this.isBookmarked = false, 
   });
 }
 
-List<HomescreenModel> homescreenModelList =[
-   HomescreenModel(
-    title: "INTERNATIONAL BAND MUU...",
-    mainImage: "assets/logo/homegrid.png",
-    image1: "assets/logo/image1.png",
-    image2: "assets/logo/image2.png",
-    image3: "assets/logo/image3.png",
-    day: "10", 
-    month: "JUNE", 
-    imageIcon: Icons.bookmark,
-    locationIcon: Icons.location_on,
-    subtitle: "+20 going",
-    locationText: "36 Guild Street London, UK",
-  ),
-
-   HomescreenModel(
-    title: "INTERNATIONAL BAND MUU...",
+List<HomescreenModel> homescreenModelList = [
+  HomescreenModel(
+    title: "INTERNATIONAL BAND MUUSJX",
     mainImage: "assets/logo/homegrid.png",
     image1: "assets/logo/image1.png",
     image2: "assets/logo/image2.png",
     image3: "assets/logo/image3.png",
     day: "10",
-    month: "JUNE", 
-    imageIcon: Icons.bookmark,
+    month: "JUNE",
     locationIcon: Icons.location_on,
     subtitle: "+20 going",
     locationText: "36 Guild Street London, UK",
   ),
-
-   HomescreenModel(
-    title: "INTERNATIONAL BAND MUU...",
+  HomescreenModel(
+    title: "INTERNATIONAL BAND MUUHGAKA",
     mainImage: "assets/logo/homegrid.png",
     image1: "assets/logo/image1.png",
     image2: "assets/logo/image2.png",
     image3: "assets/logo/image3.png",
-    day: "10", 
-    month: "JUNE", 
-    imageIcon: Icons.bookmark,
+    day: "10",
+    month: "JUNE",
+    locationIcon: Icons.location_on,
+    subtitle: "+20 going",
+    locationText: "36 Guild Street London, UK",
+  ),
+  HomescreenModel(
+    title: "INTERNATIONAL BAND MUUUDHC",
+    mainImage: "assets/logo/homegrid.png",
+    image1: "assets/logo/image1.png",
+    image2: "assets/logo/image2.png",
+    image3: "assets/logo/image3.png",
+    day: "10",
+    month: "JUNE",
     locationIcon: Icons.location_on,
     subtitle: "+20 going",
     locationText: "36 Guild Street London, UK",
@@ -74,8 +69,9 @@ List<HomescreenModel> homescreenModelList =[
 
 
 
+///////////////////////SECOND MODEL HOMESCREEN//////////////////////
 
-class Homescreenlogo {
+class Homescreenlogo {   
   String? logoimage;
   String? logoimage1;
    String? logoimage2;
@@ -99,7 +95,7 @@ List<Homescreenlogo> homescreenlogoList =[
 
 
 
-
+//////////////////////////THIRD MODEL HOMESCREEN/////////////////////////////////
 
 class Homescreenfotter {
   String? fotterimage;
