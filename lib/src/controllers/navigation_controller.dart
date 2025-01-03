@@ -5,7 +5,6 @@ class NavigationController extends GetxController {
   final _navigationStack = <int>[].obs;
 
   void updateIndex(int index) {
-    // Add the current index to the stack before navigating to the new index
     _navigationStack.add(currentIndex.value);
     currentIndex.value = index;
   }

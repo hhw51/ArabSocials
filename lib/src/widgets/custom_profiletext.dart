@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 class CustomData extends StatefulWidget {
   final String title;
   final String subtitle;
-  final bool showSwitch; 
+  final bool showSwitch;                 ////////////////////////////////PROFILE SCREEN PERSONAL DETAILS//////////////////////////////////////
   final bool switchValue; 
   final ValueChanged<bool>? onSwitchChanged; 
 
