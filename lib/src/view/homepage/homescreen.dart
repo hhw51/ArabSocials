@@ -335,7 +335,6 @@ class _HomescreenState extends State<Homescreen> {
                                print("See all tapped!");
                              },
                            ),
-        
                           SizedBox(
                             height: 80.h,
                             child: ListView.builder(
@@ -350,7 +349,6 @@ class _HomescreenState extends State<Homescreen> {
                                   logoModel.logoimage2,
                                   logoModel.logoimage3,
                                 ];
-        
                                 return Row(
                                   children: logoPaths.map((imagePath) {
                                     if (imagePath != null) {

@@ -63,9 +63,9 @@ class SignUpScreen extends StatelessWidget {
                    // labelText: "Account Type",
                     hintText: "Account type",
                     prefixIcon: Icons.person_2_outlined,
-                    items: [
-                      "Admin",
-                      "User",
+                    items: const [
+                      "Personal",
+                      "Business",
                     ], 
                     onChanged: (value) {
                       print("Selected Account Type: $value");

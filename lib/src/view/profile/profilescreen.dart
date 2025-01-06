@@ -262,7 +262,7 @@ class _ProfilescreenState extends State<Profilescreen> {
                     scale: 0.7,
                     child: Switch(
                       value: rememberMe.value,
-                      onChanged: (value) => rememberMe.value = false,
+                      onChanged: (value) => rememberMe.value = true,
                     ),
                   ),
                 ],
