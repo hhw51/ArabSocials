@@ -7,7 +7,7 @@ class CustomLogoContainer extends StatelessWidget {
   const CustomLogoContainer({Key? key, required this.imagePath})
       : super(key: key);
 
-  @override                                 //////////////////////////////FEATURED BUSINESS LISTVIEW//////////////////////////
+  @override                                 //////////////////////////////FEATURED BUSINESS LISTVIEW IN HOMESCREEN//////////////////////////
   Widget build(BuildContext context) {
     return Container(
       width: 72.w,

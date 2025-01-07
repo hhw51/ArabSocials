@@ -1,20 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class CustomData extends StatelessWidget {
+class CustonDetails extends StatelessWidget {
   final String title;
   final String subtitle;
-  final bool showSwitch;
-  final bool? switchValue; // Made optional
-  final ValueChanged<bool>? onSwitchChanged; // Made optional
-
-  const CustomData({
+ 
+  const CustonDetails({
     Key? key,
     required this.title,
     required this.subtitle,
-    this.showSwitch = false,
-    this.switchValue, // Optional
-    this.onSwitchChanged, // Optional
+   
   }) : super(key: key);
 
   @override
@@ -23,7 +18,6 @@ class CustomData extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Title and Subtitle
         Expanded(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,20 +46,8 @@ class CustomData extends StatelessWidget {
             ],
           ),
         ),
-
-        // Switch
-        if (showSwitch)
-          Transform.scale(
-            scale: 0.7,
-            child: Switch(
-              value: switchValue ?? false, // Default to false if null
-              onChanged: onSwitchChanged,
-              activeColor: Colors.white,
-              activeTrackColor: const Color.fromARGB(255, 35, 94, 77),
-              inactiveThumbColor: Colors.grey,
-              inactiveTrackColor: Colors.grey[300],
-            ),
-          ),
+         SizedBox(height: 30.h),
+      
       ],
     );
   }

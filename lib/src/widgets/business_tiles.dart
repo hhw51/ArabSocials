@@ -4,20 +4,19 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class MemberTile extends StatefulWidget {
+class BusinessTile extends StatefulWidget {
   final String imagePath;
   final String name;
-  final String profession;
+  final String category;
   final String location;
   final bool isCircular;
   final VoidCallback? onTap; 
-
-
-  const MemberTile({
+  
+  const BusinessTile({
     super.key,
     required this.imagePath,
     required this.name,
-    required this.profession,
+    required this.category,
     required this.location,
     required this.isCircular,
     this.onTap, 
@@ -25,12 +24,13 @@ class MemberTile extends StatefulWidget {
   });
 
   @override
-  State<MemberTile> createState() => _MemberTileState();
+  State<BusinessTile> createState() => _BusinessTileState();
 }
 
-class _MemberTileState extends State<MemberTile> {
+class _BusinessTileState extends State<BusinessTile> {
   bool isFavorite = false;
-      final NavigationController navigationController = Get.put(NavigationController());
+
+    final NavigationController navigationController = Get.put(NavigationController());
 
   @override
   Widget build(BuildContext context) {
@@ -77,13 +77,13 @@ class _MemberTileState extends State<MemberTile> {
                     SizedBox(height: 4.h),
                     Row(
                       children: [
-                        Text("Profession:",
+                        Text("Category:",
                             style: TextStyle(
                                 color: Colors.black, fontSize: 10.sp)),
                         SizedBox(width: 4.w),
                         Expanded(
                           child: Text(
-                            widget.profession,
+                            widget.category,
                             style:
                                 TextStyle(color: Colors.grey, fontSize: 8.sp),
                             overflow: TextOverflow.ellipsis,
@@ -126,9 +126,9 @@ class _MemberTileState extends State<MemberTile> {
                           : const Color.fromARGB(255, 35, 94, 77),
                     ),
                   ),
-                  InkWell(
+                   InkWell(
                      onTap: widget.onTap,
-                     child: const Row(
+                     child:  const Row(
                       children: [
                         Text(
                           "View",
@@ -140,7 +140,8 @@ class _MemberTileState extends State<MemberTile> {
                           color: Color.fromARGB(255, 35, 94, 77),
                         ),
                       ],
-                     ),
+                     ), 
+
                    ),
                 ],
               ),

@@ -1,6 +1,6 @@
 import 'package:arab_socials/src/controllers/navigation_controller.dart';
 import 'package:arab_socials/src/widgets/custom_profiletext.dart';
-import 'package:arab_socials/src/widgets/custonbuttons.dart';
+import 'package:arab_socials/src/widgets/custombuttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -16,17 +16,21 @@ class Profilescreen extends StatefulWidget {
 class _ProfilescreenState extends State<Profilescreen> {
   @override
   Widget build(BuildContext context) {
-    final RxBool rememberMe = true.obs;
+    final RxBool rememberMe = false.obs;
     final NavigationController navigationController = Get.put(NavigationController());
      // Define state for each switch
   final phoneSwitch = false.obs;
-  final emailSwitch = true.obs;
+  final emailSwitch = false.obs;
   final locationSwitch = false.obs;
-  final genderSwitch = true.obs;
+  final genderSwitch = false.obs;
   final dobSwitch = false.obs;
-  final professionSwitch = true.obs;
+  final professionSwitch = false.obs;
   final nationalitySwitch = false.obs;
-  final maritalStatusSwitch = true.obs;
+  final maritalStatusSwitch = false.obs;
+  final RxBool aboutMeSwitch = false.obs;
+  final RxBool interestsSwitch = false.obs;
+  // final RxBool socialMediaSwitch = false.obs;
+
 
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 250, 244, 228),
@@ -117,13 +121,17 @@ class _ProfilescreenState extends State<Profilescreen> {
                     ),
                   ),
                   const Spacer(),
-                  Transform.scale(
-                    scale: 0.7,
-                    child: Switch(
-                      value: rememberMe.value,
-                      onChanged: (value) => rememberMe.value = value,
-                    ),
-                  ),
+                Transform.scale(
+  scale: 0.7,
+  child: Obx(() => Switch(
+    value: aboutMeSwitch.value,
+    onChanged: (value) => aboutMeSwitch.value = value,
+    activeColor: Colors.white,
+    activeTrackColor: const Color.fromARGB(255, 35, 94, 77),
+    inactiveThumbColor: Colors.grey,
+    inactiveTrackColor: Colors.grey[300],
+  )),
+),
                 ],
               ),
               Text(
@@ -145,13 +153,17 @@ class _ProfilescreenState extends State<Profilescreen> {
                     ),
                   ),
                   const Spacer(),
-                  Transform.scale(
-                    scale: 0.7,
-                    child: Switch(
-                      value: rememberMe.value,
-                      onChanged: (value) => rememberMe.value = value,
-                    ),
-                  ),
+                 Transform.scale(
+  scale: 0.7,
+  child: Obx(() => Switch(
+    value: interestsSwitch.value,
+    onChanged: (value) => interestsSwitch.value = value,
+    activeColor: Colors.white,
+    activeTrackColor: const Color.fromARGB(255, 35, 94, 77),
+    inactiveThumbColor: Colors.grey,
+    inactiveTrackColor: Colors.grey[300],
+  )),
+),
                 ],
               ),
               const Row(
@@ -185,101 +197,124 @@ class _ProfilescreenState extends State<Profilescreen> {
                     ),
                 ),
               ),
-              Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Obx(() => CustomData(
-                  title: "Phone",
-                  subtitle: "555 568 254 789",
-                  showSwitch: true,
-                  switchValue: phoneSwitch.value,
-                  onSwitchChanged: (value) => phoneSwitch.value = false,
-                )),
-            Obx(() => CustomData(
-                  title: "Email",
-                  subtitle: "user@example.com",
-                  showSwitch: true,
-                  switchValue: emailSwitch.value,
-                  onSwitchChanged: (value) => emailSwitch.value = false,
-                )),
-            Obx(() => CustomData(
-                  title: "Location",
-                  subtitle: "New York, USA",
-                  showSwitch: true,
-                  switchValue: locationSwitch.value,
-                  onSwitchChanged: (value) => locationSwitch.value = false,
-                )),
-            Obx(() => CustomData(
-                  title: "Gender",
-                  subtitle: "Male",
-                  showSwitch: true,
-                  switchValue: genderSwitch.value,
-                  onSwitchChanged: (value) => genderSwitch.value = false,
-                )),
-            Obx(() => CustomData(
-                  title: "D.O.B",
-                  subtitle: "03-11-2005",
-                  showSwitch: true,
-                  switchValue: dobSwitch.value,
-                  onSwitchChanged: (value) => dobSwitch.value = false,
-                )),
-            Obx(() => CustomData(
-                  title: "Profession",
-                  subtitle: "Software Engineer",
-                  showSwitch: true,
-                  switchValue: professionSwitch.value,
-                  onSwitchChanged: (value) => professionSwitch.value =false,
-                )),
-            Obx(() => CustomData(
-                  title: "Nationality",
-                  subtitle: "USA",
-                  showSwitch: true,
-                  switchValue: nationalitySwitch.value,
-                  onSwitchChanged: (value) => nationalitySwitch.value = false,
-                )),
-            Obx(() => CustomData(
-                  title: "Martial Status",
-                  subtitle: "Single",
-                  showSwitch: true,
-                  switchValue: maritalStatusSwitch.value,
-                  onSwitchChanged: (value) => maritalStatusSwitch.value = false,
-                )),
-          ],
-        ),
-    
-              Row(
-                children: [
-                  Text(
-                    "SOCIAL MEDIA",
-                     style: GoogleFonts.playfairDisplaySc(
-                       fontSize: 14.sp,
-                        color: const Color.fromARGB(255, 35, 94, 77),
-                       fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const Spacer(),
-                  Transform.scale(
-                    scale: 0.7,
-                    child: Switch(
-                      value: rememberMe.value,
-                      onChanged: (value) => rememberMe.value = true,
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Image.asset("assets/icons/instagram.png",height: 20,width: 20,),
-                  SizedBox(width: 6),
-                  Image.asset("assets/icons/linkedin.png", height: 20,width: 20,),
-                  SizedBox(width: 6),
-                  Icon(Icons.facebook, size: 25, color: Colors.black,)
-                ],
-              )
-            ],
+           Column(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    Obx(() => CustomData(
+          title: "Phone",
+          subtitle: "555 568 254 789",
+          showSwitch: true,
+          switchValue: phoneSwitch.value,
+          onSwitchChanged: (value) => phoneSwitch.value = value,
+        )),
+    Obx(() => CustomData(
+          title: "Email",
+          subtitle: "user@example.com",
+          showSwitch: true,
+          switchValue: emailSwitch.value,
+          onSwitchChanged: (value) => emailSwitch.value = value,
+        )),
+    Obx(() => CustomData(
+          title: "Location",
+          subtitle: "New York, USA",
+          showSwitch: true,
+          switchValue: locationSwitch.value,
+          onSwitchChanged: (value) => locationSwitch.value = value,
+        )),
+    Obx(() => CustomData(
+          title: "Gender",
+          subtitle: "Male",
+          showSwitch: true,
+          switchValue: genderSwitch.value,
+          onSwitchChanged: (value) => genderSwitch.value = value,
+        )),
+    Obx(() => CustomData(
+          title: "D.O.B",
+          subtitle: "03-11-2005",
+          showSwitch: true,
+          switchValue: dobSwitch.value,
+          onSwitchChanged: (value) => dobSwitch.value = value,
+        )),
+    Obx(() => CustomData(
+          title: "Profession",
+          subtitle: "Software Engineer",
+          showSwitch: true,
+          switchValue: professionSwitch.value,
+          onSwitchChanged: (value) => professionSwitch.value = value,
+        )),
+    Obx(() => CustomData(
+          title: "Nationality",
+          subtitle: "USA",
+          showSwitch: true,
+          switchValue: nationalitySwitch.value,
+          onSwitchChanged: (value) => nationalitySwitch.value = value,
+        )),
+    Obx(() => CustomData(
+          title: "Marital Status",
+          subtitle: "Single",
+          showSwitch: true,
+          switchValue: maritalStatusSwitch.value,
+          onSwitchChanged: (value) => maritalStatusSwitch.value = value,
+        )),
+  ],
+),
+ ],
           ),
         ),
       ),
     );
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//               Row(
+//                 children: [
+//                   Text(
+//                     "SOCIAL MEDIA",
+//                      style: GoogleFonts.playfairDisplaySc(
+//                        fontSize: 14.sp,
+//                         color: const Color.fromARGB(255, 35, 94, 77),
+//                        fontWeight: FontWeight.w700,
+//                     ),
+//                   ),
+//                   const Spacer(),
+//                  Transform.scale(
+//   scale: 0.7,
+//   child: Obx(() => Switch(
+//     value: socialMediaSwitch.value,
+//     onChanged: (value) => socialMediaSwitch.value = value,
+//     activeColor: Colors.white,
+//     activeTrackColor: const Color.fromARGB(255, 35, 94, 77),
+//     inactiveThumbColor: Colors.grey,
+//     inactiveTrackColor: Colors.grey[300],
+//   )),
+// ),
+//                 ],
+//               ),
+//               Row(
+//                 children: [
+//                   Image.asset("assets/icons/instagram.png",height: 20,width: 20,),
+//                   SizedBox(width: 6),
+//                   Image.asset("assets/icons/linkedin.png", height: 20,width: 20,),
+//                   SizedBox(width: 6),
+//                   Icon(Icons.facebook, size: 25, color: Colors.black,)
+//                 ],
+//               )
+           

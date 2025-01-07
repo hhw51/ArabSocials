@@ -5,6 +5,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
 
 class Signinscreen extends StatefulWidget {
   const Signinscreen({super.key});
@@ -16,6 +19,32 @@ class Signinscreen extends StatefulWidget {
 class _SigninscreenState extends State<Signinscreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+
+ Future<User?> _signInWithGoogle() async {
+  try {
+    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+    if (googleUser == null) {
+      // If the user cancels the sign-in process
+      return null;
+    }
+
+    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+    
+    final OAuthCredential credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+
+    // Sign in with Firebase using the Google credentials
+    final UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+    return userCredential.user;
+  } catch (e) {
+    print("Error during Google sign-in: $e");
+    return null;
+  }
+}
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -153,31 +182,41 @@ class _SigninscreenState extends State<Signinscreen> {
                 ],
               ),
               SizedBox(height: 20.h),
-              ElevatedButton.icon(
-                onPressed: () {
-                  // Login with Google Action
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color.fromARGB(255,255, 255, 255),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                  minimumSize: Size(double.infinity, 52.h),
-                ),
-                icon: Image.asset(
-                  'assets/icons/google.png',
-                  width: 20.w,
-                  height: 20.h,
-                ),
-                label: Text(
-                  "Login with Google",
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
+             ElevatedButton.icon(
+  onPressed: () async {
+    User? user = await _signInWithGoogle();
+    if (user != null) {
+      // Successfully signed in
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Welcome ${user.displayName}')));
+    } else {
+      // Sign-in failed
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Google sign-in failed')));
+    }
+  },
+  style: ElevatedButton.styleFrom(
+    backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12.r),
+    ),
+    minimumSize: Size(double.infinity, 52.h),
+  ),
+  icon: Image.asset(
+    'assets/icons/google.png',
+    width: 20.w,
+    height: 20.h,
+  ),
+  label: Text(
+    "Login with Google",
+    style: TextStyle(
+      fontSize: 14.sp,
+      fontWeight: FontWeight.w500,
+      color: Colors.black,
+    ),
+  ),
+),
+
               SizedBox(height: 10.h),
               ElevatedButton.icon(
                 onPressed: () {

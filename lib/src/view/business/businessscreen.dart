@@ -1,6 +1,7 @@
 import 'package:arab_socials/src/controllers/navigation_controller.dart';
-import 'package:arab_socials/src/widgets/custonbuttons.dart';
-import 'package:arab_socials/src/widgets/member_tiles.dart';
+import 'package:arab_socials/src/view/profile/ProfileDetailsScreen.dart';
+import 'package:arab_socials/src/widgets/business_tiles.dart';
+import 'package:arab_socials/src/widgets/custombuttons.dart';
 import 'package:arab_socials/src/widgets/textfomr_feild.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -20,49 +21,49 @@ class _BusinessscreenState extends State<Businessscreen> {
   final List<Map<String, String>> members = [
     {
       "name": "Alex Lee",
-      "profession": "Other Hookah Lounge",
+      "category": "Other Hookah Lounge",
       "location": "Florida",
       "imagePath": "assets/logo/buisnesss_group.png",
     },
     {
       "name": "Sarah Smith",
-      "profession": "Graphic Designer",
+      "category": "Graphic Designer",
       "location": "California",
       "imagePath": "assets/logo/buisnesss_group.png",
     },
     {
       "name": "John Doe",
-      "profession": "Software Engineer",
+      "category": "Software Engineer",
       "location": "New York",
       "imagePath": "assets/logo/buisnesss_group.png",
     },
     {
       "name": "Jane Wilson",
-      "profession": "Marketing Manager",
+      "category": "Marketing Manager",
       "location": "Texas",
       "imagePath": "assets/logo/buisnesss_group.png",
     },
     {
       "name": "Sarah Smith",
-      "profession": "Graphic Designer",
+      "category": "Graphic Designer",
       "location": "California",
       "imagePath": "assets/logo/buisnesss_group.png",
     },
     {
       "name": "Sarah Smith",
-      "profession": "Graphic Designer",
+      "category": "Graphic Designer",
       "location": "California",
       "imagePath": "assets/logo/buisnesss_group.png",
     },
     {
       "name": "Sarah Smith",
-      "profession": "Graphic Designer",
+      "category": "Graphic Designer",
       "location": "California",
       "imagePath": "assets/logo/buisnesss_group.png",
     },
     {
       "name": "Chris Evans",
-      "profession": "Fitness Trainer",
+      "category": "Fitness Trainer",
       "location": "Nevada",
       "imagePath": "assets/logo/buisnesss_group.png",
     },
@@ -73,9 +74,9 @@ class _BusinessscreenState extends State<Businessscreen> {
       child: Scaffold(
           backgroundColor: const Color.fromARGB(255, 250, 244, 228),
           body: GestureDetector(
-           onTap: () {
-             FocusScope.of(context).requestScopeFocus();
-           },            
+            onTap: () {
+              FocusScope.of(context).requestScopeFocus();
+            },
             child: SizedBox(
               height: double.infinity,
               width: double.infinity,
@@ -145,20 +146,41 @@ class _BusinessscreenState extends State<Businessscreen> {
                   ),
                   Expanded(
                     child: ListView.builder(
-                      padding: EdgeInsets.zero,
-                      physics: const BouncingScrollPhysics(),
-                      itemCount: members.length,
-                      itemBuilder: (context, index) {
-                        final member = members[index];
-                        return MemberTile(
-                          imagePath: member["imagePath"]!,
-                          name: member["name"]!,
-                          profession: member["profession"]!,
-                          location: member["location"]!,
-                          isCircular: false,
-                        );
-                      },
-                    ),
+                        padding: EdgeInsets.zero,
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: members.length,
+                        itemBuilder: (context, index) {
+                          final member = members[index];
+                          return BusinessTile(
+                            imagePath: member["imagePath"]!,
+                            name: member["name"]!,
+                            category: member["category"]!,
+                            location: member["location"]!,
+                            isCircular: false,
+                            onTap: () {
+                              navigationController.navigateToChild(
+                                ProfileDetailsScreen(
+                                  title: "Business Profile",
+                                  name: member["name"]!,
+                                  professionOrCategory: member["category"]!,
+                                  location: member["location"]!,
+                                  about: "Details about the business",
+                                  interestsOrCategories: [
+                                    "Technology",
+                                    "Innovation",
+                                    "Networking"
+                                  ],
+                                  personalDetails: {
+                                    "Phone": "4788743654478",
+                                    "Email": "user@${member["name"]}",
+                                    "Location": member["location"]!,
+                                    "Profession": member["category"]!,
+                                  },
+                                ),
+                              );
+                            },
+                          );
+                        }),
                   )
                 ],
               ),

@@ -1,5 +1,6 @@
 import 'package:arab_socials/src/controllers/navigation_controller.dart';
-import 'package:arab_socials/src/widgets/custonbuttons.dart';
+import 'package:arab_socials/src/view/profile/ProfileDetailsScreen.dart';
+import 'package:arab_socials/src/widgets/custombuttons.dart';
 import 'package:arab_socials/src/widgets/member_tiles.dart';
 import 'package:arab_socials/src/widgets/textfomr_feild.dart';
 import 'package:flutter/material.dart';
@@ -8,14 +9,15 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class Memberscreen extends StatefulWidget {
-   Memberscreen({super.key});
+  Memberscreen({super.key});
 
   @override
   State<Memberscreen> createState() => _MemberscreenState();
 }
 
 class _MemberscreenState extends State<Memberscreen> {
-  final NavigationController navigationController = Get.put(NavigationController());
+  final NavigationController navigationController =
+      Get.put(NavigationController());
   final List<Map<String, String>> members = [
     {
       "name": "Alex Lee",
@@ -85,17 +87,16 @@ class _MemberscreenState extends State<Memberscreen> {
                     padding: EdgeInsets.symmetric(horizontal: 24.w),
                     child: Row(
                       children: [
-                       InkWell(
-              onTap: () {
-                navigationController.navigateBack();
-              },
-              child: Icon(
-                Icons.arrow_back,
-                color: const Color.fromARGB(255, 35, 94, 77),
-                size: 24,
-              ),
-            ),
-            
+                        InkWell(
+                          onTap: () {
+                            navigationController.navigateBack();
+                          },
+                          child: Icon(
+                            Icons.arrow_back,
+                            color: const Color.fromARGB(255, 35, 94, 77),
+                            size: 24,
+                          ),
+                        ),
                         SizedBox(width: 3.w),
                         Expanded(child: SizedBox()),
                         SizedBox(width: 3.w),
@@ -111,7 +112,7 @@ class _MemberscreenState extends State<Memberscreen> {
                         SizedBox(width: 3.w),
                         const CustomContainer(
                           text: "Profession",
-                           image: "assets/icons/calculator.png",
+                          image: "assets/icons/calculator.png",
                         )
                       ],
                     ),
@@ -137,20 +138,46 @@ class _MemberscreenState extends State<Memberscreen> {
                   ),
                   Expanded(
                     child: ListView.builder(
-                      padding: EdgeInsets.zero,
-                      physics: const BouncingScrollPhysics(),
-                      itemCount: members.length,
-                      itemBuilder: (context, index) {
-                        final member = members[index];
-                        return MemberTile(
-                          imagePath: member["imagePath"]!,
-                          name: member["name"]!,
-                          profession: member["profession"]!,
-                          location: member["location"]!,
-                          isCircular: false,
-                        );
-                      },
-                    ),
+                        padding: EdgeInsets.zero,
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: members.length,
+                        itemBuilder: (context, index) {
+                          final member = members[index];
+                          return MemberTile(
+                            imagePath: member["imagePath"]!,
+                            name: member["name"]!,
+                            profession: member["profession"]!,
+                            location: member["location"]!,
+                            isCircular: false,
+                            onTap: () {
+                              navigationController.navigateToChild(
+                                ProfileDetailsScreen(
+                                  title: "Member Profile",
+                                  name: member["name"]!,
+                                  professionOrCategory: member["profession"]!,
+                                  location: member["location"]!,
+                                  about:
+                                      "This is some info about ${member["name"]}",
+                                  interestsOrCategories: [
+                                    "Music",
+                                    "Art",
+                                    "Technology"
+                                  ],
+                                  personalDetails: {
+                                    "Phone": "4788743654478",
+                                    "Email": "user@${member["name"]}",
+                                    "Location": "${member["location"]}",
+                                    "Gender": "Female",
+                                    "D.O.B": "03-11-2005",
+                                    "Profession": "${member["profession"]}",
+                                    "Nationality": "USA",
+                                    "Marital Status": "Single",
+                                  },
+                                ),
+                              );
+                            },
+                          );
+                        }),
                   )
                 ],
               ),
