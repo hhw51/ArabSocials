@@ -1,3 +1,4 @@
+import 'package:arab_socials/src/controllers/user_controller.dart';
 import 'package:arab_socials/src/view/auth/otpverify/otp_screen.dart';
 import 'package:arab_socials/src/view/auth/sign_in/pages/sign_in_page.dart';
 import 'package:arab_socials/src/widgets/textfieled_widget.dart';
@@ -9,6 +10,8 @@ import 'package:google_fonts/google_fonts.dart';
 class SignUpScreen extends StatelessWidget {
   SignUpScreen({super.key});
 
+
+  final SignUpController _signUpController = Get.put(SignUpController());
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController accountController = TextEditingController();
@@ -122,26 +125,40 @@ class SignUpScreen extends StatelessWidget {
                     ],
                   ),
                   SizedBox(height: 10.h),
-                  ElevatedButton(
-                    onPressed: () {
-                         Get.to(() => OtpVerifyScreen());
-                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 35, 94, 77),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                      ),
-                      minimumSize: Size(double.infinity, 56.h),
-                    ),
-                    child: Text(
-                      "SIGN UP",
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
+                 Obx(() {
+  return _signUpController.isLoading.value
+      ? const Center(child: CircularProgressIndicator())
+      : ElevatedButton(
+          onPressed: () {
+            final name = nameController.text.trim();
+            final email = emailController.text.trim();
+            final password = passwordController.text.trim();
+
+            if (name.isEmpty || email.isEmpty || password.isEmpty) {
+              Get.snackbar('Error', 'All fields are required');
+              return;
+            }
+
+            _signUpController.signUp(name, email, password);
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color.fromARGB(255, 35, 94, 77),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            minimumSize: Size(double.infinity, 56.h),
+          ),
+          child: Text(
+            "SIGN UP",
+            style: TextStyle(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w400,
+              color: Colors.white,
+            ),
+          ),
+        );
+}),
+
                   SizedBox(height: 20.h),
                   Row(
                     children: [

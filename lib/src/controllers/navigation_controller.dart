@@ -10,7 +10,7 @@ class NavigationController extends GetxController {
   void updateIndex(int index) {
     _navigationStack.add(currentIndex.value);
     currentIndex.value = index;
-    showChildScreen.value = false; // Reset to main screen
+    showChildScreen.value = false; 
   }
 
   void navigateToChild(Widget screen) {
@@ -20,7 +20,7 @@ class NavigationController extends GetxController {
 
   void navigateBack() {
     if (showChildScreen.value) {
-      showChildScreen.value = false; // Return to parent tab
+      showChildScreen.value = false; 
     } else if (_navigationStack.isNotEmpty) {
       currentIndex.value = _navigationStack.removeLast();
     }
