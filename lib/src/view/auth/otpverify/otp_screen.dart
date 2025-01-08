@@ -1,20 +1,37 @@
-import 'package:arab_socials/src/view/auth/sign_up/pages/sign_up_page.dart';
+import 'package:arab_socials/src/controllers/user_controller.dart';
 import 'package:arab_socials/src/view/homepage/homescreen.dart';
 import 'package:arab_socials/src/widgets/bottom_nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:arab_socials/src/widgets/otp_widget.dart'; 
+import 'package:arab_socials/src/widgets/otp_widget.dart';
 
 class OtpVerifyScreen extends StatelessWidget {
+  final String email; // <-- add email here
   final TextEditingController _pinController = TextEditingController();
 
-  OtpVerifyScreen({super.key});
+  OtpVerifyScreen({Key? key, required this.email}) : super(key: key);
 
-  void _handleVerifyOtp() {
-    final enteredOtp = _pinController.text;
-    if (enteredOtp == "123456") {
+  void _handleVerifyOtp() async {
+    final enteredOtp = _pinController.text.trim();
+
+    if (enteredOtp.isEmpty) {
+      Get.snackbar(
+        "Error",
+        "Please enter the OTP code",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    try {
+      final signUpController = Get.find<SignUpController>();
+      await signUpController.verifyOtp(email, enteredOtp);
+
+      // If successful
       Get.snackbar(
         "Success",
         "OTP Verified!",
@@ -22,10 +39,12 @@ class OtpVerifyScreen extends StatelessWidget {
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
-    } else {
+      Get.to(() => BottomNav());
+
+    } catch (error) {
       Get.snackbar(
         "Error",
-        "Invalid OTP. Please try again.",
+        error.toString(),
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
@@ -41,7 +60,11 @@ class OtpVerifyScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color.fromARGB(255, 35, 94, 77),size: 28,),
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Color.fromARGB(255, 35, 94, 77),
+            size: 28,
+          ),
           onPressed: () {
             Get.back();
           },
@@ -62,13 +85,13 @@ class OtpVerifyScreen extends StatelessWidget {
               ),
             ),
             SizedBox(height: 20.h),
-            Container(
+            SizedBox(
               height: 50.h,
               width: 230.w,
               child: Padding(
                 padding: const EdgeInsets.only(right: 17),
                 child: Text(
-                  "We’ve sent you the verification code on +1 2620 0323 7631",
+                  "We’ve sent you the verification code on $email",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 15.sp,
@@ -87,9 +110,7 @@ class OtpVerifyScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 30.h),
                 ElevatedButton(
-                  onPressed: () {
-                    Get.to(() => BottomNav());
-                  },
+                  onPressed: _handleVerifyOtp, // verify OTP on backend
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromARGB(255, 35, 94, 77),
                     shape: RoundedRectangleBorder(
@@ -107,28 +128,28 @@ class OtpVerifyScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 20.h),
-               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                   Text(
-                    "Re-send code in",
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      color: Colors.black,
-                      fontWeight: FontWeight.w500,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Re-send code in",
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: Colors.black,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                  SizedBox(width: 10.w),
-                   Text(
-                    "0:20",
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      color: Colors.orange,
-                      fontWeight: FontWeight.w500,
+                    SizedBox(width: 10.w),
+                    Text(
+                      "0:20",
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: Colors.orange,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                ],
-               )
+                  ],
+                )
               ],
             ),
           ],

@@ -125,39 +125,53 @@ class SignUpScreen extends StatelessWidget {
                     ],
                   ),
                   SizedBox(height: 10.h),
-                 Obx(() {
-  return _signUpController.isLoading.value
-      ? const Center(child: CircularProgressIndicator())
-      : ElevatedButton(
-          onPressed: () {
-            final name = nameController.text.trim();
-            final email = emailController.text.trim();
-            final password = passwordController.text.trim();
+                  Obx(() {
+                    return _signUpController.isLoading.value
+                        ? const Center(child: CircularProgressIndicator())
+                        : ElevatedButton(
+                      onPressed: () async {
+                        final name = nameController.text.trim();
+                        final email = emailController.text.trim();
+                        final password = passwordController.text.trim();
 
-            if (name.isEmpty || email.isEmpty || password.isEmpty) {
-              Get.snackbar('Error', 'All fields are required');
-              return;
-            }
+                        if (name.isEmpty || email.isEmpty || password.isEmpty) {
+                          Get.snackbar('Error', 'All fields are required');
+                          return;
+                        }
 
-            _signUpController.signUp(name, email, password);
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color.fromARGB(255, 35, 94, 77),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.r),
-            ),
-            minimumSize: Size(double.infinity, 56.h),
-          ),
-          child: Text(
-            "SIGN UP",
-            style: TextStyle(
-              fontSize: 16.sp,
-              fontWeight: FontWeight.w400,
-              color: Colors.white,
-            ),
-          ),
-        );
-}),
+                        try {
+                          // 1. Call signUp API
+                          await _signUpController.signUp(name, email, password);
+
+                          // 2. If sign-up is successful, call sendOtp
+                          await _signUpController.sendOtp(email);
+
+                          // 3. Finally, navigate to OTP Screen (assuming it’s named OTPScreen)
+                          Get.to(() => OtpVerifyScreen(email: email));
+
+                        } catch (error) {
+                          // Handle any error from signUp or sendOtp
+                          Get.snackbar('Error', error.toString());
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 35, 94, 77),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        minimumSize: Size(double.infinity, 56.h),
+                      ),
+                      child: Text(
+                        "SIGN UP",
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.white,
+                        ),
+                      ),
+                    );
+                  }),
+
 
                   SizedBox(height: 20.h),
                   Row(
