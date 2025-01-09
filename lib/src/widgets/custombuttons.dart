@@ -8,13 +8,15 @@ import 'package:google_fonts/google_fonts.dart';
 class CustomContainer extends StatefulWidget {
   final String text;
   final IconData? icon; 
-  final String? image; 
+  final String? image;
+  final VoidCallback? onTap;
 
   const CustomContainer({
     Key? key,
     required this.text,
     this.icon,                           ////////////////////////GERRNBUTTON IN APPBAR IN ALL SCREENS////////////////////////////////
-    this.image, 
+    this.image,
+    this.onTap,
   }) : super(key: key);
 
   @override
@@ -31,6 +33,7 @@ class _CustomContainerState extends State<CustomContainer> {
         setState(() {
           _isTapped = !_isTapped;
         });
+        widget.onTap?.call();
       },
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
