@@ -1,6 +1,7 @@
 import 'package:arab_socials/src/controllers/navigation_controller.dart';
 import 'package:arab_socials/src/widgets/custom_profiletext.dart';
 import 'package:arab_socials/src/widgets/custombuttons.dart';
+import 'package:arab_socials/src/widgets/edit_profile_popup.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -49,15 +50,20 @@ class _ProfilescreenState extends State<Profilescreen> {
       size: 24,
     ),
         ),
-        actions: const [
-     Padding(
-      padding: EdgeInsets.only(right: 16.0), 
-      child: CustomContainer(
+        actions: [
+  Padding(
+    padding: EdgeInsets.only(right: 16.0),
+    child: InkWell(
+      onTap: () {
+    showEditProfileDialog(context); // Call the dialog from here
+      },
+      child: const CustomContainer(
         text: "Edit Profile",
         image: "assets/icons/editprofile.png",
       ),
     ),
-        ],
+  ),
+],
       ),
       body: SingleChildScrollView(
         child: Padding(

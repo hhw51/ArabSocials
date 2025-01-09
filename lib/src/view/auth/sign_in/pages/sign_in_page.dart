@@ -141,7 +141,6 @@ class _SigninscreenState extends State<Signinscreen> {
                       ),
                       TextButton(
                         onPressed: () {
-                          // Forgot Password Action
                         },
                         child: Text(
                           "Forgot Password?",
@@ -155,8 +154,6 @@ class _SigninscreenState extends State<Signinscreen> {
                     ],
                   ),
                   SizedBox(height: 20.h),
-
-                  /// **SIGN IN BUTTON** (Calls `login`)
                   ElevatedButton(
                     onPressed: () {
                       final email = emailController.text.trim();
@@ -166,11 +163,8 @@ class _SigninscreenState extends State<Signinscreen> {
                         Get.snackbar('Error', 'Please fill in all fields');
                         return;
                       }
-
                       // Call login in the SignUpController
                       _signUpController.login(email, password);
-
-                      Get.to(() => BottomNav());
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color.fromARGB(255, 35, 94, 77),

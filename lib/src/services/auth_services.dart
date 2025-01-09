@@ -5,7 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 class AuthService {
-  static const String _baseUrl = 'http://192.168.137.213:8000';
+  static const String _baseUrl = 'http://35.222.126.155:8000';
 
   static const String _signUpUrl = '$_baseUrl/users/signup/';
   static const String _loginUrl = '$_baseUrl/users/login/';
