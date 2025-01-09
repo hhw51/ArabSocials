@@ -86,7 +86,7 @@ class OtpVerifyScreen extends StatelessWidget {
             ),
             SizedBox(height: 20.h),
             SizedBox(
-              height: 50.h,
+              height: 70.h,
               width: 230.w,
               child: Padding(
                 padding: const EdgeInsets.only(right: 17),

@@ -3,6 +3,7 @@ import 'package:arab_socials/src/view/auth/otpverify/otp_screen.dart';
 import 'package:get/get.dart';
 
 import '../view/homepage/homescreen.dart';
+import '../widgets/bottom_nav.dart';
 
 class SignUpController extends GetxController {
   final AuthService _authService = AuthService();
@@ -20,7 +21,7 @@ class SignUpController extends GetxController {
       Get.snackbar('Success', 'Logged in successfully!');
 
       // Once logged in, navigate to home screen
-      Get.offAll(() => Homescreen());
+      Get.offAll(() => BottomNav());
     } catch (e) {
       print('Login error: $e');
       Get.snackbar('Error', e.toString());

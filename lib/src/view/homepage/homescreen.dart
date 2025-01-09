@@ -1,8 +1,11 @@
+import 'package:arab_socials/src/controllers/navigation_controller.dart';
 import 'package:arab_socials/src/models/home_model1.dart';
+import 'package:arab_socials/src/view/events/register_event.dart';
 import 'package:arab_socials/src/widgets/custom_container.dart';
 import 'package:arab_socials/src/widgets/custombuttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class Homescreen extends StatefulWidget {
@@ -15,7 +18,8 @@ class Homescreen extends StatefulWidget {
 class _HomescreenState extends State<Homescreen> {
   @override
   Widget build(BuildContext context) {
-    
+      final NavigationController navigationController = Get.put(NavigationController());
+
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 250, 244, 228),
       body: GestureDetector(
@@ -86,186 +90,191 @@ class _HomescreenState extends State<Homescreen> {
                        },
                      ),
                    ),
-                    SizedBox(
-                      height: 237.h,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        padding: EdgeInsets.symmetric(horizontal: 12.w),
-                        itemCount: homescreenModelList.length,
-                        itemBuilder: (context, index) {
-                          final model = homescreenModelList[index];
-                          return Padding(
-                            padding: EdgeInsets.only(right: 10.w),
-                            child: Container(
-                              width: 218.w,
-                              height: 237.h,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(16.r),
-                                color: Color.fromARGB(255, 247, 247, 247),
-                              ),
-                              child: Padding(
-                                padding: EdgeInsets.all(8.w),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Stack(
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius:BorderRadius.circular(16.r),
-                                          child: Image.asset(
-                                            model.mainImage ?? '',
-                                            fit: BoxFit.cover,
-                                            height: 131.h,
-                                            width: double.infinity,
+                    InkWell(
+                         onTap: () {
+                             navigationController.navigateToChild(RegisterEvent());
+                            },
+                      child: SizedBox(
+                        height: 237.h,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          padding: EdgeInsets.symmetric(horizontal: 12.w),
+                          itemCount: homescreenModelList.length,
+                          itemBuilder: (context, index) {
+                            final model = homescreenModelList[index];
+                            return Padding(
+                              padding: EdgeInsets.only(right: 10.w),
+                              child: Container(
+                                width: 218.w,
+                                height: 237.h,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16.r),
+                                  color: Color.fromARGB(255, 247, 247, 247),
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.all(8.w),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Stack(
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius:BorderRadius.circular(16.r),
+                                            child: Image.asset(
+                                              model.mainImage ?? '',
+                                              fit: BoxFit.cover,
+                                              height: 131.h,
+                                              width: double.infinity,
+                                            ),
                                           ),
-                                        ),
-                                       Positioned(
-                              top: 8.h,
-                              right: 8.w,
-                              child: GestureDetector(
-                                onTap: () {
-                                  model.isBookmarked = !model.isBookmarked;
-                                  (context as Element).markNeedsBuild(); 
-                                },
-                                child: Container(
-                                  height: 24.h,
-                                  width: 23.w,
-                                  decoration: const BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.all(
-                                      Radius.circular(6),
+                                         Positioned(
+                                top: 8.h,
+                                right: 8.w,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    model.isBookmarked = !model.isBookmarked;
+                                    (context as Element).markNeedsBuild(); 
+                                  },
+                                  child: Container(
+                                    height: 24.h,
+                                    width: 23.w,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.all(
+                                        Radius.circular(6),
+                                      ),
                                     ),
-                                  ),
-                                  child: Icon(
-                                    model.isBookmarked
-                                        ? Icons.bookmark
-                                        : Icons.bookmark_outline,
-                                    color: Colors.green,
-                                    size: 18.sp,
+                                    child: Icon(
+                                      model.isBookmarked
+                                          ? Icons.bookmark
+                                          : Icons.bookmark_outline,
+                                      color: Colors.green,
+                                      size: 18.sp,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-            
-                                        Positioned(
-                                          top: 8.h,
-                                          left: 8.w,
-                                          child: Container(
-                                            height: 34.h,
-                                            width: 36.w,
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius:
-                                                  BorderRadius.circular(6.r),
+                                  
+                                          Positioned(
+                                            top: 8.h,
+                                            left: 8.w,
+                                            child: Container(
+                                              height: 34.h,
+                                              width: 36.w,
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius:
+                                                    BorderRadius.circular(6.r),
+                                              ),
+                                              child: Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Text(
+                                                    model.day ?? '',
+                                                    style: GoogleFonts.playfairDisplaySc(
+                                                      fontSize: 14.sp,
+                                                      color: Colors.green,
+                                                      fontWeight: FontWeight.w700,
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                  Text(
+                                                    model.month ?? '',
+                                                    style: GoogleFonts.playfairDisplaySc(
+                                                      fontSize: 8.sp,
+                                                      color: Colors.green,
+                                                      fontWeight: FontWeight.w700,
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                ],
+                                              ),
                                             ),
-                                            child: Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(height: 8.h),
+                                      // Title
+                                      Text(model.title ?? '',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: GoogleFonts.playfairDisplaySc(
+                                            fontSize: 12.sp,
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.w700,
+                                          )),
+                                      SizedBox(height: 8.h),
+                                      Row(
+                                        children: [
+                                          Container(
+                                            height: 24.h,
+                                            width: 56.w,
+                                            child: Stack(
                                               children: [
-                                                Text(
-                                                  model.day ?? '',
-                                                  style: GoogleFonts.playfairDisplaySc(
-                                                    fontSize: 14.sp,
-                                                    color: Colors.green,
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                                  maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
+                                                CircleAvatar(
+                                                  radius: 10.r,
+                                                  backgroundImage: AssetImage(model.image1 ?? ''),
                                                 ),
-                                                Text(
-                                                  model.month ?? '',
-                                                  style: GoogleFonts.playfairDisplaySc(
-                                                    fontSize: 8.sp,
-                                                    color: Colors.green,
-                                                    fontWeight: FontWeight.w700,
+                                                Positioned(
+                                                  left: 10.w,
+                                                  child: CircleAvatar(
+                                                    radius: 10.r,
+                                                    backgroundImage: AssetImage(
+                                                        model.image2 ?? ''),
                                                   ),
-                                                  maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                                Positioned(
+                                                  left: 25.w,
+                                                  child: CircleAvatar(
+                                                    radius: 10.r,
+                                                    backgroundImage: AssetImage(model.image3 ?? ''),
+                                                  ),
                                                 ),
                                               ],
                                             ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(height: 8.h),
-                                    // Title
-                                    Text(model.title ?? '',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: GoogleFonts.playfairDisplaySc(
-                                          fontSize: 12.sp,
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.w700,
-                                        )),
-                                    SizedBox(height: 8.h),
-                                    Row(
-                                      children: [
-                                        Container(
-                                          height: 24.h,
-                                          width: 56.w,
-                                          child: Stack(
-                                            children: [
-                                              CircleAvatar(
-                                                radius: 10.r,
-                                                backgroundImage: AssetImage(model.image1 ?? ''),
-                                              ),
-                                              Positioned(
-                                                left: 10.w,
-                                                child: CircleAvatar(
-                                                  radius: 10.r,
-                                                  backgroundImage: AssetImage(
-                                                      model.image2 ?? ''),
-                                                ),
-                                              ),
-                                              Positioned(
-                                                left: 25.w,
-                                                child: CircleAvatar(
-                                                  radius: 10.r,
-                                                  backgroundImage: AssetImage(model.image3 ?? ''),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Text(
-                                          model.subtitle ?? '',
-                                          style: TextStyle(
-                                            fontSize: 12.sp,
-                                            color:Color.fromARGB(255, 35, 94, 77),
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-        
-                                    SizedBox(height: 8.h),
-                                    Row(
-                                      children: [
-                                        Icon(model.locationIcon ?? Icons.location_on,
-                                          size: 16.sp,
-                                          color: Colors.grey,
-                                        ),
-                                        SizedBox(width: 4.w),
-                                        Expanded(
-                                          child: Text(
-                                            model.locationText ?? '',
+                                          Text(
+                                            model.subtitle ?? '',
                                             style: TextStyle(
                                               fontSize: 12.sp,
-                                              color: Colors.grey,
+                                              color:Color.fromARGB(255, 35, 94, 77),
+                                              fontWeight: FontWeight.w700,
                                             ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                                        ],
+                                      ),
+                              
+                                      SizedBox(height: 8.h),
+                                      Row(
+                                        children: [
+                                          Icon(model.locationIcon ?? Icons.location_on,
+                                            size: 16.sp,
+                                            color: Colors.grey,
+                                          ),
+                                          SizedBox(width: 4.w),
+                                          Expanded(
+                                            child: Text(
+                                              model.locationText ?? '',
+                                              style: TextStyle(
+                                                fontSize: 12.sp,
+                                                color: Colors.grey,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          );
-                        },
+                            );
+                          },
+                        ),
                       ),
                     ),
                     Padding(

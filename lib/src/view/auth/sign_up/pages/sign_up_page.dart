@@ -1,3 +1,4 @@
+import 'package:arab_socials/src/controllers/password_visible.dart';
 import 'package:arab_socials/src/controllers/user_controller.dart';
 import 'package:arab_socials/src/view/auth/otpverify/otp_screen.dart';
 import 'package:arab_socials/src/view/auth/sign_in/pages/sign_in_page.dart';
@@ -10,14 +11,15 @@ import 'package:google_fonts/google_fonts.dart';
 class SignUpScreen extends StatelessWidget {
   SignUpScreen({super.key});
 
-
   final SignUpController _signUpController = Get.put(SignUpController());
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
+   final TextEditingController phoneController = TextEditingController();
   final TextEditingController accountController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController =
-      TextEditingController();
+  final TextEditingController confirmPasswordController =TextEditingController();
+   final PasswordVisibilityController visibilityController =Get.put(PasswordVisibilityController());
+
   final RxBool rememberMe = false.obs;
 
   @override
@@ -54,12 +56,24 @@ class SignUpScreen extends StatelessWidget {
                    // labelText: "Full Name",
                     hintText: "Full name",
                     prefixIcon: Icons.person_outline,
+                    isPassword: false,
+                    obscureText: false,
                   ),
                   CustomTextField(
                     controller: emailController,
                    // labelText: "Email Address",
                     hintText: "abc@email.com",
                     prefixIcon: Icons.email_outlined,
+                    isPassword: false,
+                    obscureText: false,
+                  ),
+                   CustomTextField(
+                    controller: phoneController,
+                   // labelText: "Phone Number",
+                    hintText: "Enter your Phone Number",
+                    prefixIcon: Icons.phone_outlined,
+                    isPassword: false,
+                    obscureText: true,
                   ),
                   CustomDropdown(
                     controller: accountController,
@@ -74,22 +88,41 @@ class SignUpScreen extends StatelessWidget {
                       print("Selected Account Type: $value");
                     },
                   ),
-                  CustomTextField(
-                    controller: passwordController,
-                   // labelText: "Password",
-                    hintText: "Your password",
-                    isPassword: true,
-                    prefixIcon: Icons.lock_outline,
-                    suffixIcon: Icons.visibility_off_rounded
-                  ),
-                  CustomTextField(
-                    controller: confirmPasswordController,
-                  //  labelText: "Confirm Password",
-                    hintText: "Confirm password",
-                    isPassword: true,
-                    prefixIcon: Icons.lock_outline,
-                    suffixIcon: Icons.visibility_off,
-                  ),
+                  Obx(() => CustomTextField(
+                        controller: passwordController,
+                        hintText: "Your password",
+                        isPassword: true,
+                        obscureText: !visibilityController.isVisible('password'),
+                        prefixIcon: Icons.lock_outline,
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            visibilityController.isVisible('password')
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            color: Colors.grey,
+                          ),
+                          onPressed: () =>
+                              visibilityController.toggleVisibility('password'),
+                        ),
+                      )),
+                  Obx(() => CustomTextField(
+                        controller: confirmPasswordController,
+                        hintText: "Confirm password",
+                        isPassword: true,
+                        obscureText:
+                            !visibilityController.isVisible('confirmPassword'),
+                        prefixIcon: Icons.lock_outline,
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            visibilityController.isVisible('confirmPassword')
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            color: Colors.grey,
+                          ),
+                          onPressed: () => visibilityController
+                              .toggleVisibility('confirmPassword'),
+                        ),
+                      )),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [

@@ -1,18 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // <-- Added import
+import 'package:flutter_secure_storage/flutter_secure_storage.dart'; 
 import 'package:http/http.dart' as http;
 
 class AuthService {
-  static const String _baseUrl = 'http://192.168.137.1:8000';
+  static const String _baseUrl = 'http://192.168.137.213:8000';
 
   static const String _signUpUrl = '$_baseUrl/users/signup/';
   static const String _loginUrl = '$_baseUrl/users/login/';
   static const String _sendOtpUrl = '$_baseUrl/users/send-otp/';
   static const String _verifyOtpUrl = '$_baseUrl/users/verify-otp/';
 
-  // In-memory + Secure Storage
   static final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   static const Map<String, String> headers = {

@@ -3,23 +3,22 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
-  //final String labelText;
-  final String
-      hintText; /////////////////////TEXTFIELDS IN SIGNIN, SUGNUP///////////////////////////////
+  final String hintText;
   final bool isPassword;
   final IconData? prefixIcon;
-  final IconData? suffixIcon;
+  final Widget? suffixIcon;
   final String? Function(String?)? validator;
+  final bool obscureText;
 
   const CustomTextField({
     Key? key,
     required this.controller,
-    // required this.labelText,
     required this.hintText,
     this.isPassword = false,
     this.prefixIcon,
     this.suffixIcon,
     this.validator,
+    required this.obscureText,
   }) : super(key: key);
 
   @override
@@ -29,69 +28,35 @@ class CustomTextField extends StatelessWidget {
       children: [
         TextFormField(
           controller: controller,
-          obscureText: isPassword,
+          obscureText: isPassword ? obscureText : false, // Handle password visibility
           decoration: InputDecoration(
-            //labelText: labelText,
-            floatingLabelBehavior: FloatingLabelBehavior.auto,
-            labelStyle: TextStyle(
-              color: Colors.grey[700],
-              fontSize: 14.sp,
-            ),
             hintText: hintText,
-            hintStyle: TextStyle(
-              color: Colors.grey[400],
-              fontSize: 14.sp,
-            ),
-            filled: true,
-            fillColor: const Color.fromARGB(255, 255, 255, 255),
             prefixIcon: prefixIcon != null
                 ? Icon(prefixIcon, color: Colors.grey)
                 : null,
-            suffixIcon: suffixIcon != null
-                ? Icon(suffixIcon, color: Colors.grey)
-                : null,
+            suffixIcon: suffixIcon, // Dynamic suffixIcon
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.r),
-              borderSide: const BorderSide(
-                color: Color.fromARGB(255, 228, 223, 223),
-                width: 1.0,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.r),
-              borderSide: const BorderSide(
-                color: Color.fromARGB(255, 13, 13, 13),
-                width: 1.5,
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
               borderSide: const BorderSide(
                 color: Colors.grey,
                 width: 1.0,
               ),
             ),
-            contentPadding: EdgeInsets.symmetric(
-              vertical: 16.h,
-              horizontal: 16.w,
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: const BorderSide(
+                color: Colors.black,
+                width: 1.5,
+              ),
             ),
           ),
-          validator: validator ??
-              (value) {
-                if (value == null || value.isEmpty) {
-                  return "This field is required";
-                }
-                return null;
-              },
+          validator: validator,
         ),
         SizedBox(height: 10.h),
       ],
     );
   }
 }
-
-
-
 
 
 
@@ -134,7 +99,7 @@ class CustomDropdown extends StatelessWidget {
       ),
       hintText: null,
       filled: true,
-      fillColor: const Color.fromARGB(255, 255, 255, 255),
+      fillColor: const Color.fromARGB(255, 250, 244, 228),
       prefixIcon: prefixIcon != null
           ? Icon(prefixIcon, color: Colors.grey)
           : null,
@@ -174,7 +139,7 @@ class CustomDropdown extends StatelessWidget {
       child: Text(
         hintText,
         style: TextStyle(
-          color: Colors.grey[400],
+          color: Colors.black,
           fontSize: 14,
         ),
       ),
@@ -198,7 +163,7 @@ class CustomDropdown extends StatelessWidget {
         controller.text = value;
       }
     },
-    dropdownColor: Colors.white,
+    dropdownColor: const Color.fromARGB(255, 250, 244, 228),
   ),
 ),
         SizedBox(height: 10.h),

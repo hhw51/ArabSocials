@@ -1,3 +1,4 @@
+import 'package:arab_socials/src/controllers/password_visible.dart';
 import 'package:arab_socials/src/controllers/user_controller.dart'; // <-- Make sure this is your SignUpController path
 import 'package:arab_socials/src/view/auth/sign_up/pages/sign_up_page.dart';
 import 'package:arab_socials/src/widgets/textfieled_widget.dart';
@@ -7,6 +8,8 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+
+import '../../../../widgets/bottom_nav.dart';
 
 class Signinscreen extends StatefulWidget {
   const Signinscreen({super.key});
@@ -19,6 +22,9 @@ class _SigninscreenState extends State<Signinscreen> {
   final SignUpController _signUpController = Get.put(SignUpController());
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+   final PasswordVisibilityController visibilityController =
+      Get.put(PasswordVisibilityController());
+
 
   /// For Google sign-in
   Future<User?> _signInWithGoogle() async {
@@ -90,14 +96,25 @@ class _SigninscreenState extends State<Signinscreen> {
                     controller: emailController,
                     hintText: "abc@gmail.com",
                     prefixIcon: Icons.email_outlined,
+                    isPassword: false,
+                   obscureText: false,
                   ),
-                  CustomTextField(
-                    controller: passwordController,
-                    hintText: "Your password",
-                    isPassword: true,
-                    prefixIcon: Icons.lock_outline,
-                    suffixIcon: Icons.visibility_off,
-                  ),
+                  Obx(() => CustomTextField(
+              controller: passwordController,
+              hintText: "Your password",
+              isPassword: true,
+              obscureText: !visibilityController.isVisible('password'),
+              prefixIcon: Icons.lock_outline,
+              suffixIcon: IconButton(
+                icon: Icon(
+                  visibilityController.isVisible('password')
+                      ? Icons.visibility
+                      : Icons.visibility_off,
+                  color: Colors.grey,
+                ),
+                onPressed: () => visibilityController.toggleVisibility('password'),
+              ),
+            )),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -152,6 +169,8 @@ class _SigninscreenState extends State<Signinscreen> {
 
                       // Call login in the SignUpController
                       _signUpController.login(email, password);
+
+                      Get.to(() => BottomNav());
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color.fromARGB(255, 35, 94, 77),

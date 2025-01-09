@@ -1,63 +1,70 @@
+import 'package:arab_socials/src/controllers/navigation_controller.dart';
+import 'package:arab_socials/src/view/events/register_event.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
-void showCustomPopupMenu(BuildContext context) {
- 
-  final screenSize = MediaQuery.of(context).size;
+void showCustomPopupMenu(BuildContext context, Offset position) {
+  final NavigationController navigationController = Get.put(NavigationController());
 
-  
-  final centerOffset = Offset(screenSize.width / 2, screenSize.height / 2);
-
-  // Show the menu
+  // Show the menu at the tap position
   showMenu(
     color: const Color.fromARGB(255, 255, 255, 255),
     context: context,
     position: RelativeRect.fromLTRB(
-      centerOffset.dx - 27, 
-      centerOffset.dy - 108,  
-      centerOffset.dx + 100,
-      centerOffset.dy + 50,
+      position.dx - 175, 
+      position.dy - 90, 
+      position.dx + 1, 
+      position.dy + 1, 
     ),
     items: [
-      const PopupMenuItem(
+      PopupMenuItem(
         value: 'register',
-        child: Row(
-          children: [
-            Icon(Icons.add, color: Color.fromARGB(255, 35, 94, 77)),
-            SizedBox(width: 8.0),
-            Text('Register'),
-          ],
+        child: GestureDetector(
+         onTap: () {
+                    Navigator.of(context).pop(); 
+                navigationController.navigateToChild(RegisterEvent());
+              },
+          child: const Row(
+            children: [
+              Icon(Icons.add, color: Color.fromARGB(255, 35, 94, 77)),
+              SizedBox(width: 8.0),
+              Text('Register'),
+            ],
+          ),
         ),
       ),
-      const PopupMenuItem(
+      PopupMenuItem(
         value: 'invite_friends',
-        child: Row(
-          children: [
-            Icon(Icons.person_add, color: Color.fromARGB(255, 35, 94, 77)),
-            SizedBox(width: 8.0),
-            Text('Invite Friends'),
-          ],
+        child: GestureDetector(
+          onTap: () {
+            print('Invite Friends selected');
+            // Navigator.of(context).pop(); // Dismiss the popup
+          },
+          child: const Row(
+            children: [
+              Icon(Icons.person_add, color: Color.fromARGB(255, 35, 94, 77)),
+              SizedBox(width: 8.0),
+              Text('Invite Friends'),
+            ],
+          ),
         ),
       ),
-      const PopupMenuItem(
+      PopupMenuItem(
         value: 'view_attendees',
-        child: Row(
-          children: [
-            Icon(Icons.list, color: Color.fromARGB(255, 35, 94, 77)),
-            SizedBox(width: 8.0),
-            Text('View Attendees'),
-          ],
+        child: GestureDetector(
+          onTap: () {
+            print('View Attendees selected');
+            // Navigator.of(context).pop(); // Dismiss the popup
+          },
+          child: const Row(
+            children: [
+              Icon(Icons.list, color: Color.fromARGB(255, 35, 94, 77)),
+              SizedBox(width: 8.0),
+              Text('View Attendees'),
+            ],
+          ),
         ),
       ),
     ],
-  ).then((value) {
-    if (value != null) {
-      if (value == 'register') {
-        print('Register selected');
-      } else if (value == 'invite_friends') {
-        print('Invite Friends selected');
-      } else if (value == 'view_attendees') {
-        print('View Attendees selected');
-      }
-    }
-  });
+  );
 }

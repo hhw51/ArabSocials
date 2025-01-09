@@ -37,7 +37,7 @@ class _CustomContainerState extends State<CustomContainer> {
         padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
         decoration: BoxDecoration(
           color: _isTapped ? Colors.green[800] : Colors.green[200],
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(10.r),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
