@@ -1,5 +1,6 @@
 import 'package:arab_socials/src/controllers/navigation_controller.dart';
 import 'package:arab_socials/src/view/auth/sign_in/pages/sign_in_page.dart';
+import 'package:arab_socials/src/widgets/abouMe_popup.dart';
 import 'package:arab_socials/src/widgets/custom_profiletext.dart';
 import 'package:arab_socials/src/widgets/custombuttons.dart';
 import 'package:arab_socials/src/widgets/edit_profile_popup.dart';
@@ -16,9 +17,12 @@ class Profilescreen extends StatefulWidget {
 }
 
 class _ProfilescreenState extends State<Profilescreen> {
+   
+
   @override
   Widget build(BuildContext context) {
     final RxBool rememberMe = false.obs;
+ final RxString aboutMeText = "This is a sample about me text.".obs;
     final NavigationController navigationController = Get.put(NavigationController());
      // Define state for each switch
   final phoneSwitch = false.obs;
@@ -32,8 +36,21 @@ class _ProfilescreenState extends State<Profilescreen> {
   final RxBool aboutMeSwitch = false.obs;
   final RxBool interestsSwitch = false.obs;
   // final RxBool socialMediaSwitch = false.obs;
-
-
+void _showParagraphDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AboutMepopUp(
+          title: "Edit About Me",
+          hintText: "Type something about yourself...",
+          initialText: aboutMeText.value,
+          onSave: (newText) {
+            aboutMeText.value = newText; 
+          },
+        );
+      },
+    );
+  }
     return Scaffold(
            appBar: AppBar(
   automaticallyImplyLeading: false,
@@ -52,13 +69,13 @@ class _ProfilescreenState extends State<Profilescreen> {
   ),
   actions: [
     Padding(
-      padding: EdgeInsets.only(right: 8.0), 
+      padding: EdgeInsets.only(right: 17.0), 
       child: InkWell(
         onTap: () {
           print("Logout tapped!");
           Get.to(Signinscreen());
         },
-        child: ImageIcon(AssetImage("assets/icons/profilelogout.png",),size: 23,color: Colors.green,)
+        child: ImageIcon(AssetImage("assets/icons/profilelogout.png",),size: 23,color: const Color.fromARGB(255, 35, 94, 77),)
       ),
     ),
     Padding(
@@ -135,6 +152,12 @@ class _ProfilescreenState extends State<Profilescreen> {
                        fontWeight: FontWeight.w700,
                     ),
                   ),
+                  SizedBox(width: 10.w),
+               GestureDetector(
+                  onTap: () => _showParagraphDialog(context), // Open the dialog
+                  child: Icon(Icons.edit, color: Colors.green, size: 24),
+                ),
+          
                   const Spacer(),
                 Transform.scale(
   scale: 0.7,
@@ -149,14 +172,10 @@ class _ProfilescreenState extends State<Profilescreen> {
 ),
                 ],
               ),
-              Text(
-                "Enjoy your favorite dish and a lovely time with your friends and family. Food from local food trucks will be available for purchase. Read More",
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w400,
-                  color: const Color.fromARGB(255, 143, 146, 137),
-                ),
-              ),
+            Obx(() => Text(
+                  aboutMeText.value,
+                  style: TextStyle(fontSize: 14, color: Colors.black),
+                )),
               Row(
                 children: [
                   Text(
@@ -280,56 +299,3 @@ class _ProfilescreenState extends State<Profilescreen> {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//               Row(
-//                 children: [
-//                   Text(
-//                     "SOCIAL MEDIA",
-//                      style: GoogleFonts.playfairDisplaySc(
-//                        fontSize: 14.sp,
-//                         color: const Color.fromARGB(255, 35, 94, 77),
-//                        fontWeight: FontWeight.w700,
-//                     ),
-//                   ),
-//                   const Spacer(),
-//                  Transform.scale(
-//   scale: 0.7,
-//   child: Obx(() => Switch(
-//     value: socialMediaSwitch.value,
-//     onChanged: (value) => socialMediaSwitch.value = value,
-//     activeColor: Colors.white,
-//     activeTrackColor: const Color.fromARGB(255, 35, 94, 77),
-//     inactiveThumbColor: Colors.grey,
-//     inactiveTrackColor: Colors.grey[300],
-//   )),
-// ),
-//                 ],
-//               ),
-//               Row(
-//                 children: [
-//                   Image.asset("assets/icons/instagram.png",height: 20,width: 20,),
-//                   SizedBox(width: 6),
-//                   Image.asset("assets/icons/linkedin.png", height: 20,width: 20,),
-//                   SizedBox(width: 6),
-//                   Icon(Icons.facebook, size: 25, color: Colors.black,)
-//                 ],
-//               )
-           

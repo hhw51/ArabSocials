@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:arab_socials/src/services/auth_services.dart';
-import 'package:arab_socials/src/widgets/date_picker_widget.dart';
+import 'package:arab_socials/src/widgets/date_time_picker.dart';
 import 'package:arab_socials/src/widgets/textfieled_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -17,11 +17,10 @@ void showEditProfileDialog(BuildContext context) {
   final TextEditingController martialController = TextEditingController();
   final TextEditingController profrssionController = TextEditingController();
   final TextEditingController intrestController = TextEditingController();
+    final TextEditingController aboutmeController = TextEditingController();
 
-  // Move the declaration of selectedImage here
+
   Rx<File?> selectedImage = Rx<File?>(null);
-
-  // Define the updateProfileHandler function after selectedImage is declared
   void updateProfileHandler(BuildContext context) async {
     final authService = AuthService();
 
@@ -33,7 +32,7 @@ void showEditProfileDialog(BuildContext context) {
         martialStatus: martialController.text.trim(),
         interests: intrestController.text.trim(),
         profession: profrssionController.text.trim(),
-        socialLinks: null, // Pass actual value if available
+        socialLinks: null, 
         image: selectedImage.value,
       );
 
@@ -164,6 +163,11 @@ void showEditProfileDialog(BuildContext context) {
                 CustomTextField(
                   controller: martialController,
                   hintText: "Your Martial status",
+                  obscureText: false,
+                ),
+                 CustomTextField(
+                  controller: aboutmeController,
+                  hintText: "About me",
                   obscureText: false,
                 ),
 

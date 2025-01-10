@@ -9,6 +9,7 @@ class CustomTextField extends StatelessWidget {
   final Widget? suffixIcon;
   final String? Function(String?)? validator;
   final bool obscureText;
+  final String? labelText; // Optional labelText property
 
   const CustomTextField({
     Key? key,
@@ -19,6 +20,7 @@ class CustomTextField extends StatelessWidget {
     this.suffixIcon,
     this.validator,
     required this.obscureText,
+    this.labelText, 
   }) : super(key: key);
 
   @override
@@ -28,13 +30,16 @@ class CustomTextField extends StatelessWidget {
       children: [
         TextFormField(
           controller: controller,
-          obscureText: isPassword ? obscureText : false, // Handle password visibility
+          obscureText: isPassword ? obscureText : false,
           decoration: InputDecoration(
+            labelText: labelText, 
             hintText: hintText,
+            labelStyle: TextStyle(color: Colors.black),
+            hintStyle: TextStyle(color: Colors.grey[400]),
             prefixIcon: prefixIcon != null
                 ? Icon(prefixIcon, color: Colors.grey)
                 : null,
-            suffixIcon: suffixIcon, // Dynamic suffixIcon
+            suffixIcon: suffixIcon,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
               borderSide: const BorderSide(
@@ -66,6 +71,7 @@ class CustomTextField extends StatelessWidget {
 
 
 
+
 class CustomDropdown extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
@@ -88,7 +94,7 @@ class CustomDropdown extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
   Container(
-  width: 350,  // Set the width of the dropdown menu here
+  width: 350,  
   child: DropdownButtonFormField<String>(
     value: controller.text.isEmpty ? null : controller.text,
     decoration: InputDecoration(
@@ -97,6 +103,7 @@ class CustomDropdown extends StatelessWidget {
         color: Colors.grey[700],
         fontSize: 14,
       ),
+       hintStyle: TextStyle(color: Colors.grey[400]),
       hintText: null,
       filled: true,
       fillColor: const Color.fromARGB(255, 250, 244, 228),
