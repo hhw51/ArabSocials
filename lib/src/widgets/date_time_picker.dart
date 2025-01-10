@@ -5,11 +5,9 @@ import 'package:intl/intl.dart';
 
 class DatePickerFieldWidget extends StatelessWidget {
   final TextEditingController controller;
-   final TextEditingController dateofbirthController = TextEditingController();
-
   final String hintText;
 
-   DatePickerFieldWidget({
+  DatePickerFieldWidget({
     super.key,
     required this.controller,
     required this.hintText,
@@ -22,26 +20,26 @@ class DatePickerFieldWidget extends StatelessWidget {
       readOnly: true,
       decoration: InputDecoration(
         hintText: hintText,
-         hintStyle: TextStyle(color: Colors.grey[900]),
+        hintStyle: TextStyle(color: Colors.grey[900]),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r)),
         filled: true,
-       fillColor: const Color.fromARGB(255, 250, 244, 228),
+        fillColor: const Color.fromARGB(255, 250, 244, 228),
         floatingLabelBehavior: FloatingLabelBehavior.always,
         contentPadding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-         focusedBorder: OutlineInputBorder(
-                borderSide: const BorderSide(
-                  color: Colors.grey,
-                  width: 2.0,
-                ),
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderSide: const BorderSide(
-                  color: Colors.grey,
-                  width: 1.0,
-                ),
-                borderRadius: BorderRadius.circular(12.r),
-              ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: const BorderSide(
+            color: Colors.grey,
+            width: 2.0,
+          ),
+          borderRadius: BorderRadius.circular(12.r),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: const BorderSide(
+            color: Colors.grey,
+            width: 1.0,
+          ),
+          borderRadius: BorderRadius.circular(12.r),
+        ),
       ),
       onTap: () async {
         DateTime? pickedDate = await showDatePicker(
@@ -49,19 +47,15 @@ class DatePickerFieldWidget extends StatelessWidget {
           initialDate: DateTime.now(),
           firstDate: DateTime(1900),
           lastDate: DateTime.now(),
-          
         );
         if (pickedDate != null) {
-          controller.text = DateFormat('dd/MM/yyyy').format(pickedDate);
+          controller.text = DateFormat('yyyy-MM-dd').format(pickedDate);
         }
       },
       validator: (value) =>
-      value!.isEmpty ? 'Please enter your date of birth' : null,
+          value!.isEmpty ? 'Please enter your date of birth' : null,
     );
-    
-    
   }
-  
 }
 
 

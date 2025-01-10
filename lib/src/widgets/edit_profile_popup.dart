@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:arab_socials/src/services/auth_services.dart';
+import 'package:arab_socials/src/view/profile/profilescreen.dart';
 import 'package:arab_socials/src/widgets/date_time_picker.dart';
 import 'package:arab_socials/src/widgets/textfieled_widget.dart';
 import 'package:flutter/material.dart';
@@ -17,51 +18,71 @@ void showEditProfileDialog(BuildContext context) {
   final TextEditingController martialController = TextEditingController();
   final TextEditingController profrssionController = TextEditingController();
   final TextEditingController intrestController = TextEditingController();
-    final TextEditingController aboutmeController = TextEditingController();
-
+  final TextEditingController aboutmeController = TextEditingController();
 
   Rx<File?> selectedImage = Rx<File?>(null);
-  void updateProfileHandler(BuildContext context) async {
+
+  void updateProfileHandler() async {
+  try {
     final authService = AuthService();
 
-    try {
-      final response = await authService.updateProfile(
-        name: nameController.text.trim(),
-        phone: phoneController.text.trim(),
-        location: locationController.text.trim(),
-        martialStatus: martialController.text.trim(),
-        interests: intrestController.text.trim(),
-        profession: profrssionController.text.trim(),
-        socialLinks: null, 
-        image: selectedImage.value,
-      );
+    // Fetch current user data to merge unedited fields
+    final currentUserData = await authService.getUserInfo();
 
-      print('Profile updated successfully: $response');
-      print("emailis done 😀😀🤣${nameController.text}");
-      print("emailis done 😀😀🤣${phoneController.text}");
-      print("emailis done 😀😀🤣${locationController.text}");
-      print("emailis done 😀😀🤣${martialController.text}");
-      print("emailis done 😀😀🤣${intrestController.text}");
-      print("emailis done 😀😀🤣${profrssionController.text}");
+    // Call the update profile method with merged data
+    final updatedData = await authService.updateProfile(
+      name: nameController.text.isNotEmpty ? nameController.text : currentUserData['name'],
+      phone: phoneController.text.isNotEmpty ? phoneController.text : currentUserData['phone'],
+      location: locationController.text.isNotEmpty ? locationController.text : currentUserData['location'],
+      image: selectedImage.value,
+      nationality: nationalityController.text.isNotEmpty ? nationalityController.text : currentUserData['nationality'],
+      gender: genderController.text.isNotEmpty ? genderController.text : currentUserData['gender'],
+      dob: dateofbirthController.text.isNotEmpty ? dateofbirthController.text : currentUserData['dob'],
+      aboutMe: aboutmeController.text.isNotEmpty ? aboutmeController.text : currentUserData['about_me'],
+      maritalStatus: martialController.text.isNotEmpty ? martialController.text : currentUserData['marital_status'],
+      interests: intrestController.text.isNotEmpty ? intrestController.text : currentUserData['interests'],
+      profession: profrssionController.text.isNotEmpty ? profrssionController.text : currentUserData['profession'],
+    );
 
-      // Show success message or navigate back
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Profile updated successfully!')),
-      );
-      Navigator.pop(context);
-    } catch (e) {
-      print('Error updating profile: $e');
+    // Use GlobalKey to update state
+    final profileScreenState = Profilescreen.globalKey.currentState;
 
-      // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update profile: $e')),
-      );
-    }
+if (profileScreenState != null) {
+  nameController.text = profileScreenState.name.value;
+  phoneController.text = profileScreenState.phone.value;
+  locationController.text = profileScreenState.location.value;
+  dateofbirthController.text = profileScreenState.dob.value;
+  genderController.text = profileScreenState.gender.value;
+  nationalityController.text = profileScreenState.nationality.value;
+  martialController.text = profileScreenState.maritalStatus.value;
+  profrssionController.text = profileScreenState.profession.value;
+  intrestController.text = profileScreenState.aboutMe.value;
+  aboutmeController.text = profileScreenState.aboutMe.value;
+}
+    
+
+    // Show success message
+    Get.snackbar(
+      "Success",
+      "Profile updated successfully!",
+      snackPosition: SnackPosition.BOTTOM,
+    );
+
+    Navigator.pop(context); // Close the dialog
+  } catch (e) {
+    // Show error message
+    Get.snackbar(
+      "Error",
+      e.toString(),
+      snackPosition: SnackPosition.BOTTOM,
+    );
   }
+}
+
 
   showDialog(
     context: context,
-    barrierDismissible: true, 
+    barrierDismissible: true,
     builder: (BuildContext context) {
       return Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
@@ -106,38 +127,31 @@ void showEditProfileDialog(BuildContext context) {
                   hintText: "Enter your name",
                   obscureText: false,
                 ),
-
                 CustomTextField(
                   controller: phoneController,
                   hintText: "Enter your phone",
                   obscureText: false,
                 ),
-
                 CustomTextField(
                   controller: locationController,
                   hintText: "Enter your location",
                   obscureText: false,
                 ),
-
-                DatePickerFieldWidget(controller: dateofbirthController, hintText: "Your Date of Birth"),
+                DatePickerFieldWidget(
+                    controller: dateofbirthController, hintText: "Your Date of Birth"),
                 SizedBox(height: 10.h),
                 CustomTextField(
                   controller: profrssionController,
                   hintText: "Your Profession",
                   obscureText: false,
                 ),
-
                 CustomDropdown(
                   controller: genderController,
                   hintText: "Your Gender",
                   prefixIcon: Icons.person_2_outlined,
-                  items: const [
-                    "Male",
-                    "Female",
-                    "Divorced",
-                  ],
+                  items: const ["Male", "Female", "Other"],
                   onChanged: (value) {
-                    print("Selected Gender: $value");
+                    // genderController.text = value;
                   },
                 ),
                 CustomMultiSelectDropdown(
@@ -153,24 +167,21 @@ void showEditProfileDialog(BuildContext context) {
                     "Networking",
                   ],
                 ),
-
                 CustomTextField(
                   controller: nationalityController,
                   hintText: "Your Nationality",
                   obscureText: false,
                 ),
-
                 CustomTextField(
                   controller: martialController,
-                  hintText: "Your Martial status",
+                  hintText: "Your Marital Status",
                   obscureText: false,
                 ),
-                 CustomTextField(
+                CustomTextField(
                   controller: aboutmeController,
                   hintText: "About me",
                   obscureText: false,
                 ),
-
                 SizedBox(height: 24.h),
 
                 Row(
@@ -197,7 +208,7 @@ void showEditProfileDialog(BuildContext context) {
                     ),
                     // Save Button
                     ElevatedButton(
-                      onPressed: () => updateProfileHandler(context),
+                      onPressed: updateProfileHandler,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color.fromARGB(255, 35, 94, 77),
                         shape: RoundedRectangleBorder(

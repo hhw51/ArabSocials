@@ -11,7 +11,8 @@ class AuthService {
   static const String _loginUrl = '$_baseUrl/users/login/';
   static const String _sendOtpUrl = '$_baseUrl/users/send-otp/';
   static const String _verifyOtpUrl = '$_baseUrl/users/verify-otp/';
-   static const String _updateProfileUrl = '$_baseUrl/users/update-user/';
+  static const String _updateUserUrl = '$_baseUrl/users/update-user/';
+  static const String _getUserInfoUrl = '$_baseUrl/users/get-user-info/';
 
   static final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
@@ -211,38 +212,46 @@ class AuthService {
       throw Exception('⚠️ Unexpected error: $e');
     }
   }
-
-   Future<Map<String, dynamic>> updateProfile({
+Future<Map<String, dynamic>> updateProfile({
     required String name,
     required String phone,
     required String location,
-    required String martialStatus,
+    File? image,
+    required String nationality,
+    required String gender,
+    required String dob,
+    required String aboutMe,
+    required String maritalStatus,
     required String interests,
     required String profession,
-    String? socialLinks,
-    File? image,
   }) async {
     try {
-      final token = await _secureStorage.read(key: 'token');
+      final String? token = await _secureStorage.read(key: 'token');
       if (token == null) {
-        throw Exception('Authorization token not found');
+        throw Exception('No token found. Please log in again.');
       }
-      final headers = {
+
+      var request = http.MultipartRequest('PUT', Uri.parse(_updateUserUrl));
+
+      // Add headers
+      request.headers.addAll({
         'Authorization': 'Bearer $token',
-      };
-      final request = http.MultipartRequest('PUT', Uri.parse(_updateProfileUrl))
-        ..headers.addAll(headers)
-        ..fields['name'] = name
-        ..fields['phone'] = phone
-        ..fields['location'] = location
-        ..fields['martial_status'] = martialStatus
-        ..fields['interests'] = interests
-        ..fields['profession'] = profession;
+        'Cookie': 'csrftoken=bRjlF9yxqGNkiqJlXEn4uhicNnDv4BYW',
+      });
 
-      if (socialLinks != null && socialLinks.isNotEmpty) {
-        request.fields['social_links'] = socialLinks;
-      }
+      // Add fields
+      request.fields['name'] = name;
+      request.fields['phone'] = phone;
+      request.fields['location'] = location;
+      request.fields['nationality'] = nationality;
+      request.fields['gender'] = gender;
+      request.fields['dob'] = dob;
+      request.fields['about_me'] = aboutMe;
+      request.fields['marital_status'] = maritalStatus;
+      request.fields['interests'] = interests;
+      request.fields['profession'] = profession;
 
+      // Add file if available
       if (image != null) {
         request.files.add(
           await http.MultipartFile.fromPath(
@@ -251,26 +260,49 @@ class AuthService {
           ),
         );
       }
-      final response = await request.send().timeout(const Duration(seconds: 60));
-      final responseBody = await response.stream.bytesToString();
-      print('Response Status: ${response.statusCode}');
-      print('Response Body: $responseBody');
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
+      // Send request
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+
+      if (response.statusCode == 200) {
         print("✅ Profile updated successfully: $responseBody");
         return jsonDecode(responseBody);
       } else {
         throw Exception('❌ Error: ${response.statusCode} - $responseBody');
       }
-    } on SocketException catch (e) {
-      print('🌐 No Internet connection: $e');
-      throw Exception('🌐 No Internet connection');
-    } on TimeoutException catch (e) {
-      print('⏳ Request timed out: $e');
-      throw Exception('⏳ Request timed out');
+    } on SocketException {
+      throw Exception('No Internet connection');
     } catch (e) {
-      print('⚠️ Unexpected error: $e');
-      throw Exception('⚠️ Unexpected error: $e');
+      throw Exception('Unexpected error: $e');
     }
   }
+
+Future<Map<String, dynamic>> getUserInfo() async {
+    try {
+      final String? token = await _secureStorage.read(key: 'token');
+      if (token == null) {
+        throw Exception('No token found. Please log in again.');
+      }
+
+      final response = await http.get(
+        Uri.parse(_getUserInfoUrl),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('Error: ${response.statusCode} - ${response.body}');
+      }
+    } on SocketException {
+      throw Exception('No Internet connection');
+    } catch (e) {
+      throw Exception('Unexpected error: $e');
+    }
+  }
+
 }
