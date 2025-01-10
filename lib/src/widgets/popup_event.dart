@@ -21,14 +21,15 @@ void showCustomPopupMenu(BuildContext context, Offset position) {
         value: 'register',
         child: GestureDetector(
          onTap: () {
+           navigationController.navigateToChild(RegisterEvent());
                     Navigator.of(context).pop(); 
-                navigationController.navigateToChild(RegisterEvent());
+               
               },
           child: const Row(
             children: [
               Icon(Icons.add, color: Color.fromARGB(255, 35, 94, 77)),
               SizedBox(width: 8.0),
-              Text('Register'),
+              Text('Register Event'),
             ],
           ),
         ),

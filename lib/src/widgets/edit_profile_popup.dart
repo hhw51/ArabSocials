@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:arab_socials/src/services/auth_services.dart';
+import 'package:arab_socials/src/widgets/date_picker_widget.dart';
 import 'package:arab_socials/src/widgets/textfieled_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -9,14 +11,62 @@ void showEditProfileDialog(BuildContext context) {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController locationController = TextEditingController();
+  final TextEditingController dateofbirthController = TextEditingController();
+  final TextEditingController genderController = TextEditingController();
+  final TextEditingController nationalityController = TextEditingController();
+  final TextEditingController martialController = TextEditingController();
+  final TextEditingController profrssionController = TextEditingController();
+  final TextEditingController intrestController = TextEditingController();
+
+  // Move the declaration of selectedImage here
   Rx<File?> selectedImage = Rx<File?>(null);
+
+  // Define the updateProfileHandler function after selectedImage is declared
+  void updateProfileHandler(BuildContext context) async {
+    final authService = AuthService();
+
+    try {
+      final response = await authService.updateProfile(
+        name: nameController.text.trim(),
+        phone: phoneController.text.trim(),
+        location: locationController.text.trim(),
+        martialStatus: martialController.text.trim(),
+        interests: intrestController.text.trim(),
+        profession: profrssionController.text.trim(),
+        socialLinks: null, // Pass actual value if available
+        image: selectedImage.value,
+      );
+
+      print('Profile updated successfully: $response');
+      print("emailis done 😀😀🤣${nameController.text}");
+      print("emailis done 😀😀🤣${phoneController.text}");
+      print("emailis done 😀😀🤣${locationController.text}");
+      print("emailis done 😀😀🤣${martialController.text}");
+      print("emailis done 😀😀🤣${intrestController.text}");
+      print("emailis done 😀😀🤣${profrssionController.text}");
+
+      // Show success message or navigate back
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Profile updated successfully!')),
+      );
+      Navigator.pop(context);
+    } catch (e) {
+      print('Error updating profile: $e');
+
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update profile: $e')),
+      );
+    }
+  }
 
   showDialog(
     context: context,
-    barrierDismissible: false,
+    barrierDismissible: true, 
     builder: (BuildContext context) {
       return Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+        backgroundColor: const Color.fromARGB(255, 250, 244, 228),
         child: Padding(
           padding: EdgeInsets.all(16.0),
           child: SingleChildScrollView(
@@ -26,7 +76,6 @@ void showEditProfileDialog(BuildContext context) {
                 // Profile Image
                 Obx(() => GestureDetector(
                       onTap: () async {
-                       // Uncomment this and use ImagePicker to select an image
                         final picker = ImagePicker();
                         final pickedFile = await picker.pickImage(source: ImageSource.gallery);
                         if (pickedFile != null) {
@@ -53,31 +102,73 @@ void showEditProfileDialog(BuildContext context) {
                     )),
 
                 SizedBox(height: 16.h),
-
-                // Name Field
                 CustomTextField(
                   controller: nameController,
                   hintText: "Enter your name",
                   obscureText: false,
                 ),
 
-                // Phone Field
                 CustomTextField(
                   controller: phoneController,
                   hintText: "Enter your phone",
                   obscureText: false,
                 ),
 
-                // Location Field
                 CustomTextField(
                   controller: locationController,
                   hintText: "Enter your location",
                   obscureText: false,
                 ),
 
+                DatePickerFieldWidget(controller: dateofbirthController, hintText: "Your Date of Birth"),
+                SizedBox(height: 10.h),
+                CustomTextField(
+                  controller: profrssionController,
+                  hintText: "Your Profession",
+                  obscureText: false,
+                ),
+
+                CustomDropdown(
+                  controller: genderController,
+                  hintText: "Your Gender",
+                  prefixIcon: Icons.person_2_outlined,
+                  items: const [
+                    "Male",
+                    "Female",
+                    "Divorced",
+                  ],
+                  onChanged: (value) {
+                    print("Selected Gender: $value");
+                  },
+                ),
+                CustomMultiSelectDropdown(
+                  controller: intrestController,
+                  hintText: "Your Interests",
+                  items: const [
+                    "Games",
+                    "Music",
+                    "Movies",
+                    "Art",
+                    "Technology",
+                    "Innovation",
+                    "Networking",
+                  ],
+                ),
+
+                CustomTextField(
+                  controller: nationalityController,
+                  hintText: "Your Nationality",
+                  obscureText: false,
+                ),
+
+                CustomTextField(
+                  controller: martialController,
+                  hintText: "Your Martial status",
+                  obscureText: false,
+                ),
+
                 SizedBox(height: 24.h),
 
-                // Action Buttons
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -85,27 +176,39 @@ void showEditProfileDialog(BuildContext context) {
                     ElevatedButton(
                       onPressed: () => Navigator.pop(context),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey,
+                        backgroundColor: const Color.fromARGB(255, 35, 94, 77),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
                       ),
-                      child: const Text("Cancel"),
+                      child: Text(
+                        "Back",
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w700,
+                          color: const Color.fromARGB(255, 250, 244, 228),
+                        ),
+                      ),
                     ),
-
                     // Save Button
                     ElevatedButton(
-                      onPressed: () {
-                        // Save the updated details
-                        print("Name: ${nameController.text}");
-                        print("Phone: ${phoneController.text}");
-                        print("Location: ${locationController.text}");
-                        if (selectedImage.value != null) {
-                          print("Image Path: ${selectedImage.value!.path}");
-                        }
-                        Navigator.pop(context); // Close the dialog
-                      },
+                      onPressed: () => updateProfileHandler(context),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color.fromARGB(255, 35, 94, 77),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
                       ),
-                      child: const Text("Save"),
+                      child: Text(
+                        "Save",
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w700,
+                          color: const Color.fromARGB(255, 250, 244, 228),
+                        ),
+                      ),
                     ),
                   ],
                 ),

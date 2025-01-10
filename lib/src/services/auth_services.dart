@@ -11,6 +11,7 @@ class AuthService {
   static const String _loginUrl = '$_baseUrl/users/login/';
   static const String _sendOtpUrl = '$_baseUrl/users/send-otp/';
   static const String _verifyOtpUrl = '$_baseUrl/users/verify-otp/';
+   static const String _updateProfileUrl = '$_baseUrl/users/update-user/';
 
   static final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
@@ -47,8 +48,6 @@ class AuthService {
         print("✅ Login successful: ${response.body}");
 
         final responseData = jsonDecode(response.body);
-
-        // If the server returns a token, store it using secure storage
         if (responseData['token'] != null) {
           await _secureStorage.write(key: 'token', value: responseData['token']);
           print('Token saved to secure storage: ${responseData['token']}');
@@ -101,8 +100,6 @@ class AuthService {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         print("✅ Signup successful: ${response.body}");
-
-        // Parse response and store token if present
         final responseData = jsonDecode(response.body);
         if (responseData['token'] != null) {
           await _secureStorage.write(key: 'token', value: responseData['token']);
@@ -193,8 +190,6 @@ class AuthService {
 
       if (response.statusCode == 200) {
         print("✅ OTP verification successful: ${response.body}");
-
-        // Parse response and store token if present
         final responseData = jsonDecode(response.body);
         if (responseData['token'] != null) {
           await _secureStorage.write(key: 'token', value: responseData['token']);
@@ -204,6 +199,68 @@ class AuthService {
         return responseData;
       } else {
         throw Exception('❌ Error: ${response.statusCode} - ${response.body}');
+      }
+    } on SocketException catch (e) {
+      print('🌐 No Internet connection: $e');
+      throw Exception('🌐 No Internet connection');
+    } on TimeoutException catch (e) {
+      print('⏳ Request timed out: $e');
+      throw Exception('⏳ Request timed out');
+    } catch (e) {
+      print('⚠️ Unexpected error: $e');
+      throw Exception('⚠️ Unexpected error: $e');
+    }
+  }
+
+   Future<Map<String, dynamic>> updateProfile({
+    required String name,
+    required String phone,
+    required String location,
+    required String martialStatus,
+    required String interests,
+    required String profession,
+    String? socialLinks,
+    File? image,
+  }) async {
+    try {
+      final token = await _secureStorage.read(key: 'token');
+      if (token == null) {
+        throw Exception('Authorization token not found');
+      }
+      final headers = {
+        'Authorization': 'Bearer $token',
+      };
+      final request = http.MultipartRequest('PUT', Uri.parse(_updateProfileUrl))
+        ..headers.addAll(headers)
+        ..fields['name'] = name
+        ..fields['phone'] = phone
+        ..fields['location'] = location
+        ..fields['martial_status'] = martialStatus
+        ..fields['interests'] = interests
+        ..fields['profession'] = profession;
+
+      if (socialLinks != null && socialLinks.isNotEmpty) {
+        request.fields['social_links'] = socialLinks;
+      }
+
+      if (image != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'image',
+            image.path,
+          ),
+        );
+      }
+      final response = await request.send().timeout(const Duration(seconds: 60));
+      final responseBody = await response.stream.bytesToString();
+      print('Response Status: ${response.statusCode}');
+      print('Response Body: $responseBody');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print("✅ Profile updated successfully: $responseBody");
+        return jsonDecode(responseBody);
+      } else {
+        throw Exception('❌ Error: ${response.statusCode} - $responseBody');
       }
     } on SocketException catch (e) {
       print('🌐 No Internet connection: $e');

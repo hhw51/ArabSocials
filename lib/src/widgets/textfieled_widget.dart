@@ -171,3 +171,149 @@ class CustomDropdown extends StatelessWidget {
     );
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class CustomMultiSelectDropdown extends StatelessWidget {
+  final TextEditingController controller;
+  final String hintText;
+  final IconData? prefixIcon;
+  final List<String> items;
+
+  const CustomMultiSelectDropdown({
+    Key? key,
+    required this.controller,
+    required this.hintText,
+    required this.items,
+    this.prefixIcon,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: () async {
+            List<String>? selectedItems = await showDialog(
+              context: context,
+              builder: (context) => MultiSelectDialog(
+                items: items,
+                selectedItems: controller.text.isEmpty
+                    ? []
+                    : controller.text.split(', '),
+              ),
+            );
+
+            if (selectedItems != null) {
+              // Update the controller text
+              controller.text = selectedItems.join(', ');
+            }
+          },
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            decoration: BoxDecoration(
+              color: const Color.fromARGB(255, 250, 244, 228),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Colors.grey,
+                width: 1.0,
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    controller.text.isEmpty ? hintText : controller.text,
+                    style: TextStyle(
+                      color: controller.text.isEmpty ? Colors.black : Colors.black,
+                      fontSize: 14,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Icon(
+                  Icons.keyboard_arrow_down_sharp,
+                  color: const Color.fromARGB(255, 35, 94, 77),
+                ),
+              ],
+            ),
+          ),
+        ),
+        SizedBox(height: 10.h),
+      ],
+    );
+  }
+}
+
+class MultiSelectDialog extends StatefulWidget {
+  final List<String> items;
+  final List<String> selectedItems;
+
+  const MultiSelectDialog({
+    Key? key,
+    required this.items,
+    required this.selectedItems,
+  }) : super(key: key);
+
+  @override
+  _MultiSelectDialogState createState() => _MultiSelectDialogState();
+}
+
+class _MultiSelectDialogState extends State<MultiSelectDialog> {
+  late List<String> _selectedItems;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedItems = List.from(widget.selectedItems);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Select Interests'),
+      content: SingleChildScrollView(
+        child: Column(
+          children: widget.items.map((item) {
+            return CheckboxListTile(
+              title: Text(item),
+              value: _selectedItems.contains(item),
+              onChanged: (bool? value) {
+                setState(() {
+                  if (value == true) {
+                    _selectedItems.add(item);
+                  } else {
+                    _selectedItems.remove(item);
+                  }
+                });
+              },
+            );
+          }).toList(),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, null),
+          child: Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context, _selectedItems),
+          child: Text('OK'),
+        ),
+      ],
+    );
+  }
+}

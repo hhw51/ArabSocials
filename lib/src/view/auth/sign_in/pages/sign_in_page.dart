@@ -1,5 +1,5 @@
 import 'package:arab_socials/src/controllers/password_visible.dart';
-import 'package:arab_socials/src/controllers/user_controller.dart'; // <-- Make sure this is your SignUpController path
+import 'package:arab_socials/src/controllers/user_controller.dart'; 
 import 'package:arab_socials/src/view/auth/sign_up/pages/sign_up_page.dart';
 import 'package:arab_socials/src/widgets/textfieled_widget.dart';
 import 'package:flutter/material.dart';
@@ -8,8 +8,6 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-
-import '../../../../widgets/bottom_nav.dart';
 
 class Signinscreen extends StatefulWidget {
   const Signinscreen({super.key});
@@ -25,13 +23,10 @@ class _SigninscreenState extends State<Signinscreen> {
    final PasswordVisibilityController visibilityController =
       Get.put(PasswordVisibilityController());
 
-
-  /// For Google sign-in
   Future<User?> _signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       if (googleUser == null) {
-        // User cancelled sign-in
         return null;
       }
 
@@ -43,7 +38,6 @@ class _SigninscreenState extends State<Signinscreen> {
         idToken: googleAuth.idToken,
       );
 
-      // Sign in with Firebase using the Google credentials
       final UserCredential userCredential =
       await FirebaseAuth.instance.signInWithCredential(credential);
       return userCredential.user;
@@ -55,8 +49,6 @@ class _SigninscreenState extends State<Signinscreen> {
 
   @override
   Widget build(BuildContext context) {
-    // We get or create our SignUpController instance:
-
 
     return GestureDetector(
       onTap: () {
@@ -163,7 +155,6 @@ class _SigninscreenState extends State<Signinscreen> {
                         Get.snackbar('Error', 'Please fill in all fields');
                         return;
                       }
-                      // Call login in the SignUpController
                       _signUpController.login(email, password);
                     },
                     style: ElevatedButton.styleFrom(
@@ -213,17 +204,14 @@ class _SigninscreenState extends State<Signinscreen> {
                   ),
                   SizedBox(height: 20.h),
 
-                  /// **GOOGLE LOGIN**
                   ElevatedButton.icon(
                     onPressed: () async {
                       User? user = await _signInWithGoogle();
                       if (user != null) {
-                        // Successfully signed in
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Welcome ${user.displayName}')),
                         );
                       } else {
-                        // Sign-in failed
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Google sign-in failed')),
                         );

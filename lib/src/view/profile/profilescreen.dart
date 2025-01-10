@@ -1,4 +1,5 @@
 import 'package:arab_socials/src/controllers/navigation_controller.dart';
+import 'package:arab_socials/src/view/auth/sign_in/pages/sign_in_page.dart';
 import 'package:arab_socials/src/widgets/custom_profiletext.dart';
 import 'package:arab_socials/src/widgets/custombuttons.dart';
 import 'package:arab_socials/src/widgets/edit_profile_popup.dart';
@@ -34,37 +35,45 @@ class _ProfilescreenState extends State<Profilescreen> {
 
 
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 250, 244, 228),
-             appBar: AppBar(
-        automaticallyImplyLeading: false, 
-       backgroundColor: const Color.fromARGB(255, 250, 244, 228),
-       surfaceTintColor: const Color.fromARGB(255, 250, 244, 228),
-        elevation: 0, 
-        leading: InkWell(
+           appBar: AppBar(
+  automaticallyImplyLeading: false,
+  backgroundColor: const Color.fromARGB(255, 250, 244, 228),
+  surfaceTintColor: const Color.fromARGB(255, 250, 244, 228),
+  elevation: 0,
+  leading: InkWell(
     onTap: () {
-      navigationController.navigateBack(); 
+      navigationController.navigateBack();
     },
     child: const Icon(
       Icons.arrow_back,
       color: Color.fromARGB(255, 35, 94, 77),
       size: 24,
     ),
-        ),
-        actions: [
-  Padding(
-    padding: EdgeInsets.only(right: 16.0),
-    child: InkWell(
-      onTap: () {
-    showEditProfileDialog(context); // Call the dialog from here
-      },
-      child: const CustomContainer(
-        text: "Edit Profile",
-        image: "assets/icons/editprofile.png",
+  ),
+  actions: [
+    Padding(
+      padding: EdgeInsets.only(right: 8.0), 
+      child: InkWell(
+        onTap: () {
+          print("Logout tapped!");
+          Get.to(Signinscreen());
+        },
+        child: ImageIcon(AssetImage("assets/icons/profilelogout.png",),size: 23,color: Colors.green,)
       ),
     ),
-  ),
-],
+    Padding(
+      padding: EdgeInsets.only(right: 16.0),
+      child: CustomContainer(
+        text: "Edit Profile",
+        image: "assets/icons/editprofile.png",
+        onTap: () {
+          showEditProfileDialog(context);
+        },
       ),
+    ),
+  ],
+),
+
       body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 5),
@@ -131,7 +140,7 @@ class _ProfilescreenState extends State<Profilescreen> {
   scale: 0.7,
   child: Obx(() => Switch(
     value: aboutMeSwitch.value,
-    onChanged: (value) => aboutMeSwitch.value = value,
+     onChanged: null, 
     activeColor: Colors.white,
     activeTrackColor: const Color.fromARGB(255, 35, 94, 77),
     inactiveThumbColor: Colors.grey,
@@ -162,13 +171,13 @@ class _ProfilescreenState extends State<Profilescreen> {
                  Transform.scale(
   scale: 0.7,
   child: Obx(() => Switch(
-    value: interestsSwitch.value,
-    onChanged: (value) => interestsSwitch.value = value,
-    activeColor: Colors.white,
-    activeTrackColor: const Color.fromARGB(255, 35, 94, 77),
-    inactiveThumbColor: Colors.grey,
-    inactiveTrackColor: Colors.grey[300],
-  )),
+  value: interestsSwitch.value,
+  onChanged: null, 
+  activeColor: Colors.grey,
+  activeTrackColor: Colors.grey[300],
+  inactiveThumbColor: Colors.grey,
+  inactiveTrackColor: Colors.grey[300],
+)),
 ),
                 ],
               ),
@@ -220,13 +229,13 @@ class _ProfilescreenState extends State<Profilescreen> {
           switchValue: emailSwitch.value,
           onSwitchChanged: (value) => emailSwitch.value = value,
         )),
-    Obx(() => CustomData(
-          title: "Location",
-          subtitle: "New York, USA",
-          showSwitch: true,
-          switchValue: locationSwitch.value,
-          onSwitchChanged: (value) => locationSwitch.value = value,
-        )),
+   Obx(() => CustomData(
+  title: "Location",
+  subtitle: "New York, USA",
+  showSwitch: true,
+  switchValue: locationSwitch.value,
+  onSwitchChanged: null, 
+)),
     Obx(() => CustomData(
           title: "Gender",
           subtitle: "Male",

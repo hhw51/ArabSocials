@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class CustomContainer extends StatefulWidget {
   final String text;
-  final IconData? icon; 
-  final String? image; 
+  final IconData? icon;
+  final String? image;
+  final VoidCallback? onTap; 
 
   const CustomContainer({
     Key? key,
     required this.text,
-    this.icon,                           ////////////////////////GERRNBUTTON IN APPBAR IN ALL SCREENS////////////////////////////////
-    this.image, 
+    this.icon,
+    this.image,
+    this.onTap, 
   }) : super(key: key);
 
   @override
@@ -29,8 +28,11 @@ class _CustomContainerState extends State<CustomContainer> {
     return GestureDetector(
       onTap: () {
         setState(() {
-          _isTapped = !_isTapped;
+          _isTapped = !_isTapped; 
         });
+        if (widget.onTap != null) {
+          widget.onTap!(); 
+        }
       },
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
@@ -50,12 +52,12 @@ class _CustomContainerState extends State<CustomContainer> {
               )
             else if (widget.image != null)
               ClipRRect(
-                borderRadius: BorderRadius.circular(4.r), 
+                borderRadius: BorderRadius.circular(4.r),
                 child: Image.asset(
                   widget.image!,
                   height: 16.h,
                   width: 16.w,
-                    color: _isTapped ? Colors.white : Colors.green,
+                  color: _isTapped ? Colors.white : Colors.green,
                   fit: BoxFit.cover,
                 ),
               ),
@@ -74,6 +76,7 @@ class _CustomContainerState extends State<CustomContainer> {
     );
   }
 }
+
 
 
 
