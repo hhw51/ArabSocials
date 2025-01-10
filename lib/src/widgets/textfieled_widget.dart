@@ -107,6 +107,7 @@ class CustomDropdown extends StatelessWidget {
       hintText: null,
       filled: true,
       fillColor: const Color.fromARGB(255, 250, 244, 228),
+      
       prefixIcon: prefixIcon != null
           ? Icon(prefixIcon, color: Colors.grey)
           : null,
@@ -146,7 +147,7 @@ class CustomDropdown extends StatelessWidget {
       child: Text(
         hintText,
         style: TextStyle(
-          color: Colors.black,
+          color: Colors.grey[900],
           fontSize: 14,
         ),
       ),
@@ -245,7 +246,7 @@ class CustomMultiSelectDropdown extends StatelessWidget {
                   child: Text(
                     controller.text.isEmpty ? hintText : controller.text,
                     style: TextStyle(
-                      color: controller.text.isEmpty ? Colors.black : Colors.black,
+                      color: controller.text.isEmpty ? Colors.grey[900] : Colors.black,
                       fontSize: 14,
                     ),
                     overflow: TextOverflow.ellipsis,

@@ -22,6 +22,7 @@ class DatePickerFieldWidget extends StatelessWidget {
       readOnly: true,
       decoration: InputDecoration(
         hintText: hintText,
+         hintStyle: TextStyle(color: Colors.grey[900]),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r)),
         filled: true,
        fillColor: const Color.fromARGB(255, 250, 244, 228),
