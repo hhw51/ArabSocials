@@ -6,14 +6,14 @@ class CustomContainer extends StatefulWidget {
   final String text;
   final IconData? icon;
   final String? image;
-  final VoidCallback? onTap; 
+  final VoidCallback? onTap;
 
   const CustomContainer({
     Key? key,
     required this.text,
     this.icon,
     this.image,
-    this.onTap, 
+    this.onTap,
   }) : super(key: key);
 
   @override
@@ -28,10 +28,10 @@ class _CustomContainerState extends State<CustomContainer> {
     return GestureDetector(
       onTap: () {
         setState(() {
-          _isTapped = !_isTapped; 
+          _isTapped = !_isTapped;
         });
         if (widget.onTap != null) {
-          widget.onTap!(); 
+          widget.onTap!();
         }
       },
       child: Container(
@@ -77,23 +77,19 @@ class _CustomContainerState extends State<CustomContainer> {
   }
 }
 
-
-
-
-
 ///////////////////////////////////EVENTSCREEN SPORTS, MUSIC OR.............BUTTON////////////////////////////
 
 class Custombutton extends StatefulWidget {
   final String text;
-  final IconData? icon; 
-  final String? image; 
-  final Color color; 
+  final IconData? icon;
+  final String? image;
+  final Color color;
 
   const Custombutton({
     Key? key,
     required this.text,
-    this.icon, 
-    this.image, 
+    this.icon,
+    this.image,
     required this.color,
   }) : super(key: key);
 
@@ -114,13 +110,13 @@ class _CustombuttonState extends State<Custombutton> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (widget.icon != null) 
+          if (widget.icon != null)
             Icon(
               widget.icon,
               color: Colors.white,
               size: 20,
             )
-          else if (widget.image != null) 
+          else if (widget.image != null)
             ClipRRect(
               borderRadius: BorderRadius.circular(8.r),
               child: Image.asset(
@@ -144,10 +140,8 @@ class _CustombuttonState extends State<Custombutton> {
     );
   }
 }
- 
 
 /////////////////////////IN PROFILESCREEN INTERESTS CONTAINER/////////////////////////////////
-
 
 class CustomIntrestsContainer extends StatefulWidget {
   final String text;
@@ -168,16 +162,16 @@ class _CustomIntrestsContainerState extends State<CustomIntrestsContainer> {
   @override
   Widget build(BuildContext context) {
     return Container(
-     margin: const EdgeInsets.symmetric(horizontal: 3),
+      margin: const EdgeInsets.symmetric(horizontal: 3),
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       decoration: BoxDecoration(
-        color: widget.color, 
-        borderRadius: BorderRadius.circular(10.r), 
+        color: widget.color,
+        borderRadius: BorderRadius.circular(10.r),
       ),
       child: Text(
         widget.text,
         style: TextStyle(
-          color: Colors.white, 
+          color: Colors.white,
           fontWeight: FontWeight.w500,
           fontSize: 12.sp,
         ),
@@ -186,19 +180,12 @@ class _CustomIntrestsContainerState extends State<CustomIntrestsContainer> {
   }
 }
 
-
-
-
-
-
 ////////////////////////IN HOMESCREEN HEAD TEXT AND SEE ALL BUTTON//////////////////////////////////////
 
-
-
 class SectionHeader extends StatelessWidget {
-  final String title; 
-  final String actionText; 
-  final VoidCallback? onTap; 
+  final String title;
+  final String actionText;
+  final VoidCallback? onTap;
 
   const SectionHeader({
     Key? key,
@@ -250,4 +237,32 @@ class SectionHeader extends StatelessWidget {
       ),
     );
   }
+}
+
+enum Interest {
+  game('Game', Colors.red),
+  music('Music', Colors.blue),
+  movies('Movies', Colors.green),
+  art('Art', Colors.yellow),
+  technology('Technology', Colors.amber),
+  innovation('Innovation', Colors.blueAccent),
+  networking('Networking', Colors.grey);
+
+ static Interest fromApi({required String value}) {
+    return switch (value) {
+      'Game' => game,
+      'Music' => music,
+      'Movies' => movies,
+      'Art' => art,
+      'Technology' => technology,
+      'Innovation' => innovation,
+      'Networking' => networking,
+      _ => game,
+    };
+  }
+
+  final Color color;
+  final String name;
+
+  const Interest(this.name, this.color);
 }

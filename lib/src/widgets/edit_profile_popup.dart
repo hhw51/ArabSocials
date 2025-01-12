@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:arab_socials/src/services/auth_services.dart';
-import 'package:arab_socials/src/view/profile/profilescreen.dart';
 import 'package:arab_socials/src/widgets/date_time_picker.dart';
 import 'package:arab_socials/src/widgets/textfieled_widget.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
-void showEditProfileDialog(BuildContext context) {
+mixin ShowEditProfileDialog {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController locationController = TextEditingController();
@@ -17,76 +16,17 @@ void showEditProfileDialog(BuildContext context) {
   final TextEditingController nationalityController = TextEditingController();
   final TextEditingController martialController = TextEditingController();
   final TextEditingController profrssionController = TextEditingController();
+  final RxList<String> interests = RxList();
   final TextEditingController intrestController = TextEditingController();
   final TextEditingController aboutmeController = TextEditingController();
 
   Rx<File?> selectedImage = Rx<File?>(null);
 
-  void updateProfileHandler() async {
-  try {
-    final authService = AuthService();
+  Map<String, dynamic> updatedData = {};
 
-    // Fetch current user data to merge unedited fields
-    final currentUserData = await authService.getUserInfo();
-
-    // Call the update profile method with merged data
-    final updatedData = await authService.updateProfile(
-      name: nameController.text.isNotEmpty ? nameController.text : currentUserData['name'],
-      phone: phoneController.text.isNotEmpty ? phoneController.text : currentUserData['phone'],
-      location: locationController.text.isNotEmpty ? locationController.text : currentUserData['location'],
-      image: selectedImage.value,
-      nationality: nationalityController.text.isNotEmpty ? nationalityController.text : currentUserData['nationality'],
-      gender: genderController.text.isNotEmpty ? genderController.text : currentUserData['gender'],
-      dob: dateofbirthController.text.isNotEmpty ? dateofbirthController.text : currentUserData['dob'],
-      aboutMe: aboutmeController.text.isNotEmpty ? aboutmeController.text : currentUserData['about_me'],
-      maritalStatus: martialController.text.isNotEmpty ? martialController.text : currentUserData['marital_status'],
-      interests: intrestController.text.isNotEmpty ? intrestController.text : currentUserData['interests'],
-      profession: profrssionController.text.isNotEmpty ? profrssionController.text : currentUserData['profession'],
-    );
-
-    // Use GlobalKey to update state
-    final profileScreenState = Profilescreen.globalKey.currentState;
-
-if (profileScreenState != null) {
-  nameController.text = profileScreenState.name.value;
-  phoneController.text = profileScreenState.phone.value;
-  locationController.text = profileScreenState.location.value;
-  dateofbirthController.text = profileScreenState.dob.value;
-  genderController.text = profileScreenState.gender.value;
-  nationalityController.text = profileScreenState.nationality.value;
-  martialController.text = profileScreenState.maritalStatus.value;
-  profrssionController.text = profileScreenState.profession.value;
-  intrestController.text = profileScreenState.aboutMe.value;
-  aboutmeController.text = profileScreenState.aboutMe.value;
-}
-    
-
-    // Show success message
-    Get.snackbar(
-      "Success",
-      "Profile updated successfully!",
-      snackPosition: SnackPosition.BOTTOM,
-    );
-
-    Navigator.pop(context); // Close the dialog
-  } catch (e) {
-    // Show error message
-    Get.snackbar(
-      "Error",
-      e.toString(),
-      snackPosition: SnackPosition.BOTTOM,
-    );
-  }
-}
-
-
-  showDialog(
-    context: context,
-    barrierDismissible: true,
-    builder: (BuildContext context) {
-      return Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-        backgroundColor: const Color.fromARGB(255, 250, 244, 228),
+  Future<void> showPopUp(BuildContext context) async {
+    await Get.dialog(
+      Material(
         child: Padding(
           padding: EdgeInsets.all(16.0),
           child: SingleChildScrollView(
@@ -97,7 +37,8 @@ if (profileScreenState != null) {
                 Obx(() => GestureDetector(
                       onTap: () async {
                         final picker = ImagePicker();
-                        final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+                        final pickedFile =
+                            await picker.pickImage(source: ImageSource.gallery);
                         if (pickedFile != null) {
                           selectedImage.value = File(pickedFile.path);
                         }
@@ -106,7 +47,8 @@ if (profileScreenState != null) {
                         radius: 48,
                         backgroundImage: selectedImage.value != null
                             ? FileImage(selectedImage.value!)
-                            : const AssetImage("assets/logo/profileimage.png") as ImageProvider,
+                            : const AssetImage("assets/logo/profileimage.png")
+                                as ImageProvider,
                         child: Align(
                           alignment: Alignment.bottomRight,
                           child: Container(
@@ -115,7 +57,8 @@ if (profileScreenState != null) {
                               color: Colors.white,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.camera_alt, color: Colors.black, size: 18),
+                            child: const Icon(Icons.camera_alt,
+                                color: Colors.black, size: 18),
                           ),
                         ),
                       ),
@@ -138,7 +81,8 @@ if (profileScreenState != null) {
                   obscureText: false,
                 ),
                 DatePickerFieldWidget(
-                    controller: dateofbirthController, hintText: "Your Date of Birth"),
+                    controller: dateofbirthController,
+                    hintText: "Your Date of Birth"),
                 SizedBox(height: 10.h),
                 CustomTextField(
                   controller: profrssionController,
@@ -150,11 +94,13 @@ if (profileScreenState != null) {
                   hintText: "Your Gender",
                   prefixIcon: Icons.person_2_outlined,
                   items: const ["Male", "Female", "Other"],
-                  onChanged: (value) {
-                    // genderController.text = value;
-                  },
+                  onChanged: (value) {},
                 ),
                 CustomMultiSelectDropdown(
+                  onSelect: (selectedValues) {
+                  interests.assignAll(selectedValues);
+                  },
+                  
                   controller: intrestController,
                   hintText: "Your Interests",
                   items: const [
@@ -187,15 +133,15 @@ if (profileScreenState != null) {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Cancel Button
                     ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () => Get.back(),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color.fromARGB(255, 35, 94, 77),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8.r),
                         ),
-                        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 12.w, vertical: 8.h),
                       ),
                       child: Text(
                         "Back",
@@ -206,15 +152,24 @@ if (profileScreenState != null) {
                         ),
                       ),
                     ),
-                    // Save Button
                     ElevatedButton(
-                      onPressed: updateProfileHandler,
+                      onPressed: () async {
+                        final result = await updateProfileHandler(context);
+
+                        if (result != null) {
+                          updatedData = result;
+                          if (context.mounted) {
+                            Get.back();
+                          }
+                        }
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color.fromARGB(255, 35, 94, 77),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8.r),
                         ),
-                        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 12.w, vertical: 8.h),
                       ),
                       child: Text(
                         "Save",
@@ -231,7 +186,83 @@ if (profileScreenState != null) {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Future<Map<String, dynamic>?> updateProfileHandler(
+      BuildContext context) async {
+    try {
+      final authService = AuthService();
+
+      // Fetch current user data to merge unedited fields
+      final currentUserData = await authService.getUserInfo();
+
+      // Call the update profile method with merged data
+      final updatedData = await authService.updateProfile(
+        name: nameController.text.isNotEmpty
+            ? nameController.text
+            : currentUserData['name'],
+        phone: phoneController.text.isNotEmpty
+            ? phoneController.text
+            : currentUserData['phone'],
+        location: locationController.text.isNotEmpty
+            ? locationController.text
+            : currentUserData['location'],
+        image: selectedImage.value,
+        nationality: nationalityController.text.isNotEmpty
+            ? nationalityController.text
+            : currentUserData['nationality'],
+        gender: genderController.text.isNotEmpty
+            ? genderController.text
+            : currentUserData['gender'],
+        dob: dateofbirthController.text.isNotEmpty
+            ? dateofbirthController.text
+            : currentUserData['dob'],
+        aboutMe: aboutmeController.text.isNotEmpty
+            ? aboutmeController.text
+            : currentUserData['about_me'],
+        maritalStatus: martialController.text.isNotEmpty
+            ? martialController.text
+            : currentUserData['marital_status'],
+        interests: interests.toString(),
+        profession: profrssionController.text.isNotEmpty
+            ? profrssionController.text
+            : currentUserData['profession'],
       );
-    },
-  );
+      if (updatedData.isNotEmpty) {
+        return updatedData;
+      }
+
+      // Use GlobalKey to update state
+//     final profileScreenState = scaffoldKey.currentState;
+
+// if (profileScreenState != null) {
+
+//   profileScreenState.name.value = nameController.text ;
+//   phoneController.text = profileScreenState.phone.value;
+//   locationController.text = profileScreenState.location.value;
+//   dateofbirthController.text = profileScreenState.dob.value;
+//   genderController.text = profileScreenState.gender.value;
+//   nationalityController.text = profileScreenState.nationality.value;
+//   martialController.text = profileScreenState.maritalStatus.value;
+//   profrssionController.text = profileScreenState.profession.value;
+//   intrestController.text = profileScreenState.aboutMe.value;
+//   aboutmeController.text = profileScreenState.aboutMe.value;
+// }
+
+      Get.snackbar(
+        "Success",
+        "Profile updated successfully!",
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } catch (e) {
+      Get.snackbar(
+        "Error",
+        e.toString(),
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+    return null;
+  }
 }

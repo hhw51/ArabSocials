@@ -267,7 +267,9 @@ Future<Map<String, dynamic>> updateProfile({
 
       if (response.statusCode == 200) {
         print("✅ Profile updated successfully: $responseBody");
+        getUserInfo();
         return jsonDecode(responseBody);
+
       } else {
         throw Exception('❌ Error: ${response.statusCode} - $responseBody');
       }
