@@ -26,6 +26,26 @@ mixin ShowEditProfileDialog {
   Map<String, dynamic> updatedData = {};
 
   Future<void> showPopUp(BuildContext context) async {
+    // Prepopulate TextFields with existing data
+    nameController.text = updatedData["name"] ?? "";
+    phoneController.text = updatedData["phone"] ?? "";
+    locationController.text = updatedData["location"] ?? "";
+    dateofbirthController.text = updatedData["dob"] ?? "";
+    genderController.text = updatedData["gender"] ?? "";
+    nationalityController.text = updatedData["nationality"] ?? "";
+    martialController.text = updatedData["marital_status"] ?? "";
+    profrssionController.text = updatedData["profession"] ?? "";
+    aboutmeController.text = updatedData["about_me"] ?? "";
+
+ if (updatedData['interests'] != null && updatedData['interests'] is List) {
+  interests.assignAll(
+    (updatedData['interests'] as List).map((e) => e.toString().trim()).toList(),
+  );
+} else {
+  interests.clear();
+}
+
+
     await Get.dialog(
       barrierColor: const Color.fromARGB(255, 250, 244, 228),
       Material(
@@ -197,52 +217,61 @@ mixin ShowEditProfileDialog {
     );
   }
 
-  Future<Map<String, dynamic>?> updateProfileHandler(BuildContext context) async {
-    try {
-      final authService = AuthService();
+ Future<Map<String, dynamic>?> updateProfileHandler(BuildContext context) async {
+  try {
+    final authService = AuthService();
 
-      // Fetch current user data to merge unedited fields
-      final currentUserData = await authService.getUserInfo();
+    // Fetch current user data to merge unedited fields
+    final currentUserData = await authService.getUserInfo();
 
-      // Call the update profile method with merged data
-      final updatedData = await authService.updateProfile(
-        name: nameController.text.isNotEmpty
-            ? nameController.text
-            : currentUserData['name'],
-        phone: phoneController.text.isNotEmpty
-            ? phoneController.text
-            : currentUserData['phone'],
-        location: locationController.text.isNotEmpty
-            ? locationController.text
-            : currentUserData['location'],
-        image: selectedImage.value,
-        nationality: nationalityController.text.isNotEmpty
-            ? nationalityController.text
-            : currentUserData['nationality'],
-        gender: genderController.text.isNotEmpty
-            ? genderController.text
-            : currentUserData['gender'],
-        dob: dateofbirthController.text.isNotEmpty
-            ? dateofbirthController.text
-            : currentUserData['dob'],
-        aboutMe: aboutmeController.text.isNotEmpty
-            ? aboutmeController.text
-            : currentUserData['about_me'],
-        maritalStatus: martialController.text.isNotEmpty
-            ? martialController.text
-            : currentUserData['marital_status'],
-        interests: interests.toString(),
-        profession: profrssionController.text.isNotEmpty
-            ? profrssionController.text
-            : currentUserData['profession'],
-      );
-      if (updatedData.isNotEmpty) {
-        return updatedData;
-      }
-      showSuccessSnackbar("Profile Updated Suceesfully");
-    } catch (e) {
-      showErrorSnackbar(e.toString());
+    // Maintain existing interests if they haven't been changed
+    final updatedInterests = interests.isEmpty
+        ? (currentUserData['interests'] as List<dynamic>)
+            .map((e) => e.toString().trim())
+            .toList()
+        : interests;
+
+    // Call the update profile method with merged data
+    final updatedData = await authService.updateProfile(
+      name: nameController.text.isNotEmpty
+          ? nameController.text
+          : currentUserData['name'],
+      phone: phoneController.text.isNotEmpty
+          ? phoneController.text
+          : currentUserData['phone'],
+      location: locationController.text.isNotEmpty
+          ? locationController.text
+          : currentUserData['location'],
+      image: selectedImage.value,
+      nationality: nationalityController.text.isNotEmpty
+          ? nationalityController.text
+          : currentUserData['nationality'],
+      gender: genderController.text.isNotEmpty
+          ? genderController.text
+          : currentUserData['gender'],
+      dob: dateofbirthController.text.isNotEmpty
+          ? dateofbirthController.text
+          : currentUserData['dob'],
+      aboutMe: aboutmeController.text.isNotEmpty
+          ? aboutmeController.text
+          : currentUserData['about_me'],
+      maritalStatus: martialController.text.isNotEmpty
+          ? martialController.text
+          : currentUserData['marital_status'],
+      interests: updatedInterests,
+      profession: profrssionController.text.isNotEmpty
+          ? profrssionController.text
+          : currentUserData['profession'],
+    );
+
+    if (updatedData.isNotEmpty) {
+      return updatedData;
     }
-    return null;
+
+    showSuccessSnackbar("Profile Updated Successfully");
+  } catch (e) {
+    showErrorSnackbar(e.toString());
   }
+  return null;
+}
 }

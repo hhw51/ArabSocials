@@ -57,43 +57,48 @@ class ProfilescreenState extends State<Profilescreen>
     fetchUserInfo();
   }
 
-  Future<void> fetchUserInfo() async {
-    try {
-      isLoading.value = true;
-      final userInfo = await _authService.getUserInfo();
+ Future<void> fetchUserInfo() async {
+  try {
+    isLoading.value = true;
+    final userInfo = await _authService.getUserInfo();
+print("user info😀😀🤣🤣🤣 $userInfo");
+    // Assign values to reactive variables
+    name.value = userInfo['name'] ?? '';
+    aboutMe.value = userInfo['about_me'] ?? '';
+    phone.value = userInfo['phone'] ?? '';
+    email.value = userInfo['email'] ?? '';
+    location.value = userInfo['location'] ?? '';
+    gender.value = userInfo['gender'] ?? '';
+    dob.value = userInfo['dob'] ?? '';
+    profession.value = userInfo['profession'] ?? '';
+    nationality.value = userInfo['nationality'] ?? '';
+    maritalStatus.value = userInfo['marital_status'] ?? '';
 
-      name.value = userInfo['name'] ?? '';
-      aboutMe.value = userInfo['about_me'] ?? '';
-      phone.value = userInfo['phone'] ?? '';
-      email.value = userInfo['email'] ?? '';
-      location.value = userInfo['location'] ?? '';
-      gender.value = userInfo['gender'] ?? '';
-      dob.value = userInfo['dob'] ?? '';
-      profession.value = userInfo['profession'] ?? '';
-      nationality.value = userInfo['nationality'] ?? '';
-      myInterest.assignAll(userInfo['interests']
-          .replaceAll('[', '')
-          .replaceAll(']', '')
-          .split(',')
-          .map((item) => item.trim())
-          .toList());
-      maritalStatus.value = userInfo['marital_status'] ?? '';
-      phoneSwitch.value = userInfo['phoneSwitch'] ?? true;
-      emailSwitch.value = userInfo['emailSwitch'] ?? true;
-      genderSwitch.value = userInfo['genderSwitch'] ?? true;
-      dobSwitch.value = userInfo['dobSwitch'] ?? true;
-      professionSwitch.value = userInfo['professionSwitch'] ?? true;
-      nationalitySwitch.value = userInfo['nationalitySwitch'] ?? true;
-      maritalStatusSwitch.value = userInfo['maritalStatusSwitch'] ?? true;
-    } catch (e) {
-      print('Error fetching user info: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load profile: $e')),
+    // Process interests field safely
+    if (userInfo['interests'] != null && userInfo['interests'] is List) {
+      myInterest.assignAll(
+        (userInfo['interests'] as List<dynamic>).map((e) => e.toString().trim()).toList(),
       );
-    } finally {
-      isLoading.value = false;
     }
+
+    // Assign switch values
+    phoneSwitch.value = userInfo['phoneSwitch'] ?? true;
+    emailSwitch.value = userInfo['emailSwitch'] ?? true;
+    genderSwitch.value = userInfo['genderSwitch'] ?? true;
+    dobSwitch.value = userInfo['dobSwitch'] ?? true;
+    professionSwitch.value = userInfo['professionSwitch'] ?? true;
+    nationalitySwitch.value = userInfo['nationalitySwitch'] ?? true;
+    maritalStatusSwitch.value = userInfo['maritalStatusSwitch'] ?? true;
+  } catch (e) {
+    print('Error fetching user info: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed to load profile: $e')),
+    );
+  } finally {
+    isLoading.value = false;
   }
+}
+
 
   void _showParagraphDialog(BuildContext context) {
     showDialog(
@@ -142,46 +147,45 @@ class ProfilescreenState extends State<Profilescreen>
               ),
             ),
           ),
-          Padding(
-            padding: EdgeInsets.only(right: 16.0),
-            child: CustomContainer(
-              text: "Edit Profile",
-              image: "assets/icons/editprofile.png",
-              onTap: () {
-                showPopUp(context).then(
-                  (value) {
-                    List<dynamic> interestsList = updatedData['interests']
-                        .replaceAll('[', '')
-                        .replaceAll(']', '')
-                        .split(',')
-                        .map((item) => item.trim())
-                        .toList();
+         Padding(
+  padding: EdgeInsets.only(right: 16.0),
+  child: CustomContainer(
+    text: "Edit Profile",
+    image: "assets/icons/editprofile.png",
+    onTap: () {
+      showPopUp(context).then((value) {
+        // Handle interests safely
+        if (updatedData['interests'] != null && updatedData['interests'] is List) {
+          interests.assignAll(
+            (updatedData['interests'] as List).map((e) => e.toString().trim()).toList(),
+          );
+          myInterest.assignAll(interests);
+        }
 
-                        myInterest.assignAll(interestsList);
+        // Assign other values
+        name.value = updatedData["name"] ?? '';
+        aboutMe.value = updatedData["about_me"] ?? '';
+        phone.value = updatedData["phone"] ?? '';
+        location.value = updatedData["location"] ?? '';
+        gender.value = updatedData["gender"] ?? '';
+        dob.value = updatedData["dob"] ?? '';
+        profession.value = updatedData["profession"] ?? '';
+        nationality.value = updatedData["nationality"] ?? '';
+        maritalStatus.value = updatedData["marital_status"] ?? '';
 
-                    name.value = updatedData["name"];
-                    aboutMe.value = updatedData["about_me"];
-                    phone.value = updatedData["phone"];
-                    location.value = updatedData["location"];
-                    gender.value = updatedData["gender"];
-                    dob.value = updatedData["dob"];
-                    profession.value = updatedData["profession"];
-                    nationality.value = updatedData["nationality"];
-                    maritalStatus.value = updatedData["marital_status"];
-                    interests.assignAll(List.from(interestsList));
+        // Additional switches (if needed)
+        // phoneSwitch.value = updatedData["phoneSwitch"] ?? true;
+        // emailSwitch.value = updatedData["emailSwitch"] ?? true;
+        // genderSwitch.value = updatedData["genderSwitch"] ?? true;
+        // dobSwitch.value = updatedData["dobSwitch"] ?? true;
+        // professionSwitch.value = updatedData["professionSwitch"] ?? true;
+        // nationalitySwitch.value = updatedData["nationalitySwitch"] ?? true;
+        // maritalStatusSwitch.value = updatedData["maritalStatusSwitch"] ?? true;
+      });
+    },
+  ),
+),
 
-                    // phoneSwitch.value = updatedData["phoneSwitch"];9652
-                    // emailSwitch.value = updatedData["emailSwitch"];
-                    // genderSwitch.value = updatedData["genderSwitch"];
-                    // dobSwitch.value = updatedData["dobSwitch"];
-                    // professionSwitch.value = updatedData["professionSwitch"];
-                    // nationalitySwitch.value = updatedData["nationalitySwitch"];
-                    // maritalStatusSwitch.value = updatedData["maritalStatusSwitch"];
-                  },
-                );
-              },
-            ),
-          ),
         ],
       ),
       body: Obx(() {

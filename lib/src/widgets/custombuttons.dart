@@ -240,13 +240,13 @@ class SectionHeader extends StatelessWidget {
 }
 
 enum Interest {
-  game('Game', Colors.red),
-  music('Music', Colors.blue),
-  movies('Movies', Colors.green),
-  art('Art', Colors.yellow),
-  technology('Technology', Colors.amber),
-  innovation('Innovation', Colors.blueAccent),
-  networking('Networking', Colors.grey);
+  game('Game', Color.fromARGB(255, 240, 99, 90)),
+  music('Music', Color.fromARGB(255, 245, 151, 98)),
+  movies('Movies', Color.fromARGB(255, 41, 214, 151)),
+  art('Art', Color.fromARGB(255, 70, 205, 251)),
+  technology('Technology', Color.fromARGB(255, 240, 99, 90)),
+  innovation('Innovation', Color.fromARGB(255, 245, 151, 98)),
+  networking('Networking', Color.fromARGB(255, 41, 214, 151));
 
  static Interest fromApi({required String value}) {
     return switch (value) {

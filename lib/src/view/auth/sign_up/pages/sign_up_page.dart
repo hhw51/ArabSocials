@@ -1,5 +1,5 @@
 import 'package:arab_socials/src/controllers/password_visible.dart';
-import 'package:arab_socials/src/controllers/user_controller.dart';
+import 'package:arab_socials/src/controllers/userlogin_controller.dart';
 import 'package:arab_socials/src/view/auth/otpverify/otp_screen.dart';
 import 'package:arab_socials/src/view/auth/sign_in/pages/sign_in_page.dart';
 import 'package:arab_socials/src/widgets/snack_bar_widget.dart';

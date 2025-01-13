@@ -222,7 +222,7 @@ Future<Map<String, dynamic>> updateProfile({
     required String dob,
     required String aboutMe,
     required String maritalStatus,
-    required String interests,
+    required List<String> interests,
     required String profession,
   }) async {
     try {
@@ -248,7 +248,7 @@ Future<Map<String, dynamic>> updateProfile({
       request.fields['dob'] = dob;
       request.fields['about_me'] = aboutMe;
       request.fields['marital_status'] = maritalStatus;
-      request.fields['interests'] = interests;
+      request.fields['interests'] = jsonEncode(interests);
       request.fields['profession'] = profession;
 
       // Add file if available
