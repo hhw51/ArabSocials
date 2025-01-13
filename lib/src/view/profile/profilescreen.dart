@@ -253,7 +253,7 @@ class ProfilescreenState extends State<Profilescreen>
                     SizedBox(width: 10.w),
                     GestureDetector(
                       onTap: () => _showParagraphDialog(context),
-                      child: Icon(Icons.edit, color: Colors.green, size: 24),
+                      child: Icon(Icons.edit, color: const Color.fromARGB(255, 35, 94, 77), size: 24),
                     ),
                     Spacer(),
                     Transform.scale(
@@ -273,7 +273,7 @@ class ProfilescreenState extends State<Profilescreen>
                   padding: const EdgeInsets.only(left: 15),
                   child: Obx(() => Text(
                         aboutMe.value,
-                        style: TextStyle(fontSize: 14, color: Colors.black),
+                        style: TextStyle(fontSize: 14.sp, color: Colors.black),
                       )),
                 ),
                 Row(
@@ -328,66 +328,26 @@ class ProfilescreenState extends State<Profilescreen>
                   ),
                 ),
                 SizedBox(height: 8.h),
-                Obx(() => CustomData(
-                    title: "Phone",
-                    subtitle: phone.value,
-                    showSwitch: true,
-                    switchValue: phoneSwitch.value,
-                    onSwitchChanged: (value) {
+                Obx(() => CustomData(title: "Phone",subtitle: phone.value,showSwitch: true,switchValue: phoneSwitch.value,onSwitchChanged: (value) {
                       phoneSwitch.value = value;
                     })),
-                Obx(() => CustomData(
-                    title: "Email",
-                    subtitle: email.value,
-                    showSwitch: true,
-                    switchValue: emailSwitch.value,
-                    onSwitchChanged: (value) {
+                Obx(() => CustomData(title: "Email",subtitle: email.value,showSwitch: true,switchValue: emailSwitch.value,onSwitchChanged: (value) {
                       emailSwitch.value = value;
                     })),
-                Obx(() => CustomData(
-                    title: "Location",
-                    subtitle: location.value,
-                    showSwitch: true,
-                    switchValue: false,
-                    onSwitchChanged: (value) {})),
-                Obx(() => CustomData(
-                    title: "Gender",
-                    subtitle: gender.value,
-                    showSwitch: true,
-                    switchValue: genderSwitch.value,
-                    onSwitchChanged: (value) {
+                Obx(() => CustomData(title: "Location",subtitle: location.value,showSwitch: true,switchValue: false,onSwitchChanged: (value) {})),
+                Obx(() => CustomData(title: "Gender",subtitle: gender.value,showSwitch: true,switchValue: genderSwitch.value,onSwitchChanged: (value) {
                       genderSwitch.value = value;
                     })),
-                Obx(() => CustomData(
-                    title: "DOB",
-                    subtitle: dob.value,
-                    showSwitch: true,
-                    switchValue: dobSwitch.value,
-                    onSwitchChanged: (value) {
+                Obx(() => CustomData(title: "DOB",subtitle: dob.value,showSwitch: true,switchValue: dobSwitch.value,onSwitchChanged: (value) {
                       dobSwitch.value = value;
                     })),
-                Obx(() => CustomData(
-                    title: "Profession",
-                    subtitle: profession.value,
-                    showSwitch: true,
-                    switchValue: professionSwitch.value,
-                    onSwitchChanged: (value) {
+                Obx(() => CustomData(title: "Profession",subtitle: profession.value,showSwitch: true,switchValue: professionSwitch.value,onSwitchChanged: (value) {
                       professionSwitch.value = value;
                     })),
-                Obx(() => CustomData(
-                    title: "Nationality",
-                    subtitle: nationality.value,
-                    showSwitch: true,
-                    switchValue: nationalitySwitch.value,
-                    onSwitchChanged: (value) {
+                Obx(() => CustomData(title: "Nationality",subtitle: nationality.value,showSwitch: true,switchValue: nationalitySwitch.value,onSwitchChanged: (value) {
                       nationalitySwitch.value = value;
                     })),
-                Obx(() => CustomData(
-                    title: "Marital Status",
-                    subtitle: maritalStatus.value,
-                    showSwitch: true,
-                    switchValue: maritalStatusSwitch.value,
-                    onSwitchChanged: (value) {
+                Obx(() => CustomData(title: "Marital Status",subtitle: maritalStatus.value,showSwitch: true,switchValue: maritalStatusSwitch.value,onSwitchChanged: (value) {
                       maritalStatusSwitch.value = value;
                     })),
               ],

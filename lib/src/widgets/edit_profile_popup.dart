@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:arab_socials/src/services/auth_services.dart';
 import 'package:arab_socials/src/widgets/date_time_picker.dart';
+import 'package:arab_socials/src/widgets/snack_bar_widget.dart';
 import 'package:arab_socials/src/widgets/textfieled_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -26,111 +27,118 @@ mixin ShowEditProfileDialog {
 
   Future<void> showPopUp(BuildContext context) async {
     await Get.dialog(
+      barrierColor: const Color.fromARGB(255, 250, 244, 228),
       Material(
-        child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Profile Image
-                Obx(() => GestureDetector(
-                      onTap: () async {
-                        final picker = ImagePicker();
-                        final pickedFile =
-                            await picker.pickImage(source: ImageSource.gallery);
-                        if (pickedFile != null) {
-                          selectedImage.value = File(pickedFile.path);
-                        }
-                      },
-                      child: CircleAvatar(
-                        radius: 48,
-                        backgroundImage: selectedImage.value != null
-                            ? FileImage(selectedImage.value!)
-                            : const AssetImage("assets/logo/profileimage.png")
-                                as ImageProvider,
-                        child: Align(
-                          alignment: Alignment.bottomRight,
-                          child: Container(
-                            padding: EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.camera_alt,
-                                color: Colors.black, size: 18),
-                          ),
+        color: const Color.fromARGB(255, 250, 244, 228),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Profile Image
+                        Obx(() => GestureDetector(
+                              onTap: () async {
+                                final picker = ImagePicker();
+                                final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+                                if (pickedFile != null) {
+                                  selectedImage.value = File(pickedFile.path);
+                                }
+                              },
+                              child: CircleAvatar(
+                                radius: 48,
+                                backgroundImage: selectedImage.value != null
+                                    ? FileImage(selectedImage.value!)
+                                    : const AssetImage("assets/logo/profileimage.png") as ImageProvider,
+                                child: Align(
+                                  alignment: Alignment.bottomRight,
+                                  child: Container(
+                                    padding: EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.camera_alt, color: Colors.black, size: 18),
+                                  ),
+                                ),
+                              ),
+                            )),
+
+                        SizedBox(height: 16.h),
+                        CustomTextField(
+                          controller: nameController,
+                          hintText: "Enter your name",
+                          obscureText: false,
                         ),
-                      ),
-                    )),
-
-                SizedBox(height: 16.h),
-                CustomTextField(
-                  controller: nameController,
-                  hintText: "Enter your name",
-                  obscureText: false,
+                        CustomTextField(
+                          controller: phoneController,
+                          hintText: "Enter your phone",
+                          obscureText: false,
+                        ),
+                        CustomTextField(
+                          controller: locationController,
+                          hintText: "Enter your location",
+                          obscureText: false,
+                        ),
+                        DatePickerFieldWidget(
+                            controller: dateofbirthController, hintText: "Your Date of Birth"),
+                        SizedBox(height: 10.h),
+                        CustomTextField(
+                          controller: profrssionController,
+                          hintText: "Your Profession",
+                          obscureText: false,
+                        ),
+                        CustomDropdown(
+                          controller: genderController,
+                          hintText: "Your Gender",
+                          prefixIcon: Icons.person_2_outlined,
+                          items: const ["Male", "Female", "Other"],
+                          onChanged: (value) {},
+                        ),
+                        CustomMultiSelectDropdown(
+                          onSelect: (selectedValues) {
+                            interests.assignAll(selectedValues);
+                          },
+                          controller: intrestController,
+                          hintText: "Your Interests",
+                          items: const [
+                            "Games",
+                            "Music",
+                            "Movies",
+                            "Art",
+                            "Technology",
+                            "Innovation",
+                            "Networking",
+                          ],
+                        ),
+                        CustomTextField(
+                          controller: nationalityController,
+                          hintText: "Your Nationality",
+                          obscureText: false,
+                        ),
+                        CustomTextField(
+                          controller: martialController,
+                          hintText: "Your Marital Status",
+                          obscureText: false,
+                        ),
+                        CustomTextField(
+                          controller: aboutmeController,
+                          hintText: "About me",
+                          obscureText: false,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                CustomTextField(
-                  controller: phoneController,
-                  hintText: "Enter your phone",
-                  obscureText: false,
-                ),
-                CustomTextField(
-                  controller: locationController,
-                  hintText: "Enter your location",
-                  obscureText: false,
-                ),
-                DatePickerFieldWidget(
-                    controller: dateofbirthController,
-                    hintText: "Your Date of Birth"),
-                SizedBox(height: 10.h),
-                CustomTextField(
-                  controller: profrssionController,
-                  hintText: "Your Profession",
-                  obscureText: false,
-                ),
-                CustomDropdown(
-                  controller: genderController,
-                  hintText: "Your Gender",
-                  prefixIcon: Icons.person_2_outlined,
-                  items: const ["Male", "Female", "Other"],
-                  onChanged: (value) {},
-                ),
-                CustomMultiSelectDropdown(
-                  onSelect: (selectedValues) {
-                  interests.assignAll(selectedValues);
-                  },
-                  
-                  controller: intrestController,
-                  hintText: "Your Interests",
-                  items: const [
-                    "Games",
-                    "Music",
-                    "Movies",
-                    "Art",
-                    "Technology",
-                    "Innovation",
-                    "Networking",
-                  ],
-                ),
-                CustomTextField(
-                  controller: nationalityController,
-                  hintText: "Your Nationality",
-                  obscureText: false,
-                ),
-                CustomTextField(
-                  controller: martialController,
-                  hintText: "Your Marital Status",
-                  obscureText: false,
-                ),
-                CustomTextField(
-                  controller: aboutmeController,
-                  hintText: "About me",
-                  obscureText: false,
-                ),
-                SizedBox(height: 24.h),
-
-                Row(
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 16.w),
+                color: const Color.fromARGB(255, 250, 244, 228),
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     ElevatedButton(
@@ -140,8 +148,7 @@ mixin ShowEditProfileDialog {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8.r),
                         ),
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 12.w, vertical: 8.h),
+                        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
                       ),
                       child: Text(
                         "Back",
@@ -160,6 +167,7 @@ mixin ShowEditProfileDialog {
                           updatedData = result;
                           if (context.mounted) {
                             Get.back();
+                            showSuccessSnackbar("Profile Updated Suceesfully");
                           }
                         }
                       },
@@ -168,8 +176,7 @@ mixin ShowEditProfileDialog {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8.r),
                         ),
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 12.w, vertical: 8.h),
+                        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
                       ),
                       child: Text(
                         "Save",
@@ -182,16 +189,15 @@ mixin ShowEditProfileDialog {
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Future<Map<String, dynamic>?> updateProfileHandler(
-      BuildContext context) async {
+  Future<Map<String, dynamic>?> updateProfileHandler(BuildContext context) async {
     try {
       final authService = AuthService();
 
@@ -233,35 +239,9 @@ mixin ShowEditProfileDialog {
       if (updatedData.isNotEmpty) {
         return updatedData;
       }
-
-      // Use GlobalKey to update state
-//     final profileScreenState = scaffoldKey.currentState;
-
-// if (profileScreenState != null) {
-
-//   profileScreenState.name.value = nameController.text ;
-//   phoneController.text = profileScreenState.phone.value;
-//   locationController.text = profileScreenState.location.value;
-//   dateofbirthController.text = profileScreenState.dob.value;
-//   genderController.text = profileScreenState.gender.value;
-//   nationalityController.text = profileScreenState.nationality.value;
-//   martialController.text = profileScreenState.maritalStatus.value;
-//   profrssionController.text = profileScreenState.profession.value;
-//   intrestController.text = profileScreenState.aboutMe.value;
-//   aboutmeController.text = profileScreenState.aboutMe.value;
-// }
-
-      Get.snackbar(
-        "Success",
-        "Profile updated successfully!",
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      showSuccessSnackbar("Profile Updated Suceesfully");
     } catch (e) {
-      Get.snackbar(
-        "Error",
-        e.toString(),
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      showErrorSnackbar(e.toString());
     }
     return null;
   }

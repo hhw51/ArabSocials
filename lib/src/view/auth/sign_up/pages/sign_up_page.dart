@@ -2,6 +2,7 @@ import 'package:arab_socials/src/controllers/password_visible.dart';
 import 'package:arab_socials/src/controllers/user_controller.dart';
 import 'package:arab_socials/src/view/auth/otpverify/otp_screen.dart';
 import 'package:arab_socials/src/view/auth/sign_in/pages/sign_in_page.dart';
+import 'package:arab_socials/src/widgets/snack_bar_widget.dart';
 import 'package:arab_socials/src/widgets/textfieled_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -168,7 +169,7 @@ class SignUpScreen extends StatelessWidget {
                         final password = passwordController.text.trim();
 
                         if (name.isEmpty || email.isEmpty || password.isEmpty) {
-                          Get.snackbar('Error', 'All fields are required');
+                          showErrorSnackbar('All fields are required');
                           return;
                         }
 
@@ -184,7 +185,7 @@ class SignUpScreen extends StatelessWidget {
 
                         } catch (error) {
                           // Handle any error from signUp or sendOtp
-                          Get.snackbar('Error', error.toString());
+                         showErrorSnackbar(error.toString());
                         }
                       },
                       style: ElevatedButton.styleFrom(
