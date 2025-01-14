@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:arab_socials/src/controllers/navigation_controller.dart';
 import 'package:arab_socials/src/services/auth_services.dart';
 import 'package:arab_socials/src/view/auth/sign_in/pages/sign_in_page.dart';

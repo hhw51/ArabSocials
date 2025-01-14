@@ -128,6 +128,17 @@ class Eventscreen extends StatelessWidget {
                     hintText: "Search events",
                   ),
                 ),
+
+
+
+
+
+
+
+
+
+
+                
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 22),
                   child: InkWell(
@@ -363,6 +374,18 @@ class Eventscreen extends StatelessWidget {
                   ),
                 ),
               ],
+
+
+
+
+
+
+
+
+
+
+
+              
             ),
           ),
         ),

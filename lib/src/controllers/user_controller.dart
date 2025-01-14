@@ -16,7 +16,6 @@ class UserController extends GetxController {
   final TextEditingController maritalController = TextEditingController();
   final TextEditingController professionController = TextEditingController();
   final TextEditingController aboutMeController = TextEditingController();
-  final TextEditingController interestController = TextEditingController();
 
   // Reactive state variables
   final Rx<File?> selectedImage = Rx<File?>(null);
@@ -25,6 +24,9 @@ class UserController extends GetxController {
 
   final AuthService _authService = AuthService();
   Map<String, dynamic> updatedData = {};
+
+  // Flag for first-time signup
+  bool isFirstTimeSignup = true;
 
   Future<void> fetchUserInfo() async {
     try {
@@ -43,7 +45,6 @@ class UserController extends GetxController {
       professionController.text = userInfo['profession'] ?? '';
       aboutMeController.text = userInfo['about_me'] ?? '';
 
-      // Assign interests
       if (userInfo['interests'] != null && userInfo['interests'] is List) {
         interests.assignAll(
           (userInfo['interests'] as List).map((e) => e.toString().trim()).toList(),
@@ -58,58 +59,51 @@ class UserController extends GetxController {
     }
   }
 
-  // Update profile handler
+  // Validate all fields for the first-time signup
+  bool validateAllFields() {
+    return nameController.text.isNotEmpty &&
+        phoneController.text.isNotEmpty &&
+        locationController.text.isNotEmpty &&
+        dateofbirthController.text.isNotEmpty &&
+        genderController.text.isNotEmpty &&
+        nationalityController.text.isNotEmpty &&
+        maritalController.text.isNotEmpty &&
+        professionController.text.isNotEmpty &&
+        aboutMeController.text.isNotEmpty &&
+        interests.isNotEmpty;
+  }
+
+  // Update profile
   Future<void> updateProfile(BuildContext context) async {
+    if (isFirstTimeSignup && !validateAllFields()) {
+      showErrorSnackbar('All fields are required for first-time setup.');
+      return;
+    }
+
     try {
       isLoading.value = true;
 
-      // Maintain existing interests if they haven't been changed
-      final currentUserData = await _authService.getUserInfo();
-      final updatedInterests = interests.isEmpty
-          ? (currentUserData['interests'] as List<dynamic>)
-              .map((e) => e.toString().trim())
-              .toList()
-          : interests;
-
-      // Update profile data
       final updatedData = await _authService.updateProfile(
-        name: nameController.text.isNotEmpty
-            ? nameController.text
-            : currentUserData['name'],
-        phone: phoneController.text.isNotEmpty
-            ? phoneController.text
-            : currentUserData['phone'],
-        location: locationController.text.isNotEmpty
-            ? locationController.text
-            : currentUserData['location'],
+        name: nameController.text,
+        phone: phoneController.text,
+        location: locationController.text,
         image: selectedImage.value,
-        nationality: nationalityController.text.isNotEmpty
-            ? nationalityController.text
-            : currentUserData['nationality'],
-        gender: genderController.text.isNotEmpty
-            ? genderController.text
-            : currentUserData['gender'],
-        dob: dateofbirthController.text.isNotEmpty
-            ? dateofbirthController.text
-            : currentUserData['dob'],
-        aboutMe: aboutMeController.text.isNotEmpty
-            ? aboutMeController.text
-            : currentUserData['about_me'],
-        maritalStatus: maritalController.text.isNotEmpty
-            ? maritalController.text
-            : currentUserData['marital_status'],
-        interests: updatedInterests,
-        profession: professionController.text.isNotEmpty
-            ? professionController.text
-            : currentUserData['profession'],
+        nationality: nationalityController.text,
+        gender: genderController.text,
+        dob: dateofbirthController.text,
+        aboutMe: aboutMeController.text,
+        maritalStatus: maritalController.text,
+        interests: interests,
+        profession: professionController.text,
       );
 
       if (updatedData.isNotEmpty) {
         this.updatedData = updatedData;
-       showSuccessSnackbar('Profile updated successfully');
+        isFirstTimeSignup = false; // Mark first-time signup as complete
+        showSuccessSnackbar('Profile updated successfully.');
       }
     } catch (e) {
-     showErrorSnackbar(e.toString());
+      showErrorSnackbar(e.toString());
     } finally {
       isLoading.value = false;
     }

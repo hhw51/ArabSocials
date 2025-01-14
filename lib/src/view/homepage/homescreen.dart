@@ -1,6 +1,7 @@
 import 'package:arab_socials/src/controllers/navigation_controller.dart';
 import 'package:arab_socials/src/models/home_model1.dart';
 import 'package:arab_socials/src/view/events/register_event.dart';
+import 'package:arab_socials/src/view/homepage/notification_screen.dart';
 import 'package:arab_socials/src/widgets/custom_container.dart';
 import 'package:arab_socials/src/widgets/custombuttons.dart';
 import 'package:flutter/material.dart';
@@ -67,9 +68,14 @@ class _HomescreenState extends State<Homescreen> {
           ),
         ),
         
-                    Image(
-                      image: const AssetImage('assets/icons/homenotify.png'),
-                      height: 36.h,
+                    InkWell(
+                      onTap: () {
+                         navigationController.navigateToChild(Notificationscreen());
+                      },
+                      child: Image(
+                        image: const AssetImage('assets/icons/homenotify.png'),
+                        height: 36.h,
+                      ),
                     ),
                   ],
                 ),
@@ -154,7 +160,6 @@ class _HomescreenState extends State<Homescreen> {
                                   ),
                                 ),
                               ),
-                                  
                                           Positioned(
                                             top: 8.h,
                                             left: 8.w,
