@@ -12,10 +12,12 @@ import 'package:google_fonts/google_fonts.dart';
 
 class Profilescreen extends StatefulWidget {
   const Profilescreen({super.key});
+  static final GlobalKey<ProfilescreenState> globalKey = GlobalKey<ProfilescreenState>();
 
   @override
   State<Profilescreen> createState() => ProfilescreenState();
 }
+
 
 class ProfilescreenState extends State<Profilescreen>
     with ShowEditProfileDialog {
@@ -52,6 +54,7 @@ class ProfilescreenState extends State<Profilescreen>
   @override
   void initState() {
     super.initState();
+
     fetchUserInfo();
   }
 
@@ -97,7 +100,6 @@ print("user info😀😀🤣🤣🤣 $userInfo");
   }
 }
 
-
   void _showParagraphDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -138,6 +140,7 @@ print("user info😀😀🤣🤣🤣 $userInfo");
               onTap: () {
                 Get.to(const Signinscreen());
               },
+
               child: const ImageIcon(
                 AssetImage("assets/icons/profilelogout.png"),
                 size: 23,
@@ -352,6 +355,7 @@ print("user info😀😀🤣🤣🤣 $userInfo");
                 Obx(() => CustomData(title: "Marital Status",subtitle: maritalStatus.value,showSwitch: true,switchValue: maritalStatusSwitch.value,onSwitchChanged: (value) {
                       maritalStatusSwitch.value = value;
                     })),
+
               ],
             ),
           ),

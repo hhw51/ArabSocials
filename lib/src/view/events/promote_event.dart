@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:arab_socials/src/controllers/navigation_controller.dart';
 import 'package:arab_socials/src/widgets/custom_header_text.dart';
 import 'package:arab_socials/src/widgets/date_time_picker.dart';
@@ -9,7 +8,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import '../../apis/create_event.dart'; // Import your createEvent service
 class PromoteEvent extends StatefulWidget {
   const PromoteEvent({super.key});
 
@@ -21,6 +20,19 @@ class _PromoteEventState extends State<PromoteEvent> {
   final ImagePicker _picker = ImagePicker();
   File? _selectedImage;
 
+
+  final CreateEventService _createEventService = CreateEventService();
+
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController eventtypeController = TextEditingController();
+  final TextEditingController locationController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
+  final TextEditingController ticketController = TextEditingController();
+  final TextEditingController dateController = TextEditingController();
+  final TextEditingController starttimeController = TextEditingController();
+  final TextEditingController endtimeController = TextEditingController();
+  final TextEditingController codeController = TextEditingController();
+
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
@@ -30,19 +42,40 @@ class _PromoteEventState extends State<PromoteEvent> {
     }
   }
 
+  Future<void> _createEvent() async {
+    if (_selectedImage == null) {
+      Get.snackbar("Error", "Please upload an image.");
+      return;
+    }
+
+    try {
+      final formattedDate = DateTime.parse(dateController.text).toIso8601String();
+      final response = await _createEventService.createEvent(
+        title: titleController.text,
+        eventType: eventtypeController.text,
+        location: locationController.text,
+        description: descriptionController.text,
+        eventDate: formattedDate.split("T")[0],
+        ticketLink: ticketController.text,
+        promoCode: codeController.text,
+        user: "User", // Replace with actual user value if needed
+        startTime: starttimeController.text,
+        endTime: endtimeController.text,
+        flyer: _selectedImage!,
+      );
+
+      Get.snackbar("Success", "Event created successfully.");
+      print('Event created: $response');
+    } catch (e) {
+      Get.snackbar("Error", "Failed to create event.");
+      print('Error creating event: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final NavigationController navigationController =
-        Get.put(NavigationController());
-    final TextEditingController titleController = TextEditingController();
-    final TextEditingController eventtypeController = TextEditingController();
-    final TextEditingController locationController = TextEditingController();
-    final TextEditingController descriptionController = TextEditingController();
-    final TextEditingController ticketController = TextEditingController();
-    final TextEditingController dateController = TextEditingController();
-    final TextEditingController starttimeController = TextEditingController();
-    final TextEditingController endtimeController = TextEditingController();
-    final TextEditingController codeController = TextEditingController();
+    Get.put(NavigationController());
 
     return SafeArea(
       child: Scaffold(
@@ -96,30 +129,30 @@ class _PromoteEventState extends State<PromoteEvent> {
                         borderRadius: BorderRadius.circular(12),
                         image: _selectedImage != null
                             ? DecorationImage(
-                                image: FileImage(_selectedImage!),
-                                fit: BoxFit.cover,
-                              )
+                          image: FileImage(_selectedImage!),
+                          fit: BoxFit.cover,
+                        )
                             : null,
                       ),
                       child: _selectedImage == null
                           ? const Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.camera_alt,
-                                  size: 40,
-                                  color: Color.fromARGB(255, 35, 94, 77),
-                                ),
-                                SizedBox(height: 10),
-                                Text(
-                                  "Upload your image",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ],
-                            )
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.camera_alt,
+                            size: 40,
+                            color: Color.fromARGB(255, 35, 94, 77),
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            "Upload your image",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      )
                           : null,
                     ),
                   ),
@@ -146,9 +179,8 @@ class _PromoteEventState extends State<PromoteEvent> {
                         hintText: "Event type",
                         prefixIcon: Icons.person_2_outlined,
                         items: const [
-                          "Music",
-                          "Motivation",
-                          "Concert",
+                          "Online",
+                          "Offline"
                         ],
                         onChanged: (value) {
                           print("Selected Event Type: $value");
@@ -173,8 +205,9 @@ class _PromoteEventState extends State<PromoteEvent> {
                         obscureText: false,
                       ),
                       DatePickerFieldWidget(
-                          controller: dateController,
-                          hintText: "Your event date"),
+                        controller: dateController,
+                        hintText: "Your event date",
+                      ),
                       SizedBox(height: 10.h),
                       TimePickerFieldWidget(
                         controller: starttimeController,
@@ -184,6 +217,26 @@ class _PromoteEventState extends State<PromoteEvent> {
                       TimePickerFieldWidget(
                         controller: endtimeController,
                         hintText: "Select End Time",
+                      ),
+                      SizedBox(height: 20.h),
+                      ElevatedButton(
+                        onPressed: _createEvent,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color.fromARGB(255, 35, 94, 77),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: EdgeInsets.symmetric(vertical: 16.h),
+                          minimumSize: Size(double.infinity, 56.h),
+                        ),
+                        child: Text(
+                          "CREATE",
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
                     ],
                   ),

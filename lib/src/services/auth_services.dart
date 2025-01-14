@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart'; 
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 class AuthService {
@@ -102,14 +102,22 @@ class AuthService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         print("✅ Signup successful: ${response.body}");
         final responseData = jsonDecode(response.body);
+
         if (responseData['token'] != null) {
           await _secureStorage.write(key: 'token', value: responseData['token']);
           print('Token saved to secure storage: ${responseData['token']}');
         }
 
-        return responseData;
+        return {
+          'statusCode': response.statusCode,
+          'body': responseData,
+        };
       } else {
-        throw Exception('❌ Error: ${response.statusCode} - ${response.body}');
+        final errorBody = jsonDecode(response.body);
+        return {
+          'statusCode': response.statusCode,
+          'body': errorBody,
+        };
       }
     } on SocketException catch (e) {
       print('🌐 No Internet connection: $e');
@@ -122,6 +130,7 @@ class AuthService {
       throw Exception('⚠️ Unexpected error: $e');
     }
   }
+
 
   /// Send OTP API call
   Future<Map<String, dynamic>> sendOtp({
@@ -212,7 +221,8 @@ class AuthService {
       throw Exception('⚠️ Unexpected error: $e');
     }
   }
-Future<Map<String, dynamic>> updateProfile({
+
+  Future<Map<String, dynamic>> updateProfile({
     required String name,
     required String phone,
     required String location,
@@ -223,6 +233,7 @@ Future<Map<String, dynamic>> updateProfile({
     required String aboutMe,
     required String maritalStatus,
     required List<String> interests,
+
     required String profession,
   }) async {
     try {
@@ -249,6 +260,7 @@ Future<Map<String, dynamic>> updateProfile({
       request.fields['about_me'] = aboutMe;
       request.fields['marital_status'] = maritalStatus;
       request.fields['interests'] = jsonEncode(interests);
+
       request.fields['profession'] = profession;
 
       // Add file if available
@@ -281,6 +293,7 @@ Future<Map<String, dynamic>> updateProfile({
   }
 
 Future<Map<String, dynamic>> getUserInfo() async {
+
     try {
       final String? token = await _secureStorage.read(key: 'token');
       if (token == null) {

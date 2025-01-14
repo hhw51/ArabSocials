@@ -12,9 +12,10 @@ class ProfileDetailsScreen extends StatelessWidget {
   final String professionOrCategory;
   final String location;
   final String about;
+  final String imagePath; // Added image path
   final List<String>? interestsOrCategories;
-  final Map<String, String>?personalDetails; 
-  final List<String>? excludedFields; 
+  final Map<String, String>? personalDetails;
+  final List<String>? excludedFields;
   final bool showPersonalDetails;
 
   const ProfileDetailsScreen({
@@ -24,15 +25,52 @@ class ProfileDetailsScreen extends StatelessWidget {
     required this.professionOrCategory,
     required this.location,
     required this.about,
+    required this.imagePath, // Added to constructor
     this.interestsOrCategories,
     this.personalDetails,
     this.excludedFields,
     this.showPersonalDetails = true,
   });
 
+  Widget _buildProfileImage() {
+    return ClipOval(
+      child: SizedBox(
+        width: 96.w,  // Doubled the radius for diameter
+        height: 96.w,  // Use width to maintain perfect circle
+        child: imagePath.startsWith('http')
+            ? Image.network(
+          imagePath,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              color: Colors.grey[300],
+              child: Icon(Icons.person, size: 48.w),
+            );
+          },
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Container(
+              color: Colors.grey[300],
+              child: Center(child: CircularProgressIndicator()),
+            );
+          },
+        )
+            : Image.asset(
+          imagePath,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Image.asset(
+              "assets/logo/profileimage.png",
+              fit: BoxFit.cover,
+            );
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Define colors for interests
     final List<Color> interestColors = [
       const Color.fromARGB(255, 240, 99, 90),
       const Color.fromARGB(255, 245, 151, 98),
@@ -76,11 +114,7 @@ class ProfileDetailsScreen extends StatelessWidget {
               Center(
                 child: Column(
                   children: [
-                    CircleAvatar(
-                      radius: 48.r,
-                      backgroundImage:
-                          AssetImage("assets/logo/profileimage.png"),
-                    ),
+                    _buildProfileImage(), // Using the new image builder
                     SizedBox(height: 10.h),
                     Text(
                       name,
@@ -101,6 +135,7 @@ class ProfileDetailsScreen extends StatelessWidget {
                   ],
                 ),
               ),
+              // Rest of the widget remains the same...
               SizedBox(height: 18.h),
 
               // About Section
@@ -139,11 +174,11 @@ class ProfileDetailsScreen extends StatelessWidget {
                       .entries
                       .map(
                         (entry) => CustomIntrestsContainer(
-                          text: entry.value,
-                          color:
-                              interestColors[entry.key % interestColors.length],
-                        ),
-                      )
+                      text: entry.value,
+                      color:
+                      interestColors[entry.key % interestColors.length],
+                    ),
+                  )
                       .toList(),
                 ),
                 SizedBox(height: 20.h),
@@ -161,14 +196,14 @@ class ProfileDetailsScreen extends StatelessWidget {
                 ),
                 ...personalDetails!.entries
                     .where((entry) =>
-                        excludedFields == null ||
-                        !excludedFields!.contains(entry.key))
+                excludedFields == null ||
+                    !excludedFields!.contains(entry.key))
                     .map(
                       (entry) => CustonDetails(
-                        title: entry.key,
-                        subtitle: entry.value,
-                      ),
-                    )
+                    title: entry.key,
+                    subtitle: entry.value,
+                  ),
+                )
                     .toList(),
               ],
             ],

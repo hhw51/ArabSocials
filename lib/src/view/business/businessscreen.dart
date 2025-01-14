@@ -165,6 +165,7 @@ class _BusinessscreenState extends State<Businessscreen> {
                                   name: member["name"]!,
                                   professionOrCategory: member["category"]!,
                                   location: member["location"]!,
+                                  imagePath: member["imagePath"]!,
                                   about: "Details about the business",
                                   interestsOrCategories: [
                                     "Technology",

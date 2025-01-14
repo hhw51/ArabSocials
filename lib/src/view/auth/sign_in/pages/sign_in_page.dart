@@ -1,5 +1,9 @@
+
 import 'package:arab_socials/src/controllers/password_visible.dart';
 import 'package:arab_socials/src/controllers/userlogin_controller.dart'; 
+
+import 'package:arab_socials/src/controllers/user_controller.dart'; // <-- Make sure this is your SignUpController path
+
 import 'package:arab_socials/src/view/auth/sign_up/pages/sign_up_page.dart';
 import 'package:arab_socials/src/widgets/textfieled_widget.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +12,8 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+
+import '../../../../controllers/password_visible.dart';
 
 class Signinscreen extends StatefulWidget {
   const Signinscreen({super.key});
@@ -87,26 +93,25 @@ class _SigninscreenState extends State<Signinscreen> {
                   CustomTextField(
                     controller: emailController,
                     hintText: "abc@gmail.com",
-                    prefixIcon: Icons.email_outlined,
-                    isPassword: false,
-                   obscureText: false,
+                    prefixIcon: Icons.email_outlined, obscureText: false,
                   ),
                   Obx(() => CustomTextField(
-              controller: passwordController,
-              hintText: "Your password",
-              isPassword: true,
-              obscureText: !visibilityController.isVisible('password'),
-              prefixIcon: Icons.lock_outline,
-              suffixIcon: IconButton(
-                icon: Icon(
-                  visibilityController.isVisible('password')
-                      ? Icons.visibility
-                      : Icons.visibility_off,
-                  color: Colors.grey,
-                ),
-                onPressed: () => visibilityController.toggleVisibility('password'),
-              ),
-            )),
+                    controller: passwordController,
+                    hintText: "Your password",
+                    isPassword: true,
+                    obscureText: !visibilityController.isVisible('password'),
+                    prefixIcon: Icons.lock_outline,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        visibilityController.isVisible('password')
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () =>
+                          visibilityController.toggleVisibility('password'),
+                    ),
+                  )),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -133,6 +138,7 @@ class _SigninscreenState extends State<Signinscreen> {
                       ),
                       TextButton(
                         onPressed: () {
+                          // Forgot Password Action
                         },
                         child: Text(
                           "Forgot Password?",
@@ -146,6 +152,8 @@ class _SigninscreenState extends State<Signinscreen> {
                     ],
                   ),
                   SizedBox(height: 20.h),
+
+                  /// **SIGN IN BUTTON** (Calls `login`)
                   ElevatedButton(
                     onPressed: () {
                       final email = emailController.text.trim();

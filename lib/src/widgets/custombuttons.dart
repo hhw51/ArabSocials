@@ -30,9 +30,7 @@ class _CustomContainerState extends State<CustomContainer> {
         setState(() {
           _isTapped = !_isTapped;
         });
-        if (widget.onTap != null) {
-          widget.onTap!();
-        }
+        widget.onTap?.call();
       },
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),

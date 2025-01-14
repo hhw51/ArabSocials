@@ -10,8 +10,8 @@ class MemberTile extends StatefulWidget {
   final String profession;
   final String location;
   final bool isCircular;
-  final VoidCallback? onTap; 
-
+  final VoidCallback? onTap;
+  final VoidCallback? onFavoriteTap;
 
   const MemberTile({
     super.key,
@@ -20,8 +20,8 @@ class MemberTile extends StatefulWidget {
     required this.profession,
     required this.location,
     required this.isCircular,
-    this.onTap, 
-
+    this.onTap,
+    this.onFavoriteTap,
   });
 
   @override
@@ -30,36 +30,53 @@ class MemberTile extends StatefulWidget {
 
 class _MemberTileState extends State<MemberTile> {
   bool isFavorite = false;
-      final NavigationController navigationController = Get.put(NavigationController());
+  final NavigationController navigationController = Get.put(NavigationController());
+
+  /// Decide whether to load via network or asset
+  Widget _buildImage(String path) {
+    if (path.startsWith('http')) {
+      return Image.network(
+        path,
+        fit: BoxFit.cover,   // fill the container
+      );
+    } else {
+      return Image.asset(
+        path,
+        fit: BoxFit.cover,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.w),
-      child: Container(
+      child: SizedBox(
         height: 92.h,
-        // width: 345.w,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
+            // --- Image Container (circular or rounded) ---
             widget.isCircular
-                ? Container(
-                    height: 72.h,
-                    width: 72.w,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                    ),
-                    child: Image.asset(widget.imagePath, fit: BoxFit.contain),
-                  )
+                ? ClipOval(
+              child: SizedBox(
+                height: 72.h,
+                width: 72.w,
+                child: _buildImage(widget.imagePath),
+              ),
+            )
                 : Container(
-                    height: 72.h,
-                    width: 72.w,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20.w)),
-                    child: Image.asset(widget.imagePath, fit: BoxFit.contain),
-                  ),
+              height: 72.h,
+              width: 72.w,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20.w),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: _buildImage(widget.imagePath),
+            ),
+
+            // --- Name, Profession, Location ---
             SizedBox(
-              // height: 59.h,
               width: 176.w,
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -77,15 +94,15 @@ class _MemberTileState extends State<MemberTile> {
                     SizedBox(height: 4.h),
                     Row(
                       children: [
-                        Text("Profession:",
-                            style: TextStyle(
-                                color: Colors.black, fontSize: 10.sp)),
+                        Text(
+                          "Profession:",
+                          style: TextStyle(color: Colors.black, fontSize: 10.sp),
+                        ),
                         SizedBox(width: 4.w),
                         Expanded(
                           child: Text(
                             widget.profession,
-                            style:
-                                TextStyle(color: Colors.grey, fontSize: 8.sp),
+                            style: TextStyle(color: Colors.grey, fontSize: 8.sp),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -93,9 +110,10 @@ class _MemberTileState extends State<MemberTile> {
                     ),
                     Row(
                       children: [
-                        Text("Location:",
-                            style: TextStyle(
-                                color: Colors.black, fontSize: 10.sp)),
+                        Text(
+                          "Location:",
+                          style: TextStyle(color: Colors.black, fontSize: 10.sp),
+                        ),
                         SizedBox(width: 4.w),
                         Text(
                           widget.location,
@@ -107,6 +125,8 @@ class _MemberTileState extends State<MemberTile> {
                 ),
               ),
             ),
+
+            // --- Favorite icon + "View" button ---
             SizedBox(
               height: 59.h,
               child: Column(
@@ -118,17 +138,16 @@ class _MemberTileState extends State<MemberTile> {
                       setState(() {
                         isFavorite = !isFavorite;
                       });
+                      widget.onFavoriteTap?.call();
                     },
                     child: Icon(
                       isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: isFavorite
-                          ? const Color.fromARGB(255, 35, 94, 77)
-                          : const Color.fromARGB(255, 35, 94, 77),
+                      color: const Color.fromARGB(255, 35, 94, 77),
                     ),
                   ),
                   InkWell(
-                     onTap: widget.onTap,
-                     child: const Row(
+                    onTap: widget.onTap,
+                    child: const Row(
                       children: [
                         Text(
                           "View",
@@ -140,8 +159,8 @@ class _MemberTileState extends State<MemberTile> {
                           color: Color.fromARGB(255, 35, 94, 77),
                         ),
                       ],
-                     ),
-                   ),
+                    ),
+                  ),
                 ],
               ),
             ),

@@ -62,7 +62,6 @@ class CustomTextField extends StatelessWidget {
     );
   }
 }
-
 class CustomDropdown extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
