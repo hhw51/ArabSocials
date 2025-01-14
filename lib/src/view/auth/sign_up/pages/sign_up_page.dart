@@ -1,3 +1,5 @@
+import 'package:arab_socials/src/controllers/password_visible.dart';
+import 'package:arab_socials/src/controllers/user_controller.dart';
 import 'package:arab_socials/src/view/auth/otpverify/otp_screen.dart';
 import 'package:arab_socials/src/view/auth/sign_in/pages/sign_in_page.dart';
 import 'package:arab_socials/src/widgets/textfieled_widget.dart';
@@ -9,12 +11,15 @@ import 'package:google_fonts/google_fonts.dart';
 class SignUpScreen extends StatelessWidget {
   SignUpScreen({super.key});
 
+  final SignUpController _signUpController = Get.put(SignUpController());
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
+   final TextEditingController phoneController = TextEditingController();
   final TextEditingController accountController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController =
-      TextEditingController();
+  final TextEditingController confirmPasswordController =TextEditingController();
+   final PasswordVisibilityController visibilityController =Get.put(PasswordVisibilityController());
+
   final RxBool rememberMe = false.obs;
 
   @override
@@ -51,42 +56,73 @@ class SignUpScreen extends StatelessWidget {
                    // labelText: "Full Name",
                     hintText: "Full name",
                     prefixIcon: Icons.person_outline,
+                    isPassword: false,
+                    obscureText: false,
                   ),
                   CustomTextField(
                     controller: emailController,
                    // labelText: "Email Address",
                     hintText: "abc@email.com",
                     prefixIcon: Icons.email_outlined,
+                    isPassword: false,
+                    obscureText: false,
+                  ),
+                   CustomTextField(
+                    controller: phoneController,
+                   // labelText: "Phone Number",
+                    hintText: "Enter your Phone Number",
+                    prefixIcon: Icons.phone_outlined,
+                    isPassword: false,
+                    obscureText: true,
                   ),
                   CustomDropdown(
                     controller: accountController,
                    // labelText: "Account Type",
                     hintText: "Account type",
                     prefixIcon: Icons.person_2_outlined,
-                    items: [
-                      "Admin",
-                      "User",
+                    items: const [
+                      "Personal",
+                      "Business",
                     ], 
                     onChanged: (value) {
                       print("Selected Account Type: $value");
                     },
                   ),
-                  CustomTextField(
-                    controller: passwordController,
-                   // labelText: "Password",
-                    hintText: "Your password",
-                    isPassword: true,
-                    prefixIcon: Icons.lock_outline,
-                    suffixIcon: Icons.visibility_off_rounded
-                  ),
-                  CustomTextField(
-                    controller: confirmPasswordController,
-                  //  labelText: "Confirm Password",
-                    hintText: "Confirm password",
-                    isPassword: true,
-                    prefixIcon: Icons.lock_outline,
-                    suffixIcon: Icons.visibility_off,
-                  ),
+                  Obx(() => CustomTextField(
+                        controller: passwordController,
+                        hintText: "Your password",
+                        isPassword: true,
+                        obscureText: !visibilityController.isVisible('password'),
+                        prefixIcon: Icons.lock_outline,
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            visibilityController.isVisible('password')
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            color: Colors.grey,
+                          ),
+                          onPressed: () =>
+                              visibilityController.toggleVisibility('password'),
+                        ),
+                      )),
+                  Obx(() => CustomTextField(
+                        controller: confirmPasswordController,
+                        hintText: "Confirm password",
+                        isPassword: true,
+                        obscureText:
+                            !visibilityController.isVisible('confirmPassword'),
+                        prefixIcon: Icons.lock_outline,
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            visibilityController.isVisible('confirmPassword')
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            color: Colors.grey,
+                          ),
+                          onPressed: () => visibilityController
+                              .toggleVisibility('confirmPassword'),
+                        ),
+                      )),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -98,9 +134,6 @@ class SignUpScreen extends StatelessWidget {
                               child: Switch(
                                 value: rememberMe.value,
                                 onChanged: (value) => rememberMe.value = value,
-                                activeColor: Colors.white,
-                                activeTrackColor:
-                                    const Color.fromARGB(255, 35, 94, 77),
                               ),
                             ),
                             Text(
@@ -125,26 +158,65 @@ class SignUpScreen extends StatelessWidget {
                     ],
                   ),
                   SizedBox(height: 10.h),
-                  ElevatedButton(
-                    onPressed: () {
-                         Get.to(() => OtpVerifyScreen());
-                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 35, 94, 77),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.r),
+                  Obx(() {
+                    return _signUpController.isLoading.value
+                        ? const Center(child: CircularProgressIndicator())
+                        : ElevatedButton(
+                      onPressed: () async {
+                        final name = nameController.text.trim();
+                        final email = emailController.text.trim();
+                        final password = passwordController.text.trim();
+
+                        if (name.isEmpty || email.isEmpty || password.isEmpty) {
+                          Get.snackbar(
+                            'Error',
+                            'All fields are required',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.red,
+                            colorText: Colors.white,
+                          );
+                          return;
+                        }
+
+                        try {
+                          // Call the signUp method
+                          await _signUpController.signUp(name, email, password);
+
+                          // If sign-up is successful, proceed to send OTP
+                          await _signUpController.sendOtp(email);
+
+                          // Navigate to OTP verification screen
+                          Get.to(() => OtpVerifyScreen(email: email));
+                        } catch (error) {
+                          // Handle errors (e.g., email already exists)
+                          Get.snackbar(
+                            'Sign-Up Failed',
+                            error.toString(),
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.red,
+                            colorText: Colors.white,
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 35, 94, 77),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        minimumSize: Size(double.infinity, 56.h),
                       ),
-                      minimumSize: Size(double.infinity, 56.h),
-                    ),
-                    child: Text(
-                      "SIGN UP",
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.white,
+                      child: Text(
+                        "SIGN UP",
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.white,
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  }),
+
+
                   SizedBox(height: 20.h),
                   Row(
                     children: [

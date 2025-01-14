@@ -18,7 +18,7 @@ class OtpWidget extends StatelessWidget {
     return SizedBox(
       height: 56.h,
       child: Pinput(
-        length: 4,
+        length: 6,
         controller: controller,
         onCompleted: (pin) => onCompleted(pin),
         defaultPinTheme: PinTheme(
