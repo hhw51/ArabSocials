@@ -11,6 +11,7 @@ class MemberTile extends StatefulWidget {
   final String location;
   final bool isCircular;
   final VoidCallback? onTap;
+  final VoidCallback? onFavoriteTap;
 
   const MemberTile({
     super.key,
@@ -20,6 +21,7 @@ class MemberTile extends StatefulWidget {
     required this.location,
     required this.isCircular,
     this.onTap,
+    this.onFavoriteTap,
   });
 
   @override
@@ -136,6 +138,7 @@ class _MemberTileState extends State<MemberTile> {
                       setState(() {
                         isFavorite = !isFavorite;
                       });
+                      widget.onFavoriteTap?.call();
                     },
                     child: Icon(
                       isFavorite ? Icons.favorite : Icons.favorite_border,

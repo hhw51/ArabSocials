@@ -168,23 +168,34 @@ class SignUpScreen extends StatelessWidget {
                         final password = passwordController.text.trim();
 
                         if (name.isEmpty || email.isEmpty || password.isEmpty) {
-                          Get.snackbar('Error', 'All fields are required');
+                          Get.snackbar(
+                            'Error',
+                            'All fields are required',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.red,
+                            colorText: Colors.white,
+                          );
                           return;
                         }
 
                         try {
-                          // 1. Call signUp API
+                          // Call the signUp method
                           await _signUpController.signUp(name, email, password);
 
-                          // 2. If sign-up is successful, call sendOtp
+                          // If sign-up is successful, proceed to send OTP
                           await _signUpController.sendOtp(email);
 
-                          // 3. Finally, navigate to OTP Screen (assuming it’s named OTPScreen)
+                          // Navigate to OTP verification screen
                           Get.to(() => OtpVerifyScreen(email: email));
-
                         } catch (error) {
-                          // Handle any error from signUp or sendOtp
-                          Get.snackbar('Error', error.toString());
+                          // Handle errors (e.g., email already exists)
+                          Get.snackbar(
+                            'Sign-Up Failed',
+                            error.toString(),
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.red,
+                            colorText: Colors.white,
+                          );
                         }
                       },
                       style: ElevatedButton.styleFrom(

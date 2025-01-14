@@ -1,9 +1,13 @@
+import 'package:arab_socials/src/controllers/registerEventController.dart';
 import 'package:arab_socials/src/view/auth/splash_steps/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 
 void main() {
+  Get.put(RegisterEventController());
   runApp(const MyApp());
 }
 

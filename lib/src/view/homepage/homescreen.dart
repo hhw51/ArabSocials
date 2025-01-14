@@ -159,7 +159,7 @@ class _HomescreenState extends State<Homescreen> {
                                             top: 8.h,
                                             left: 8.w,
                                             child: Container(
-                                              height: 34.h,
+                                              height: 36.h,
                                               width: 36.w,
                                               decoration: BoxDecoration(
                                                 color: Colors.white,

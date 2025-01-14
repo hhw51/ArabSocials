@@ -8,9 +8,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../apis/get_favorites.dart';
 import '../../apis/get_other_users.dart';
 import '../../apis/same-profession.dart';
 import '../../apis/same_location.dart';
+import '../../apis/add_remove_favorite.dart';
 
 class Memberscreen extends StatefulWidget {
   Memberscreen({super.key});
@@ -21,12 +23,16 @@ class Memberscreen extends StatefulWidget {
 
 class _MemberscreenState extends State<Memberscreen> {
   final NavigationController navigationController = Get.put(NavigationController());
+  final FavoritesService _favoritesService = FavoritesService();
+
 
   List<Map<String, String>> _apiMembers = [];
+  Set<int> _favoriteUserIds = {};
   bool _isLoading = true;
 
   bool _isLocationToggled = false;
   bool _isProfessionToggled = false;
+  bool _isFavoriteToggled = false;
 
   final Color _lightGreen = const Color.fromARGB(255, 163, 214, 180);
   final Color _darkGreen = const Color.fromARGB(255, 35, 94, 77);
@@ -38,6 +44,7 @@ class _MemberscreenState extends State<Memberscreen> {
   void initState() {
     super.initState();
     _fetchOtherUsers();
+    _fetchFavoriteUsers();
   }
 
   /// If the backend path is something like "/media/user_images/xxx.jpg"
@@ -59,11 +66,12 @@ class _MemberscreenState extends State<Memberscreen> {
       final data = await GetOtherUsers().getOtherUsers();
       _apiMembers = data.map<Map<String, String>>((user) {
         return {
+          "id": user["id"].toString(), // Ensure user ID is included here
           "name": user["name"] ?? "No Name",
-          "profession": user["profession"] ?? "N/A",
-          "location": user["location"] ?? "N/A",
-          // **Always** resolve the path to an HTTP URL or a local asset
+          "profession": user["profession"] ?? "No Profession",
+          "location": user["location"] ?? "USA",
           "imagePath": _resolveImagePath(user["image"]),
+          "email": user["email"] ?? "No Email"
         };
       }).toList();
     } catch (e) {
@@ -73,6 +81,7 @@ class _MemberscreenState extends State<Memberscreen> {
     }
   }
 
+
   void _fetchSameLocationUsers() async {
     setState(() => _isLoading = true);
     try {
@@ -80,9 +89,10 @@ class _MemberscreenState extends State<Memberscreen> {
       _apiMembers = sameLocData.map<Map<String, String>>((user) {
         return {
           "name": user["name"] ?? "No Name",
-          "profession": user["profession"] ?? "N/A",
-          "location": user["location"] ?? "N/A",
+          "profession": user["profession"] ?? "No Profession",
+          "location": user["location"] ?? "USA",
           "imagePath": _resolveImagePath(user["image"]),
+          "email": user["email"] ?? "No Email"
         };
       }).toList();
     } catch (e) {
@@ -99,9 +109,10 @@ class _MemberscreenState extends State<Memberscreen> {
       _apiMembers = sameProfData.map<Map<String, String>>((user) {
         return {
           "name": user["name"] ?? "No Name",
-          "profession": user["profession"] ?? "N/A",
-          "location": user["location"] ?? "N/A",
+          "profession": user["profession"] ?? "No Profession",
+          "location": user["location"] ?? "USA",
           "imagePath": _resolveImagePath(user["image"]),
+          "email": user["email"] ?? "No Email"
         };
       }).toList();
     } catch (e) {
@@ -111,9 +122,39 @@ class _MemberscreenState extends State<Memberscreen> {
     }
   }
 
+  void _fetchFavoriteUsers() async {
+    try {
+      final favorites = await GetFavorites().getFavoriteUsers();
+      setState(() {
+        _favoriteUserIds = favorites.map<int>((user) => user["id"] as int).toSet();
+      });
+    } catch (e) {
+      print("Error fetching favorite users: $e");
+    }
+  }
+
+  void _onFavoriteIconTap(int userId) async {
+    try {
+      if (_favoriteUserIds.contains(userId)) {
+        // If already a favorite, remove it
+        await _favoritesService.removeFavorite(userId: userId);
+        setState(() => _favoriteUserIds.remove(userId));
+      } else {
+        // If not a favorite, add it
+        await _favoritesService.addFavorite(userId: userId);
+        setState(() => _favoriteUserIds.add(userId));
+      }
+    } catch (e) {
+      print('Failed to update favorite status: $e');
+    }
+  }
+
   void _onLocationTap() {
     if (_isProfessionToggled) {
       setState(() => _isProfessionToggled = false);
+    }
+    if (_isFavoriteToggled) {
+      setState(() => _isFavoriteToggled = false);
     }
     if (_isLocationToggled) {
       setState(() => _isLocationToggled = false);
@@ -128,6 +169,9 @@ class _MemberscreenState extends State<Memberscreen> {
     if (_isLocationToggled) {
       setState(() => _isLocationToggled = false);
     }
+    if (_isFavoriteToggled) {
+      setState(() => _isFavoriteToggled = false);
+    }
     if (_isProfessionToggled) {
       setState(() => _isProfessionToggled = false);
       _fetchOtherUsers();
@@ -137,8 +181,25 @@ class _MemberscreenState extends State<Memberscreen> {
     }
   }
 
+  void _onFavoriteTap() {
+    if (_isLocationToggled) {
+      setState(() => _isLocationToggled = false);
+    }
+    if (_isProfessionToggled) {
+      setState(() => _isProfessionToggled = false);
+    }
+    if (_isFavoriteToggled) {
+      setState(() => _isFavoriteToggled = false);
+      _fetchOtherUsers();
+    } else {
+      setState(() => _isFavoriteToggled = true);
+      _fetchFavoriteUsers();
+    }
+  }
+
   Color get _locationButtonColor => _isLocationToggled ? _darkGreen : _lightGreen;
   Color get _professionButtonColor => _isProfessionToggled ? _darkGreen : _lightGreen;
+  Color get _favoriteButtonColor => _isFavoriteToggled ? _darkGreen : _lightGreen;
 
   @override
   Widget build(BuildContext context) {
@@ -171,9 +232,13 @@ class _MemberscreenState extends State<Memberscreen> {
                       SizedBox(width: 3.w),
                       const Expanded(child: SizedBox()),
                       SizedBox(width: 3.w),
-                      const CustomContainer(
+                      CustomContainer(
                         text: "Favourite",
                         icon: Icons.favorite_border,
+                        onTap: (){
+                          print("Favorite Container tapped!");
+                          _onFavoriteTap();
+                        },
                       ),
                       SizedBox(width: 3.w),
                       CustomContainer(
@@ -230,6 +295,7 @@ class _MemberscreenState extends State<Memberscreen> {
                     itemCount: _apiMembers.length,
                     itemBuilder: (context, index) {
                       final member = _apiMembers[index];
+                      final userId = int.tryParse(member["id"] ?? "") ?? 0;
                       return MemberTile(
                         imagePath: member["imagePath"]!,
                         name: member["name"]!,
@@ -252,7 +318,7 @@ class _MemberscreenState extends State<Memberscreen> {
                               ],
                               personalDetails: {
                                 "Phone": "4788743654478",
-                                "Email": "user@${member["name"]}",
+                                "Email": member["email"]!,
                                 "Location": member["location"]!,
                                 "Gender": "Female",
                                 "D.O.B": "03-11-2005",
@@ -263,6 +329,7 @@ class _MemberscreenState extends State<Memberscreen> {
                             ),
                           );
                         },
+                        onFavoriteTap: () => _onFavoriteIconTap(userId),
                       );
                     },
                   ),

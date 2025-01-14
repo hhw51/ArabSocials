@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart'; 
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 class AuthService {
@@ -11,6 +11,8 @@ class AuthService {
   static const String _loginUrl = '$_baseUrl/users/login/';
   static const String _sendOtpUrl = '$_baseUrl/users/send-otp/';
   static const String _verifyOtpUrl = '$_baseUrl/users/verify-otp/';
+  static const String _updateUserUrl = '$_baseUrl/users/update-user/';
+  static const String _getUserInfoUrl = '$_baseUrl/users/get-user-info/';
 
   static final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
@@ -47,8 +49,6 @@ class AuthService {
         print("✅ Login successful: ${response.body}");
 
         final responseData = jsonDecode(response.body);
-
-        // If the server returns a token, store it using secure storage
         if (responseData['token'] != null) {
           await _secureStorage.write(key: 'token', value: responseData['token']);
           print('Token saved to secure storage: ${responseData['token']}');
@@ -101,17 +101,23 @@ class AuthService {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         print("✅ Signup successful: ${response.body}");
-
-        // Parse response and store token if present
         final responseData = jsonDecode(response.body);
+
         if (responseData['token'] != null) {
           await _secureStorage.write(key: 'token', value: responseData['token']);
           print('Token saved to secure storage: ${responseData['token']}');
         }
 
-        return responseData;
+        return {
+          'statusCode': response.statusCode,
+          'body': responseData,
+        };
       } else {
-        throw Exception('❌ Error: ${response.statusCode} - ${response.body}');
+        final errorBody = jsonDecode(response.body);
+        return {
+          'statusCode': response.statusCode,
+          'body': errorBody,
+        };
       }
     } on SocketException catch (e) {
       print('🌐 No Internet connection: $e');
@@ -124,6 +130,7 @@ class AuthService {
       throw Exception('⚠️ Unexpected error: $e');
     }
   }
+
 
   /// Send OTP API call
   Future<Map<String, dynamic>> sendOtp({
@@ -193,8 +200,6 @@ class AuthService {
 
       if (response.statusCode == 200) {
         print("✅ OTP verification successful: ${response.body}");
-
-        // Parse response and store token if present
         final responseData = jsonDecode(response.body);
         if (responseData['token'] != null) {
           await _secureStorage.write(key: 'token', value: responseData['token']);
@@ -216,4 +221,97 @@ class AuthService {
       throw Exception('⚠️ Unexpected error: $e');
     }
   }
+  Future<Map<String, dynamic>> updateProfile({
+    required String name,
+    required String phone,
+    required String location,
+    File? image,
+    required String nationality,
+    required String gender,
+    required String dob,
+    required String aboutMe,
+    required String maritalStatus,
+    required String interests,
+    required String profession,
+  }) async {
+    try {
+      final String? token = await _secureStorage.read(key: 'token');
+      if (token == null) {
+        throw Exception('No token found. Please log in again.');
+      }
+
+      var request = http.MultipartRequest('PUT', Uri.parse(_updateUserUrl));
+
+      // Add headers
+      request.headers.addAll({
+        'Authorization': 'Bearer $token',
+        'Cookie': 'csrftoken=bRjlF9yxqGNkiqJlXEn4uhicNnDv4BYW',
+      });
+
+      // Add fields
+      request.fields['name'] = name;
+      request.fields['phone'] = phone;
+      request.fields['location'] = location;
+      request.fields['nationality'] = nationality;
+      request.fields['gender'] = gender;
+      request.fields['dob'] = dob;
+      request.fields['about_me'] = aboutMe;
+      request.fields['marital_status'] = maritalStatus;
+      request.fields['interests'] = interests;
+      request.fields['profession'] = profession;
+
+      // Add file if available
+      if (image != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'image',
+            image.path,
+          ),
+        );
+      }
+
+      // Send request
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+
+      if (response.statusCode == 200) {
+        print("✅ Profile updated successfully: $responseBody");
+        return jsonDecode(responseBody);
+      } else {
+        throw Exception('❌ Error: ${response.statusCode} - $responseBody');
+      }
+    } on SocketException {
+      throw Exception('No Internet connection');
+    } catch (e) {
+      throw Exception('Unexpected error: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> getUserInfo() async {
+    try {
+      final String? token = await _secureStorage.read(key: 'token');
+      if (token == null) {
+        throw Exception('No token found. Please log in again.');
+      }
+
+      final response = await http.get(
+        Uri.parse(_getUserInfoUrl),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('Error: ${response.statusCode} - ${response.body}');
+      }
+    } on SocketException {
+      throw Exception('No Internet connection');
+    } catch (e) {
+      throw Exception('Unexpected error: $e');
+    }
+  }
+
 }
