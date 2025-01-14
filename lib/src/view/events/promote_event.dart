@@ -2,12 +2,14 @@ import 'dart:io';
 import 'package:arab_socials/src/controllers/navigation_controller.dart';
 import 'package:arab_socials/src/widgets/custom_header_text.dart';
 import 'package:arab_socials/src/widgets/date_time_picker.dart';
+import 'package:arab_socials/src/widgets/snack_bar_widget.dart';
 import 'package:arab_socials/src/widgets/textfieled_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import '../../apis/create_event.dart'; // Import your createEvent service
 class PromoteEvent extends StatefulWidget {
   const PromoteEvent({super.key});
@@ -42,35 +44,43 @@ class _PromoteEventState extends State<PromoteEvent> {
     }
   }
 
-  Future<void> _createEvent() async {
-    if (_selectedImage == null) {
-      Get.snackbar("Error", "Please upload an image.");
-      return;
-    }
-
-    try {
-      final formattedDate = DateTime.parse(dateController.text).toIso8601String();
-      final response = await _createEventService.createEvent(
-        title: titleController.text,
-        eventType: eventtypeController.text,
-        location: locationController.text,
-        description: descriptionController.text,
-        eventDate: formattedDate.split("T")[0],
-        ticketLink: ticketController.text,
-        promoCode: codeController.text,
-        user: "User", // Replace with actual user value if needed
-        startTime: starttimeController.text,
-        endTime: endtimeController.text,
-        flyer: _selectedImage!,
-      );
-
-      Get.snackbar("Success", "Event created successfully.");
-      print('Event created: $response');
-    } catch (e) {
-      Get.snackbar("Error", "Failed to create event.");
-      print('Error creating event: $e');
-    }
+ Future<void> _createEvent() async {
+  if (_selectedImage == null) {
+    Get.snackbar("Error", "Please upload an image.");
+    return;
   }
+
+  try {
+    final formattedDate = DateTime.parse(dateController.text).toIso8601String().split("T")[0];
+
+    // Parse 12-hour format to 24-hour format
+    final startTime24 = DateFormat("h:mm a").parse(starttimeController.text);
+    final endTime24 = DateFormat("h:mm a").parse(endtimeController.text);
+
+    final startTime = DateFormat("HH:mm").format(startTime24);
+    final endTime = DateFormat("HH:mm").format(endTime24);
+
+    final response = await _createEventService.createEvent(
+      title: titleController.text,
+      eventType: eventtypeController.text,
+      location: locationController.text,
+      description: descriptionController.text,
+      eventDate: formattedDate,
+      ticketLink: ticketController.text,
+      promoCode: codeController.text,
+      user: "User", // Replace with actual user value if needed
+      startTime: startTime,
+      endTime: endTime,
+      flyer: _selectedImage!,
+    );
+
+    showSuccessSnackbar("Event created successfully.");
+    print('Event created: $response');
+  } catch (e) {
+    showErrorSnackbar("Failed to create event.");
+    print('Error creating event: $e');
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -81,6 +91,18 @@ class _PromoteEventState extends State<PromoteEvent> {
       child: Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: const Color.fromARGB(255, 250, 244, 228),
+           appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: const Color.fromARGB(255, 250, 244, 228),
+        foregroundColor: const Color.fromARGB(255, 250, 244, 228),
+        surfaceTintColor: const Color.fromARGB(255, 250, 244, 228),
+        elevation: 0,
+        leading: InkWell(
+          onTap: () => navigationController.navigateBack(),
+          child: const Icon(Icons.arrow_back,
+              color: Color.fromARGB(255, 35, 94, 77), size: 24),
+        ),
+      ),
         body: GestureDetector(
           onTap: () {
             FocusScope.of(context).unfocus();
@@ -89,28 +111,11 @@ class _PromoteEventState extends State<PromoteEvent> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24.h),
-                  child: Row(
-                    children: [
-                      InkWell(
-                        onTap: () {
-                          navigationController.navigateBack();
-                        },
-                        child: const Icon(
-                          Icons.arrow_back,
-                          color: Color.fromARGB(255, 35, 94, 77),
-                          size: 24,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
                 SizedBox(height: 16.h),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 24.w),
                   child: const CustomText(
-                    text: "REGISTER EVENT",
+                    text: "CREATE EVENT",
                     fontSize: 16.0,
                     fontWeight: FontWeight.w700,
                     color: Colors.black,

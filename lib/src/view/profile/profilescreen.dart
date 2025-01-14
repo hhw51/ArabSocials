@@ -149,8 +149,8 @@ print("user info😀😀🤣🤣🤣 $userInfo");
             ),
           ),
          Padding(
-  padding: EdgeInsets.only(right: 16.0),
-  child: CustomContainer(
+          padding: EdgeInsets.only(right: 16.0),
+           child: CustomContainer(
     text: "Edit Profile",
     image: "assets/icons/editprofile.png",
     onTap: () {
@@ -355,7 +355,6 @@ print("user info😀😀🤣🤣🤣 $userInfo");
                 Obx(() => CustomData(title: "Marital Status",subtitle: maritalStatus.value,showSwitch: true,switchValue: maritalStatusSwitch.value,onSwitchChanged: (value) {
                       maritalStatusSwitch.value = value;
                     })),
-
               ],
             ),
           ),

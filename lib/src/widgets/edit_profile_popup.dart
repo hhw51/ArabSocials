@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:arab_socials/src/services/auth_services.dart';
 import 'package:arab_socials/src/widgets/date_time_picker.dart';
 import 'package:arab_socials/src/widgets/snack_bar_widget.dart';
-import 'package:arab_socials/src/view/profile/profilescreen.dart';
 import 'package:arab_socials/src/widgets/textfieled_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -45,8 +44,6 @@ mixin ShowEditProfileDialog {
 } else {
   interests.clear();
 }
-
-
     await Get.dialog(
       barrierColor: const Color.fromARGB(255, 250, 244, 228),
       Material(

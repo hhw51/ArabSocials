@@ -103,17 +103,23 @@ class TimePickerFieldWidget extends StatelessWidget {
         TimeOfDay? pickedTime = await showTimePicker(
           context: context,
           initialTime: TimeOfDay.now(),
+          // Optional: Set to true to use 24-hour format in the picker
+          builder: (BuildContext context, Widget? child) {
+            return MediaQuery(
+              data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+              child: child ?? Container(),
+            );
+          },
         );
         if (pickedTime != null) {
-          final hours = pickedTime.hourOfPeriod == 0 ? 12 : pickedTime.hourOfPeriod;
+          // Format time as HH:MM (24-hour format)
+          final hours = pickedTime.hour.toString().padLeft(2, '0');
           final minutes = pickedTime.minute.toString().padLeft(2, '0');
-          final period = pickedTime.period == DayPeriod.am ? "AM" : "PM";
-
-          controller.text = "$hours:$minutes $period";
+          controller.text = "$hours:$minutes";
         }
       },
       validator: (value) =>
-          value!.isEmpty ? 'Please select a time' : null,
+      value!.isEmpty ? 'Please select a time' : null,
     );
   }
 }

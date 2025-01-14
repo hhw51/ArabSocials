@@ -4,8 +4,6 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:arab_socials/src/controllers/navigation_controller.dart';
 
-import 'package:arab_socials/src/models/event_model.dart';
-import 'package:arab_socials/src/view/events/promote_event.dart';
 import 'package:arab_socials/src/view/events/register_event.dart';
 import 'package:arab_socials/src/widgets/custombuttons.dart';
 import 'package:arab_socials/src/widgets/textfomr_feild.dart';
@@ -96,7 +94,7 @@ class _EventscreenState extends State<Eventscreen> {
             ...event as Map<String, dynamic>,
             'day': day,
             'month': month,
-            'bookmarked': false, // Add a bookmarked property
+            'bookmarked': false, 
           };
         }).toList();
         isLoading = false;

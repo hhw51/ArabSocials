@@ -166,5 +166,4 @@ class UserController extends GetxController {
       isLoading(false);
 
     }
-  }
-}
+  }}}}}
