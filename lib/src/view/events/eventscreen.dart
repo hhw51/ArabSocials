@@ -312,7 +312,7 @@ class _EventscreenState extends State<Eventscreen> {
                                                   onTap: () {
                                                     setState(() {
                                                       event['bookmarked'] =
-                                                      !event['bookmarked']; // Toggle bookmarked state
+                                                      event['bookmarked']; // Toggle bookmarked state
                                                     });
                                                   },
                                                   child: Container(
