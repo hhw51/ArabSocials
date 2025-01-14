@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:arab_socials/src/controllers/navigation_controller.dart';
+
+import 'package:arab_socials/src/models/event_model.dart';
+import 'package:arab_socials/src/view/events/promote_event.dart';
 import 'package:arab_socials/src/view/events/register_event.dart';
 import 'package:arab_socials/src/widgets/custombuttons.dart';
 import 'package:arab_socials/src/widgets/textfomr_feild.dart';

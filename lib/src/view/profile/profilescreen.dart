@@ -18,7 +18,11 @@ class Profilescreen extends StatefulWidget {
   State<Profilescreen> createState() => ProfilescreenState();
 }
 
-class ProfilescreenState extends State<Profilescreen> {
+
+class ProfilescreenState extends State<Profilescreen>
+    with ShowEditProfileDialog {
+  static final GlobalKey<ProfilescreenState> globalKey =
+      GlobalKey<ProfilescreenState>();
   final AuthService _authService = AuthService();
 
   // Reactive state variables
@@ -32,61 +36,69 @@ class ProfilescreenState extends State<Profilescreen> {
   final RxString profession = ''.obs;
   final RxString nationality = ''.obs;
   final RxString maritalStatus = ''.obs;
+  final RxList myInterest = RxList();
 
   final RxBool isLoading = true.obs;
 
-  // Reactive switch state variables for personal details
-  final RxBool aboutMeSwitch = false.obs; // Always false, non-toggleable
-  final RxBool interestsSwitch = false.obs; // Always false, non-toggleable
-  final RxBool locationSwitch = false.obs; // Always false, non-toggleable
-
-  // Reactive switch state for toggleable fields
-  final RxBool phoneSwitch = true.obs; // Toggleable based on value
-  final RxBool emailSwitch = true.obs; // Toggleable based on value
-  final RxBool genderSwitch = true.obs; // Toggleable based on value
-  final RxBool dobSwitch = true.obs; // Toggleable based on value
-  final RxBool professionSwitch = true.obs; // Toggleable based on value
-  final RxBool nationalitySwitch = true.obs; // Toggleable based on value
-  final RxBool maritalStatusSwitch = true.obs; // Toggleable based on value
+  final RxBool aboutMeSwitch = false.obs;
+  final RxBool interestsSwitch = false.obs;
+  final RxBool locationSwitch = false.obs;
+  final RxBool phoneSwitch = true.obs;
+  final RxBool emailSwitch = true.obs;
+  final RxBool genderSwitch = true.obs;
+  final RxBool dobSwitch = true.obs;
+  final RxBool professionSwitch = true.obs;
+  final RxBool nationalitySwitch = true.obs;
+  final RxBool maritalStatusSwitch = true.obs;
 
   @override
   void initState() {
     super.initState();
-    _fetchUserInfo();
+
+    fetchUserInfo();
   }
 
-  Future<void> _fetchUserInfo() async {
-    try {
-      isLoading.value = true;
-      final userInfo = await _authService.getUserInfo();
+ Future<void> fetchUserInfo() async {
+  try {
+    isLoading.value = true;
+    final userInfo = await _authService.getUserInfo();
+print("user info😀😀🤣🤣🤣 $userInfo");
+    // Assign values to reactive variables
+    name.value = userInfo['name'] ?? '';
+    aboutMe.value = userInfo['about_me'] ?? '';
+    phone.value = userInfo['phone'] ?? '';
+    email.value = userInfo['email'] ?? '';
+    location.value = userInfo['location'] ?? '';
+    gender.value = userInfo['gender'] ?? '';
+    dob.value = userInfo['dob'] ?? '';
+    profession.value = userInfo['profession'] ?? '';
+    nationality.value = userInfo['nationality'] ?? '';
+    maritalStatus.value = userInfo['marital_status'] ?? '';
 
-      name.value = userInfo['name'] ?? '';
-      aboutMe.value = userInfo['about_me'] ?? '';
-      phone.value = userInfo['phone'] ?? '';
-      email.value = userInfo['email'] ?? '';
-      location.value = userInfo['location'] ?? '';
-      gender.value = userInfo['gender'] ?? '';
-      dob.value = userInfo['dob'] ?? '';
-      profession.value = userInfo['profession'] ?? '';
-      nationality.value = userInfo['nationality'] ?? '';
-      maritalStatus.value = userInfo['marital_status'] ?? '';
-      phoneSwitch.value = userInfo['phoneSwitch'] ?? true;
-      emailSwitch.value = userInfo['emailSwitch'] ?? true;
-      genderSwitch.value = userInfo['genderSwitch'] ?? true;
-      dobSwitch.value = userInfo['dobSwitch'] ?? true;
-      professionSwitch.value = userInfo['professionSwitch'] ?? true;
-      nationalitySwitch.value = userInfo['nationalitySwitch'] ?? true;
-      maritalStatusSwitch.value = userInfo['maritalStatusSwitch'] ?? true;
-
-    } catch (e) {
-      print('Error fetching user info: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load profile: $e')),
+    // Process interests field safely
+    if (userInfo['interests'] != null && userInfo['interests'] is List) {
+      myInterest.assignAll(
+        (userInfo['interests'] as List<dynamic>).map((e) => e.toString().trim()).toList(),
       );
-    } finally {
-      isLoading.value = false;
     }
+
+    // Assign switch values
+    phoneSwitch.value = userInfo['phoneSwitch'] ?? true;
+    emailSwitch.value = userInfo['emailSwitch'] ?? true;
+    genderSwitch.value = userInfo['genderSwitch'] ?? true;
+    dobSwitch.value = userInfo['dobSwitch'] ?? true;
+    professionSwitch.value = userInfo['professionSwitch'] ?? true;
+    nationalitySwitch.value = userInfo['nationalitySwitch'] ?? true;
+    maritalStatusSwitch.value = userInfo['maritalStatusSwitch'] ?? true;
+  } catch (e) {
+    print('Error fetching user info: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed to load profile: $e')),
+    );
+  } finally {
+    isLoading.value = false;
   }
+}
 
   void _showParagraphDialog(BuildContext context) {
     showDialog(
@@ -106,7 +118,8 @@ class ProfilescreenState extends State<Profilescreen> {
 
   @override
   Widget build(BuildContext context) {
-    final NavigationController navigationController = Get.put(NavigationController());
+    final NavigationController navigationController =
+        Get.put(NavigationController());
 
     return Scaffold(
       appBar: AppBar(
@@ -117,7 +130,8 @@ class ProfilescreenState extends State<Profilescreen> {
         elevation: 0,
         leading: InkWell(
           onTap: () => navigationController.navigateBack(),
-          child: const Icon(Icons.arrow_back, color: Color.fromARGB(255, 35, 94, 77), size: 24),
+          child: const Icon(Icons.arrow_back,
+              color: Color.fromARGB(255, 35, 94, 77), size: 24),
         ),
         actions: [
           Padding(
@@ -126,23 +140,53 @@ class ProfilescreenState extends State<Profilescreen> {
               onTap: () {
                 Get.to(const Signinscreen());
               },
-              child: ImageIcon(
-                const AssetImage("assets/icons/profilelogout.png"),
+
+              child: const ImageIcon(
+                AssetImage("assets/icons/profilelogout.png"),
                 size: 23,
-                color: const Color.fromARGB(255, 35, 94, 77),
+                color: Color.fromARGB(255, 35, 94, 77),
               ),
             ),
           ),
-          Padding(
-            padding: EdgeInsets.only(right: 16.0),
-            child: CustomContainer(
-              text: "Edit Profile",
-              image: "assets/icons/editprofile.png",
-              onTap: () {
-                showEditProfileDialog(context);
-              },
-            ),
-          ),
+         Padding(
+  padding: EdgeInsets.only(right: 16.0),
+  child: CustomContainer(
+    text: "Edit Profile",
+    image: "assets/icons/editprofile.png",
+    onTap: () {
+      showPopUp(context).then((value) {
+        // Handle interests safely
+        if (updatedData['interests'] != null && updatedData['interests'] is List) {
+          interests.assignAll(
+            (updatedData['interests'] as List).map((e) => e.toString().trim()).toList(),
+          );
+          myInterest.assignAll(interests);
+        }
+
+        // Assign other values
+        name.value = updatedData["name"] ?? '';
+        aboutMe.value = updatedData["about_me"] ?? '';
+        phone.value = updatedData["phone"] ?? '';
+        location.value = updatedData["location"] ?? '';
+        gender.value = updatedData["gender"] ?? '';
+        dob.value = updatedData["dob"] ?? '';
+        profession.value = updatedData["profession"] ?? '';
+        nationality.value = updatedData["nationality"] ?? '';
+        maritalStatus.value = updatedData["marital_status"] ?? '';
+
+        // Additional switches (if needed)
+        // phoneSwitch.value = updatedData["phoneSwitch"] ?? true;
+        // emailSwitch.value = updatedData["emailSwitch"] ?? true;
+        // genderSwitch.value = updatedData["genderSwitch"] ?? true;
+        // dobSwitch.value = updatedData["dobSwitch"] ?? true;
+        // professionSwitch.value = updatedData["professionSwitch"] ?? true;
+        // nationalitySwitch.value = updatedData["nationalitySwitch"] ?? true;
+        // maritalStatusSwitch.value = updatedData["maritalStatusSwitch"] ?? true;
+      });
+    },
+  ),
+),
+
         ],
       ),
       body: Obx(() {
@@ -181,21 +225,21 @@ class ProfilescreenState extends State<Profilescreen> {
                         ),
                         SizedBox(height: 4.h),
                         Obx(() => Text(
-                          name.value,
-                          style: GoogleFonts.playfairDisplaySc(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w700,
-                            color: const Color.fromARGB(255, 35, 94, 77),
-                          ),
-                        )),
+                              name.value,
+                              style: GoogleFonts.playfairDisplaySc(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w700,
+                                color: const Color.fromARGB(255, 35, 94, 77),
+                              ),
+                            )),
                         Obx(() => Text(
-                          profession.value,
-                          style: TextStyle(
-                            fontSize: 10.sp,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey[400],
-                          ),
-                        )),
+                              profession.value,
+                              style: TextStyle(
+                                fontSize: 10.sp,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey[400],
+                              ),
+                            )),
                       ],
                     ),
                   ),
@@ -214,7 +258,7 @@ class ProfilescreenState extends State<Profilescreen> {
                     SizedBox(width: 10.w),
                     GestureDetector(
                       onTap: () => _showParagraphDialog(context),
-                      child: Icon(Icons.edit, color: Colors.green, size: 24),
+                      child: Icon(Icons.edit, color: const Color.fromARGB(255, 35, 94, 77), size: 24),
                     ),
                     Spacer(),
                     Transform.scale(
@@ -233,9 +277,9 @@ class ProfilescreenState extends State<Profilescreen> {
                 Padding(
                   padding: const EdgeInsets.only(left: 15),
                   child: Obx(() => Text(
-                    aboutMe.value,
-                    style: TextStyle(fontSize: 14, color: Colors.black),
-                  )),
+                        aboutMe.value,
+                        style: TextStyle(fontSize: 14.sp, color: Colors.black),
+                      )),
                 ),
                 Row(
                   children: [
@@ -261,27 +305,22 @@ class ProfilescreenState extends State<Profilescreen> {
                     ),
                   ],
                 ),
-                const Row(
-                  children: [
-                    CustomIntrestsContainer(
-                      text: "Games Online",
-                      color: Color.fromARGB(255, 240, 99, 90),
-                    ),
-                    CustomIntrestsContainer(
-                      text: "Music",
-                      color: Color.fromARGB(255, 245, 151, 98),
-                    ),
-                    CustomIntrestsContainer(
-                      text: "Movies",
-                      color: Color.fromARGB(255, 41, 214, 151),
-                    ),
-                    CustomIntrestsContainer(
-                      text: "Art",
-                      color: Color.fromARGB(255, 70, 205, 251),
-                    ),
-                  ],
-                ),
+                Obx(
+                  () => SizedBox(
+                    height: 25.h,
+                    child: ListView.builder(
+                 
+                    scrollDirection: Axis.horizontal,
+                    itemCount: myInterest.length,
+                    itemBuilder: (context, index) {
+                      return CustomIntrestsContainer(
+                        text: Interest.fromApi(value: myInterest[index]).name,
+                        color: Interest.fromApi(value: myInterest[index]).color,
+                      );
+                    },
+                  )),
 
+          ),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   child: Text(
@@ -294,29 +333,29 @@ class ProfilescreenState extends State<Profilescreen> {
                   ),
                 ),
                 SizedBox(height: 8.h),
-                Obx(() => CustomData(title: "Phone", subtitle: phone.value, showSwitch: true, switchValue: phoneSwitch.value, onSwitchChanged: (value) {
-                  phoneSwitch.value = value;
-                })),
-                Obx(() => CustomData(title: "Email", subtitle: email.value, showSwitch: true, switchValue: emailSwitch.value, onSwitchChanged: (value) {
-                  emailSwitch.value = value;
-                })),
-                Obx(() => CustomData(title: "Location", subtitle: location.value, showSwitch: true, switchValue: false, onSwitchChanged: (value) {})),
+                Obx(() => CustomData(title: "Phone",subtitle: phone.value,showSwitch: true,switchValue: phoneSwitch.value,onSwitchChanged: (value) {
+                      phoneSwitch.value = value;
+                    })),
+                Obx(() => CustomData(title: "Email",subtitle: email.value,showSwitch: true,switchValue: emailSwitch.value,onSwitchChanged: (value) {
+                      emailSwitch.value = value;
+                    })),
+                Obx(() => CustomData(title: "Location",subtitle: location.value,showSwitch: true,switchValue: false,onSwitchChanged: (value) {})),
+                Obx(() => CustomData(title: "Gender",subtitle: gender.value,showSwitch: true,switchValue: genderSwitch.value,onSwitchChanged: (value) {
+                      genderSwitch.value = value;
+                    })),
+                Obx(() => CustomData(title: "DOB",subtitle: dob.value,showSwitch: true,switchValue: dobSwitch.value,onSwitchChanged: (value) {
+                      dobSwitch.value = value;
+                    })),
+                Obx(() => CustomData(title: "Profession",subtitle: profession.value,showSwitch: true,switchValue: professionSwitch.value,onSwitchChanged: (value) {
+                      professionSwitch.value = value;
+                    })),
+                Obx(() => CustomData(title: "Nationality",subtitle: nationality.value,showSwitch: true,switchValue: nationalitySwitch.value,onSwitchChanged: (value) {
+                      nationalitySwitch.value = value;
+                    })),
+                Obx(() => CustomData(title: "Marital Status",subtitle: maritalStatus.value,showSwitch: true,switchValue: maritalStatusSwitch.value,onSwitchChanged: (value) {
+                      maritalStatusSwitch.value = value;
+                    })),
 
-                Obx(() => CustomData(title: "Gender", subtitle: gender.value, showSwitch: true, switchValue: genderSwitch.value, onSwitchChanged: (value) {
-                  genderSwitch.value = value;
-                })),
-                Obx(() => CustomData(title: "DOB", subtitle: dob.value, showSwitch: true, switchValue: dobSwitch.value, onSwitchChanged: (value) {
-                  dobSwitch.value = value;
-                })),
-                Obx(() => CustomData(title: "Profession", subtitle: profession.value, showSwitch: true, switchValue: professionSwitch.value, onSwitchChanged: (value) {
-                  professionSwitch.value = value;
-                })),
-                Obx(() => CustomData(title: "Nationality", subtitle: nationality.value, showSwitch: true, switchValue: nationalitySwitch.value, onSwitchChanged: (value) {
-                  nationalitySwitch.value = value;
-                })),
-                Obx(() => CustomData(title: "Marital Status", subtitle: maritalStatus.value, showSwitch: true, switchValue: maritalStatusSwitch.value, onSwitchChanged: (value) {
-                  maritalStatusSwitch.value = value;
-                })),
               ],
             ),
           ),

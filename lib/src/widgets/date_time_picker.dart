@@ -53,7 +53,7 @@ class DatePickerFieldWidget extends StatelessWidget {
         }
       },
       validator: (value) =>
-      value!.isEmpty ? 'Please enter your date of birth' : null,
+          value!.isEmpty ? 'Please enter your date of birth' : null,
     );
   }
 }
@@ -113,7 +113,7 @@ class TimePickerFieldWidget extends StatelessWidget {
         }
       },
       validator: (value) =>
-      value!.isEmpty ? 'Please select a time' : null,
+          value!.isEmpty ? 'Please select a time' : null,
     );
   }
 }

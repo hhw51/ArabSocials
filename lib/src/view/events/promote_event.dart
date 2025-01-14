@@ -8,9 +8,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import '../../apis/create_event.dart'; // Import your createEvent service
-
 class PromoteEvent extends StatefulWidget {
   const PromoteEvent({super.key});
 
@@ -21,6 +19,7 @@ class PromoteEvent extends StatefulWidget {
 class _PromoteEventState extends State<PromoteEvent> {
   final ImagePicker _picker = ImagePicker();
   File? _selectedImage;
+
 
   final CreateEventService _createEventService = CreateEventService();
 

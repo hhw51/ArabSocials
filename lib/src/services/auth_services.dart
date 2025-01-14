@@ -221,6 +221,7 @@ class AuthService {
       throw Exception('⚠️ Unexpected error: $e');
     }
   }
+
   Future<Map<String, dynamic>> updateProfile({
     required String name,
     required String phone,
@@ -231,7 +232,8 @@ class AuthService {
     required String dob,
     required String aboutMe,
     required String maritalStatus,
-    required String interests,
+    required List<String> interests,
+
     required String profession,
   }) async {
     try {
@@ -257,7 +259,8 @@ class AuthService {
       request.fields['dob'] = dob;
       request.fields['about_me'] = aboutMe;
       request.fields['marital_status'] = maritalStatus;
-      request.fields['interests'] = interests;
+      request.fields['interests'] = jsonEncode(interests);
+
       request.fields['profession'] = profession;
 
       // Add file if available
@@ -276,7 +279,9 @@ class AuthService {
 
       if (response.statusCode == 200) {
         print("✅ Profile updated successfully: $responseBody");
+        getUserInfo();
         return jsonDecode(responseBody);
+
       } else {
         throw Exception('❌ Error: ${response.statusCode} - $responseBody');
       }
@@ -287,7 +292,8 @@ class AuthService {
     }
   }
 
-  Future<Map<String, dynamic>> getUserInfo() async {
+Future<Map<String, dynamic>> getUserInfo() async {
+
     try {
       final String? token = await _secureStorage.read(key: 'token');
       if (token == null) {
