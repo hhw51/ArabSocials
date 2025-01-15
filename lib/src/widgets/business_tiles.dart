@@ -11,6 +11,7 @@ class BusinessTile extends StatefulWidget {
   final String location;
   final bool isCircular;
   final VoidCallback? onTap; 
+    final VoidCallback? onFavoriteTap;
   
   const BusinessTile({
     super.key,
@@ -20,6 +21,7 @@ class BusinessTile extends StatefulWidget {
     required this.location,
     required this.isCircular,
     this.onTap, 
+     this.onFavoriteTap,
 
   });
 
@@ -31,7 +33,19 @@ class _BusinessTileState extends State<BusinessTile> {
   bool isFavorite = false;
 
     final NavigationController navigationController = Get.put(NavigationController());
-
+ Widget _buildImage(String path) {
+    if (path.startsWith('http')) {
+      return Image.network(
+        path,
+        fit: BoxFit.cover,   // fill the container
+      );
+    } else {
+      return Image.asset(
+        path,
+        fit: BoxFit.cover,
+      );
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -49,15 +63,16 @@ class _BusinessTileState extends State<BusinessTile> {
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
                     ),
-                    child: Image.asset(widget.imagePath, fit: BoxFit.contain),
+                    child: _buildImage(widget.imagePath),
                   )
                 : Container(
                     height: 72.h,
                     width: 72.w,
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(20.w)),
-                    child: Image.asset(widget.imagePath, fit: BoxFit.contain),
-                  ),
+                   clipBehavior: Clip.antiAlias,
+              child: _buildImage(widget.imagePath),
+            ),
             SizedBox(
               // height: 59.h,
               width: 176.w,
@@ -118,17 +133,16 @@ class _BusinessTileState extends State<BusinessTile> {
                       setState(() {
                         isFavorite = !isFavorite;
                       });
+                      widget.onFavoriteTap?.call();
                     },
                     child: Icon(
                       isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: isFavorite
-                          ? const Color.fromARGB(255, 35, 94, 77)
-                          : const Color.fromARGB(255, 35, 94, 77),
+                      color: const Color.fromARGB(255, 35, 94, 77),
                     ),
                   ),
-                   InkWell(
-                     onTap: widget.onTap,
-                     child:  const Row(
+                  InkWell(
+                    onTap: widget.onTap,
+                    child: const Row(
                       children: [
                         Text(
                           "View",
@@ -140,9 +154,8 @@ class _BusinessTileState extends State<BusinessTile> {
                           color: Color.fromARGB(255, 35, 94, 77),
                         ),
                       ],
-                     ), 
-
-                   ),
+                    ),
+                  ),
                 ],
               ),
             ),

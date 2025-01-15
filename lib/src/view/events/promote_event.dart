@@ -1,8 +1,14 @@
 import 'dart:io';
+import 'package:arab_socials/src/controllers/navigation_controller.dart';
+import 'package:arab_socials/src/widgets/custom_header_text.dart';
+import 'package:arab_socials/src/widgets/date_time_picker.dart';
+import 'package:arab_socials/src/widgets/snack_bar_widget.dart';
+import 'package:arab_socials/src/widgets/textfieled_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 // Import your custom widgets and services
@@ -44,12 +50,11 @@ class _PromoteEventState extends State<PromoteEvent> {
     }
   }
 
-  Future<void> _createEvent() async {
-    if (_selectedImage == null) {
-      Get.snackbar("Error", "Please upload an image.");
-      return;
-    }
-
+ Future<void> _createEvent() async {
+  if (_selectedImage == null) {
+    Get.snackbar("Error", "Please upload an image.");
+    return;
+  }
     // Validate that all required fields are filled
     if (titleController.text.isEmpty ||
         eventtypeController.text.isEmpty ||
@@ -123,7 +128,7 @@ class _PromoteEventState extends State<PromoteEvent> {
       print('Stack Trace: $stackTrace');
     }
   }
-
+}
   @override
   void dispose() {
     // Dispose controllers
@@ -144,9 +149,12 @@ class _PromoteEventState extends State<PromoteEvent> {
     final NavigationController navigationController =
     Get.put(NavigationController());
 
-    return SafeArea(
-      child: Scaffold(
-        resizeToAvoidBottomInset: false,
+  return SafeArea(
+    child: Scaffold(
+      resizeToAvoidBottomInset: false,
+      backgroundColor: const Color.fromARGB(255, 250, 244, 228),
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: const Color.fromARGB(255, 250, 244, 228),
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -333,8 +341,10 @@ class _PromoteEventState extends State<PromoteEvent> {
               ),
             ),
           ),
-        ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
+
 }

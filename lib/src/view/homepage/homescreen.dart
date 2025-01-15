@@ -1,5 +1,8 @@
+import 'package:arab_socials/src/apis/approved_events.dart';
 import 'package:arab_socials/src/controllers/navigation_controller.dart';
 import 'package:arab_socials/src/models/home_model1.dart';
+import 'package:arab_socials/src/services/auth_services.dart';
+import 'package:arab_socials/src/view/events/promote_event.dart';
 import 'package:arab_socials/src/view/events/register_event.dart';
 import 'package:arab_socials/src/view/homepage/notification_screen.dart';
 import 'package:arab_socials/src/widgets/custom_container.dart';
@@ -17,15 +20,142 @@ class Homescreen extends StatefulWidget {
 }
 
 class _HomescreenState extends State<Homescreen> {
+  final NavigationController navigationController = Get.put(NavigationController());
+  final AuthService authService = AuthService();
+  final ApprovedEvents approvedEventsService = ApprovedEvents();
+  bool isLoading = true;
+  List<dynamic> savedEvents = [];
+  List<dynamic> favoriteUsers = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchInitialData();
+    fetchApprovedEvents();
+  }
+
+  Widget _buildGoingSection() {
+    return Row(
+      children: [
+        Container(
+          height: 24.h,
+          width: 56.w,
+          child: Stack(
+            children: [
+              CircleAvatar(
+                radius: 10.r,
+                backgroundImage: AssetImage('assets/logo/image1.png'),
+              ),
+              Positioned(
+                left: 15.w,
+                child: CircleAvatar(
+                  radius: 10.r,
+                  backgroundImage: AssetImage('assets/logo/image2.png'),
+                ),
+              ),
+              Positioned(
+                left: 30.w,
+                child: CircleAvatar(
+                  radius: 10.r,
+                  backgroundImage: AssetImage('assets/logo/image3.png'),
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(width: 4.w),
+        Text(
+          "+25 Going",
+          style: TextStyle(
+            fontSize: 12.sp,
+            color: const Color.fromARGB(255, 35, 94, 77),
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _monthAbbreviation(int month) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return months[month - 1];
+  }
+
+  Future<void> fetchApprovedEvents() async {
+    try {
+      final fetchedEvents = await approvedEventsService.getApprovedEvents();
+      setState(() {
+        savedEvents = fetchedEvents.map((event) {
+          final eventDate = DateTime.parse(event['event_date']);
+          final day = eventDate.day;
+          final month = _monthAbbreviation(eventDate.month);
+          return {
+            ...event as Map<String, dynamic>,
+            'day': day,
+            'month': month,
+            'bookmarked': event['bookmarked'] ?? false, // Default to false
+          };
+        }).toList();
+        isLoading = false;
+      });
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+      });
+      print('Error fetching events: $error');
+    }
+  }
+
+  Future<void> fetchInitialData() async {
+    await Future.wait([
+      fetchSavedEvents(),
+      fetchFavoriteUsers(),
+    ]);
+  }
+
+  Future<void> fetchSavedEvents() async {
+    try {
+      setState(() {
+        isLoading = true;
+      });
+
+      final events = await authService.getSavedEvents();
+      setState(() {
+        savedEvents = events.map((event) => {
+          ...event,
+          'bookmarked': event['bookmarked'] ?? false, // Default to false
+        }).toList();
+        isLoading = false;
+      });
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+      });
+      print('Error fetching saved events: $error');
+    }
+  }
+
+  Future<void> fetchFavoriteUsers() async {
+    try {
+      final users = await authService.getFavoriteUsers();
+      setState(() {
+        favoriteUsers = users;
+      });
+    } catch (error) {
+      print('Error fetching favorite users: $error');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-      final NavigationController navigationController = Get.put(NavigationController());
-
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 250, 244, 228),
       body: GestureDetector(
         onTap: () {
-           FocusScope.of(context).requestFocus(FocusNode());
+          FocusScope.of(context).requestFocus(FocusNode());
         },
         child: Column(
           children: [
@@ -43,34 +173,34 @@ class _HomescreenState extends State<Homescreen> {
                 padding: EdgeInsets.only(top: 30.h, left: 16.w, right: 16.w),
                 child: Row(
                   children: [
-                    Icon(Icons.search,
+                    Icon(
+                      Icons.search,
                       size: 30.sp,
                     ),
                     SizedBox(width: 8.w),
-                   Expanded(
-          child: TextField(
-            decoration: InputDecoration(
-        hintText: "Enter events, members, or business...",
-        hintStyle: TextStyle(
-          fontSize: 14.sp,
-          color: Color.fromARGB(255, 190, 218, 165),
-        ),
-        border: InputBorder.none, // Remove border if needed
-        contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            ),
-            style: TextStyle(
-        fontSize: 14.sp,
-        color: Color.fromARGB(255, 190, 218, 165),
-            ),
-            onChanged: (value) {
-        print("Input: $value");
-            },
-          ),
-        ),
-        
+                    Expanded(
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: "Enter events, members, or business...",
+                          hintStyle: TextStyle(
+                            fontSize: 14.sp,
+                            color: const Color.fromARGB(255, 190, 218, 165),
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        ),
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: const Color.fromARGB(255, 190, 218, 165),
+                        ),
+                        onChanged: (value) {
+                          print("Input: $value");
+                        },
+                      ),
+                    ),
                     InkWell(
                       onTap: () {
-                         navigationController.navigateToChild(Notificationscreen());
+                        navigationController.navigateToChild(Notificationscreen());
                       },
                       child: Image(
                         image: const AssetImage('assets/icons/homenotify.png'),
@@ -86,200 +216,168 @@ class _HomescreenState extends State<Homescreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                   Padding(
-                     padding: const EdgeInsets.symmetric(horizontal: 14),
-                     child: SectionHeader(
-                       title: "UPCOMING EVENTS",
-                       actionText: "See all",
-                       onTap: () {
-                         print("See all tapped!");
-                       },
-                     ),
-                   ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      child: SectionHeader(
+                        title: "UPCOMING EVENTS",
+                        actionText: "See all",
+                        onTap: () {
+                          print("See all tapped!");
+                        },
+                      ),
+                    ),
                     InkWell(
-                         onTap: () {
-                             navigationController.navigateToChild(RegisterEvent());
-                            },
+                      onTap: () {
+                        navigationController.navigateToChild(RegisterEvent());
+                      },
                       child: SizedBox(
                         height: 237.h,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          padding: EdgeInsets.symmetric(horizontal: 12.w),
-                          itemCount: homescreenModelList.length,
-                          itemBuilder: (context, index) {
-                            final model = homescreenModelList[index];
-                            return Padding(
-                              padding: EdgeInsets.only(right: 10.w),
-                              child: Container(
-                                width: 218.w,
-                                height: 237.h,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(16.r),
-                                  color: Color.fromARGB(255, 247, 247, 247),
-                                ),
-                                child: Padding(
-                                  padding: EdgeInsets.all(8.w),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Stack(
-                                        children: [
-                                          ClipRRect(
-                                            borderRadius:BorderRadius.circular(16.r),
-                                            child: Image.asset(
-                                              model.mainImage ?? '',
-                                              fit: BoxFit.cover,
-                                              height: 131.h,
-                                              width: double.infinity,
-                                            ),
-                                          ),
-                                         Positioned(
-                                top: 8.h,
-                                right: 8.w,
-                                child: GestureDetector(
-                                  onTap: () {
-                                    model.isBookmarked = !model.isBookmarked;
-                                    (context as Element).markNeedsBuild(); 
-                                  },
-                                  child: Container(
-                                    height: 24.h,
-                                    width: 23.w,
-                                    decoration: const BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.all(
-                                        Radius.circular(6),
+                        child: isLoading
+                            ? const Center(child: CircularProgressIndicator())
+                            : ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                padding: EdgeInsets.symmetric(horizontal: 12.w),
+                                itemCount: savedEvents.length,
+                                itemBuilder: (context, index) {
+                                  final event = savedEvents[index];
+                                  return Padding(
+                                    padding: EdgeInsets.only(right: 10.w),
+                                    child: Container(
+                                      width: 218.w,
+                                      height: 237.h,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(16.r),
+                                        color: const Color.fromARGB(255, 247, 247, 247),
                                       ),
-                                    ),
-                                    child: Icon(
-                                      model.isBookmarked
-                                          ? Icons.bookmark
-                                          : Icons.bookmark_outline,
-                                      color: Colors.green,
-                                      size: 18.sp,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                                          Positioned(
-                                            top: 8.h,
-                                            left: 8.w,
-                                            child: Container(
-                                              height: 36.h,
-                                              width: 36.w,
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius:
-                                                    BorderRadius.circular(6.r),
-                                              ),
-                                              child: Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Text(
-                                                    model.day ?? '',
-                                                    style: GoogleFonts.playfairDisplaySc(
-                                                      fontSize: 14.sp,
-                                                      color: Colors.green,
-                                                      fontWeight: FontWeight.w700,
-                                                    ),
-                                                    maxLines: 1,
-                                                    overflow: TextOverflow.ellipsis,
-                                                  ),
-                                                  Text(
-                                                    model.month ?? '',
-                                                    style: GoogleFonts.playfairDisplaySc(
-                                                      fontSize: 8.sp,
-                                                      color: Colors.green,
-                                                      fontWeight: FontWeight.w700,
-                                                    ),
-                                                    maxLines: 1,
-                                                    overflow: TextOverflow.ellipsis,
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(height: 8.h),
-                                      // Title
-                                      Text(model.title ?? '',
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: GoogleFonts.playfairDisplaySc(
-                                            fontSize: 12.sp,
-                                            color: Colors.black,
-                                            fontWeight: FontWeight.w700,
-                                          )),
-                                      SizedBox(height: 8.h),
-                                      Row(
-                                        children: [
-                                          Container(
-                                            height: 24.h,
-                                            width: 56.w,
-                                            child: Stack(
+                                      child: Padding(
+                                        padding: EdgeInsets.all(8.w),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Stack(
                                               children: [
-                                                CircleAvatar(
-                                                  radius: 10.r,
-                                                  backgroundImage: AssetImage(model.image1 ?? ''),
-                                                ),
-                                                Positioned(
-                                                  left: 10.w,
-                                                  child: CircleAvatar(
-                                                    radius: 10.r,
-                                                    backgroundImage: AssetImage(
-                                                        model.image2 ?? ''),
+                                                ClipRRect(
+                                                  borderRadius: BorderRadius.circular(16.r),
+                                                  child: Image.network(
+                                                    event['flyer'] != null
+                                                        ? 'http://35.222.126.155:8000${event['flyer']}'
+                                                        : 'assets/logo/default.png',
+                                                    fit: BoxFit.cover,
+                                                    height: 131.h,
+                                                    width: double.infinity,
+                                                    errorBuilder: (context, error, stackTrace) =>
+                                                        Image.asset(
+                                                      'assets/logo/default.png',
+                                                      fit: BoxFit.cover,
+                                                      height: 131.h,
+                                                      width: double.infinity,
+                                                    ),
                                                   ),
                                                 ),
                                                 Positioned(
-                                                  left: 25.w,
-                                                  child: CircleAvatar(
-                                                    radius: 10.r,
-                                                    backgroundImage: AssetImage(model.image3 ?? ''),
+                                                  top: 8.h,
+                                                  left: 8.w,
+                                                  child: Container(
+                                                    height: 36.h,
+                                                    width: 36.w,
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      borderRadius: BorderRadius.circular(6.r),
+                                                    ),
+                                                    child: Column(
+                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      children: [
+                                                        Text(
+                                                          event['day']?.toString() ?? '',
+                                                          style: GoogleFonts.playfairDisplaySc(
+                                                            fontSize: 14.sp,
+                                                            color: Colors.green,
+                                                            fontWeight: FontWeight.w700,
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          event['month']?.toString() ?? '',
+                                                          style: GoogleFonts.playfairDisplaySc(
+                                                            fontSize: 8.sp,
+                                                            color: Colors.green,
+                                                            fontWeight: FontWeight.w700,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                                Positioned(
+                                                  top: 10.h,
+                                                  right: 12.w,
+                                                  child: GestureDetector(
+                                                    onTap: () {
+                                                      setState(() {
+                                                        event['bookmarked'] =
+                                                            !(event['bookmarked'] ?? false); // Toggle bookmarked
+                                                      });
+                                                    },
+                                                    child: Container(
+                                                      height: 36.h,
+                                                      width: 36.w,
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.white,
+                                                        borderRadius: BorderRadius.circular(6.r),
+                                                      ),
+                                                      child: Icon(
+                                                        event['bookmarked'] ?? false
+                                                            ? Icons.bookmark
+                                                            : Icons.bookmark_outline,
+                                                        color: Colors.green,
+                                                        size: 18.sp,
+                                                      ),
+                                                    ),
                                                   ),
                                                 ),
                                               ],
                                             ),
-                                          ),
-                                          Text(
-                                            model.subtitle ?? '',
-                                            style: TextStyle(
-                                              fontSize: 12.sp,
-                                              color:Color.fromARGB(255, 35, 94, 77),
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                              
-                                      SizedBox(height: 8.h),
-                                      Row(
-                                        children: [
-                                          Icon(model.locationIcon ?? Icons.location_on,
-                                            size: 16.sp,
-                                            color: Colors.grey,
-                                          ),
-                                          SizedBox(width: 4.w),
-                                          Expanded(
-                                            child: Text(
-                                              model.locationText ?? '',
-                                              style: TextStyle(
-                                                fontSize: 12.sp,
-                                                color: Colors.grey,
-                                              ),
+                                            SizedBox(height: 8.h),
+                                            Text(
+                                              event['title'] ?? 'No Title',
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
+                                              style: GoogleFonts.playfairDisplaySc(
+                                                fontSize: 12.sp,
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.w700,
+                                              ),
                                             ),
-                                          ),
-                                        ],
+                                            SizedBox(height: 8.h),
+                                            _buildGoingSection(),
+                                            SizedBox(height: 8.h),
+                                            Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.location_on,
+                                                  size: 16.sp,
+                                                  color: Colors.grey,
+                                                ),
+                                                SizedBox(width: 4.w),
+                                                Expanded(
+                                                  child: Text(
+                                                    event['location'] ?? 'Unknown Location',
+                                                    style: TextStyle(
+                                                      fontSize: 12.sp,
+                                                      color: Colors.grey,
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ],
-                                  ),
-                                ),
+                                    ),
+                                  );
+                                },
                               ),
-                            );
-                          },
-                        ),
                       ),
                     ),
                     Padding(
@@ -313,7 +411,9 @@ class _HomescreenState extends State<Homescreen> {
                                         ),
                                         SizedBox(height: 8.h),
                                         ElevatedButton(
-                                          onPressed: () {},
+                                          onPressed: () {
+                                             navigationController.navigateToChild(PromoteEvent());
+                                          },
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: const Color.fromARGB(255, 35, 94, 77),
                                             shape: RoundedRectangleBorder(
@@ -454,25 +554,31 @@ class _HomescreenState extends State<Homescreen> {
                               height: 88.h,
                               child: ListView.builder(
                                 scrollDirection: Axis.horizontal,
-                                itemCount: 20,
+                                itemCount: favoriteUsers.length,
                                 itemBuilder: (context, index) {
-                                  final model = homescreenfotterList[
-                                      index % homescreenfotterList.length];
+                                  final user = favoriteUsers[index];
                                   return Padding(
                                     padding: EdgeInsets.only(right: 12.w),
                                     child: Column(
-                                      crossAxisAlignment:CrossAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
                                       children: [
                                         ClipOval(
-                                          child: Image.asset(
-                                            model.fotterimage ?? '',
+                                          child: Image.network(
+                                            user['profile_picture'] ?? 'assets/logo/logoimage1.png',
                                             width: 58.w,
                                             height: 58.h,
                                             fit: BoxFit.cover,
+                                            errorBuilder: (context, error, stackTrace) =>
+                                                Image.asset(
+                                              'assets/logo/logoimage1.png',
+                                              width: 58.w,
+                                              height: 58.h,
+                                              fit: BoxFit.cover,
+                                            ),
                                           ),
                                         ),
                                         Text(
-                                          model.title ?? '',
+                                          user['name'] ?? '',
                                           style: GoogleFonts.playfairDisplaySc(
                                             fontSize: 10.sp,
                                             fontWeight: FontWeight.w700,
@@ -480,11 +586,10 @@ class _HomescreenState extends State<Homescreen> {
                                           ),
                                           textAlign: TextAlign.center,
                                         ),
-                                        // Subtitle
                                         Text(
-                                          model.subtitle ?? '',
+                                          user['profession'] ?? '',
                                           style: TextStyle(
-                                            fontSize: 6.sp,
+                                            fontSize: 8.sp,
                                             fontWeight: FontWeight.w400,
                                             color: Colors.grey[700],
                                           ),

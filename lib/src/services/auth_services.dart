@@ -13,6 +13,17 @@ class AuthService {
   static const String _verifyOtpUrl = '$_baseUrl/users/verify-otp/';
   static const String _updateUserUrl = '$_baseUrl/users/update-user/';
   static const String _getUserInfoUrl = '$_baseUrl/users/get-user-info/';
+  
+  // Business API Endpoints
+  static const String _getOtherBusinessUsersUrl = '$_baseUrl/users/get-other-business-users/';
+  static const String _getBusinessUsersWithSameLocationUrl = '$_baseUrl/users/get-business-users-with-same-location/';
+  static const String _getFavoriteBusinessUsersUrl = '$_baseUrl/users/get-favorite-bussiness-users/';
+  static const String _addFavoriteBusinessUrl = '$_baseUrl/users/add-favorite-business/';
+  static const String _removeFavoriteBusinessUrl = '$_baseUrl/users/remove-favorite-business/';
+   static const String _getSavedEventsUrl = '$_baseUrl/events/get_saved_events/';
+   static const String _getFavoriteUsersUrl = '$_baseUrl/users/get-favorite-users/';
+
+  
 
   static final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
@@ -307,6 +318,7 @@ Future<Map<String, dynamic>> getUserInfo() async {
           'Content-Type': 'application/json',
         },
       );
+      
 
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
@@ -319,5 +331,173 @@ Future<Map<String, dynamic>> getUserInfo() async {
       throw Exception('Unexpected error: $e');
     }
   }
+
+  Future<String?> getToken() async {
+    return await _secureStorage.read(key: 'token');
+  }
+
+  // Fetch other business users
+  Future<List<dynamic>> getOtherBusinessUsers() async {
+  try {
+    final token = await getToken();
+    if (token == null) {
+      throw Exception('No token found.');
+    }
+
+    final response = await http.get(
+      Uri.parse(_getOtherBusinessUsersUrl),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      print("Business API Response: ${response.body}");
+      return jsonDecode(response.body) as List<dynamic>;
+    } else {
+      throw Exception("Error: ${response.statusCode} - ${response.body}");
+    }
+  } catch (e) {
+    print("Error in getOtherBusinessUsers: $e");
+    rethrow;
+  }
+}
+
+  // Fetch business users with the same location
+  Future<List<dynamic>> getBusinessUsersWithSameLocation() async {
+    return _fetchDataFromApi(_getBusinessUsersWithSameLocationUrl);
+  }
+
+  // Fetch favorite business users
+  Future<List<dynamic>> getFavoriteBusinessUsers() async {
+    return _fetchDataFromApi(_getFavoriteBusinessUsersUrl);
+  }
+
+  // Add a business to favorites
+  Future<void> addFavoriteBusiness(int businessId) async {
+    await _postDataToApi(_addFavoriteBusinessUrl, {'id': businessId});
+  }
+
+  // Remove a business from favorites
+  Future<void> removeFavoriteBusiness(int businessId) async {
+    await _postDataToApi(_removeFavoriteBusinessUrl, {'id': businessId});
+  }
+
+  // Generic method for GET requests
+  Future<List<dynamic>> _fetchDataFromApi(String url) async {
+    try {
+      final String? token = await getToken();
+      if (token == null) {
+        throw Exception('No token found. Please log in again.');
+      }
+
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as List<dynamic>;
+      } else {
+        throw Exception('Error: ${response.statusCode} - ${response.body}');
+      }
+    } on SocketException {
+      throw Exception('No Internet connection');
+    } catch (e) {
+      throw Exception('Unexpected error: $e');
+    }
+  }
+
+  // Generic method for POST requests
+  Future<void> _postDataToApi(String url, Map<String, dynamic> body) async {
+    try {
+      final String? token = await getToken();
+      if (token == null) {
+        throw Exception('No token found. Please log in again.');
+      }
+
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception('Error: ${response.statusCode} - ${response.body}');
+      }
+    } on SocketException {
+      throw Exception('No Internet connection');
+    } catch (e) {
+      throw Exception('Unexpected error: $e');
+    }
+  }
+
+Future<List<dynamic>> getSavedEvents() async {
+
+  try {
+    final String? token = await _secureStorage.read(key: 'token');
+    if (token == null) {
+      throw Exception('No token found. Please log in again.');
+    }
+    final response = await http.get(
+      Uri.parse(_getSavedEventsUrl),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+        'Cookie': 'csrftoken=bRjlF9yxqGNkiqJlXEn4uhicNnDv4BYW',
+      },
+    );
+    // Handle the response
+    if (response.statusCode == 200) {
+      print("✅ Saved Events Response: ${response.body}");
+      return jsonDecode(response.body) as List<dynamic>;
+    } else {
+      throw Exception('❌ Failed to fetch saved events. Status: ${response.statusCode} - ${response.body}');
+    }
+  } on SocketException {
+    throw Exception('🌐 No Internet connection');
+  } catch (e) {
+    throw Exception('⚠️ Unexpected error: $e');
+  }
+}
+
+Future<List<dynamic>> getFavoriteUsers() async {
+  try {
+    // Retrieve the token from secure storage
+    final String? token = await _secureStorage.read(key: 'token');
+    if (token == null) {
+      throw Exception('No token found. Please log in again.');
+    }
+
+    // Make the API call
+    final response = await http.get(
+      Uri.parse(_getFavoriteUsersUrl),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+        'Cookie': 'csrftoken=bRjlF9yxqGNkiqJlXEn4uhicNnDv4BYW',
+      },
+    );
+
+    // Handle the response
+    if (response.statusCode == 200) {
+      print("✅ Favorite Users Response: ${response.body}");
+      return jsonDecode(response.body) as List<dynamic>;
+    } else {
+      throw Exception('❌ Failed to fetch favorite users. Status: ${response.statusCode} - ${response.body}');
+    }
+  } on SocketException {
+    throw Exception('🌐 No Internet connection');
+  } catch (e) {
+    throw Exception('⚠️ Unexpected error: $e');
+  }
+}
 
 }
