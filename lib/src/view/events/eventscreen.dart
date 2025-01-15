@@ -252,39 +252,6 @@ class _EventscreenState extends State<Eventscreen> {
     );
   }
 
-  String _monthAbbreviation(int month) {
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    return months[month - 1];
-  }
-
-  Future<void> fetchApprovedEvents() async {
-    try {
-      final fetchedEvents = await approvedEventsService.getApprovedEvents();
-      setState(() {
-        events = fetchedEvents.map((event) {
-          final eventDate = DateTime.parse(event['event_date']);
-          final day = eventDate.day;
-          final month = _monthAbbreviation(eventDate.month);
-          return {
-            ...event as Map<String, dynamic>,
-            'day': day,
-            'month': month,
-            'bookmarked': false, 
-          };
-        }).toList();
-        isLoading = false;
-      });
-    } catch (error) {
-      setState(() {
-        isLoading = false;
-      });
-      print('Error fetching events: $error');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return SafeArea(

@@ -172,4 +172,4 @@ class UserController extends GetxController {
         }
       };
     }
-  }}}}}
+  }}
