@@ -62,16 +62,6 @@ class CustomTextField extends StatelessWidget {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
 class CustomDropdown extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
@@ -107,7 +97,6 @@ class CustomDropdown extends StatelessWidget {
               hintText: null,
               filled: true,
               fillColor: const Color.fromARGB(255, 250, 244, 228),
-
               prefixIcon: prefixIcon != null
                   ? Icon(prefixIcon, color: Colors.grey)
                   : null,
@@ -162,7 +151,6 @@ class CustomDropdown extends StatelessWidget {
                     style: TextStyle(fontSize: 14),
                     overflow: TextOverflow.ellipsis,
                   ),
-
                 ),
               );
             }).toList(),
@@ -180,21 +168,9 @@ class CustomDropdown extends StatelessWidget {
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 class CustomMultiSelectDropdown extends StatelessWidget {
   final TextEditingController controller;
+  final Function(List<String>) onSelect;
   final String hintText;
   final IconData? prefixIcon;
   final List<String> items;
@@ -202,6 +178,7 @@ class CustomMultiSelectDropdown extends StatelessWidget {
   const CustomMultiSelectDropdown({
     Key? key,
     required this.controller,
+    required this.onSelect,
     required this.hintText,
     required this.items,
     this.prefixIcon,
@@ -218,15 +195,15 @@ class CustomMultiSelectDropdown extends StatelessWidget {
               context: context,
               builder: (context) => MultiSelectDialog(
                 items: items,
-                selectedItems: controller.text.isEmpty
-                    ? []
-                    : controller.text.split(', '),
+                selectedItems:
+                    controller.text.isEmpty ? [] : controller.text.split(', '),
               ),
             );
 
             if (selectedItems != null) {
               // Update the controller text
-              controller.text = selectedItems.join(', ');
+              // controller.text = selectedItems.join(', ');
+              onSelect(selectedItems);
             }
           },
           child: Container(
@@ -246,7 +223,9 @@ class CustomMultiSelectDropdown extends StatelessWidget {
                   child: Text(
                     controller.text.isEmpty ? hintText : controller.text,
                     style: TextStyle(
-                      color: controller.text.isEmpty ? Colors.grey[900] : Colors.black,
+                      color: controller.text.isEmpty
+                          ? Colors.grey[900]
+                          : Colors.black,
                       fontSize: 14,
                     ),
                     overflow: TextOverflow.ellipsis,

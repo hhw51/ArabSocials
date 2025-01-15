@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 class FavoritesService {
   static const String _baseUrl = 'http://35.222.126.155:8000';
   static const String _addFavoriteUrl = '$_baseUrl/users/favorites/';
-  static const String _removeFavoriteUrl = '$_baseUrl/users/remove_favorites/';
+  static const String _removeFavoriteUrl = '$_baseUrl/users/remove_favorite/';
 
   static final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 

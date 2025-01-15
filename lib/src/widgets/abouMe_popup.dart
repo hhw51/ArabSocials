@@ -17,7 +17,7 @@ class AboutMepopUp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final TextEditingController aboutmeController = TextEditingController();
+  final TextEditingController aboutmeController = TextEditingController();
 
     return AlertDialog(
       shape: RoundedRectangleBorder(
@@ -26,7 +26,7 @@ class AboutMepopUp extends StatelessWidget {
       title: Text(title),
       content: TextFormField(
         controller: aboutmeController,
-        maxLines: 5,
+        maxLines: 5, 
         decoration: InputDecoration(
           hintText: hintText,
           border: OutlineInputBorder(
@@ -36,42 +36,45 @@ class AboutMepopUp extends StatelessWidget {
       ),
       actions: [
         ElevatedButton(
-          onPressed: () => Navigator.pop(context),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color.fromARGB(255, 35, 94, 77),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.r),
-            ),
-            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-          ),
-          child: Text(
-            "Back",
-            style: TextStyle(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w700,
-              color: const Color.fromARGB(255, 250, 244, 228),
-            ),
-          ),
-        ),
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 35, 94, 77),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                      ),
+                      child: Text(
+                        "Back",
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w700,
+                          color: const Color.fromARGB(255, 250, 244, 228),
+                        ),
+                      ),
+                    ),
         ElevatedButton(
-          onPressed: () => print("Button Taped"),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color.fromARGB(255, 35, 94, 77),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.r),
-            ),
-            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-          ),
-          child: Text(
-            "Save",
-            style: TextStyle(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w700,
-              color: const Color.fromARGB(255, 250, 244, 228),
-            ),
-          ),
-        ),
+                      onPressed: (){
+                        
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 35, 94, 77),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                      ),
+                      child: Text(
+                        "Save",
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w700,
+                          color: const Color.fromARGB(255, 250, 244, 228),
+                        ),
+                      ),
+                    ),
       ],
     );
   }
 }
+

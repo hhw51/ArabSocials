@@ -1,5 +1,9 @@
+
+import 'package:arab_socials/src/controllers/userlogin_controller.dart';
+import 'package:arab_socials/src/view/homepage/homescreen.dart';
 import 'dart:async';
 import 'package:arab_socials/src/controllers/user_controller.dart';
+
 import 'package:arab_socials/src/widgets/bottom_nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -83,7 +87,7 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
-        Get.to(() => BottomNav());
+        Get.to(() => const BottomNav());
       } else {
         // Handle non-successful status codes
         final errorMessage = response['body']['error'] ?? 'OTP Verification Failed';
