@@ -70,7 +70,9 @@ class SignUpController extends GetxController {
       final statusCode = response['statusCode'];
       if (statusCode == 200 || statusCode == 201) {
         print("Signup successful: $response");
-        return response; // Return success response
+        Get.to(() => const BottomNav());
+        return response;
+        // Return success response
       } else {
         print("Signup failed: ${response['body']}");
         throw Exception(response['body']['error'] ??

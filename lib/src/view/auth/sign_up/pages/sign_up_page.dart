@@ -86,7 +86,7 @@ class SignUpScreen extends StatelessWidget {
                       "Business",
                     ], 
                     onChanged: (value) {
-                      print("Selected Account Type: $value");
+                      print("👌👌👌Selected Account Type: $value");
                     },
                   ),
                   Obx(() => CustomTextField(

@@ -87,7 +87,7 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
-        Get.to(() => BottomNav());
+        Get.to(() => const BottomNav());
       } else {
         // Handle non-successful status codes
         final errorMessage = response['body']['error'] ?? 'OTP Verification Failed';
