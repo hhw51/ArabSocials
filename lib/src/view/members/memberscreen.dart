@@ -5,6 +5,8 @@ import 'package:arab_socials/src/widgets/member_tiles.dart';
 import 'package:arab_socials/src/widgets/textfomr_feild.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -24,6 +26,7 @@ class Memberscreen extends StatefulWidget {
 class _MemberscreenState extends State<Memberscreen> {
   final NavigationController navigationController = Get.put(NavigationController());
   final FavoritesService _favoritesService = FavoritesService();
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
 
   List<Map<String, String>> _apiMembers = [];
@@ -44,8 +47,27 @@ class _MemberscreenState extends State<Memberscreen> {
   void initState() {
     super.initState();
     _fetchOtherUsers();
-    _fetchFavoriteUsers();
+    _loadFavoriteUserIds();
   }
+
+  void _loadFavoriteUserIds() async {
+    try {
+      // Read the stored favorite IDs as a comma-separated string
+      final favoriteIdsString = await _secureStorage.read(key: 'favoriteUserIds');
+
+      if (favoriteIdsString != null && favoriteIdsString.isNotEmpty) {
+        setState(() {
+          _favoriteUserIds = favoriteIdsString
+              .split(',')
+              .map((id) => int.parse(id))
+              .toSet();
+        });
+      }
+    } catch (e) {
+      print('Error loading favorite users: $e');
+    }
+  }
+
 
   /// If the backend path is something like "/media/user_images/xxx.jpg"
   /// we prefix it with _baseImageUrl => "http://.../media/user_images/xxx.jpg"
@@ -74,6 +96,7 @@ class _MemberscreenState extends State<Memberscreen> {
           "email": user["email"] ?? "No Email"
         };
       }).toList();
+      // _loadFavoriteUserIds();
     } catch (e) {
       print("Error fetching users: $e");
     } finally {
@@ -123,31 +146,56 @@ class _MemberscreenState extends State<Memberscreen> {
   }
 
   void _fetchFavoriteUsers() async {
+    setState(() => _isLoading = true);
     try {
-      final favorites = await GetFavorites().getFavoriteUsers();
-      setState(() {
-        _favoriteUserIds = favorites.map<int>((user) => user["id"] as int).toSet();
-      });
+      final sameProfData = await GetFavorites().getFavoriteUsers();
+      _apiMembers = sameProfData.map<Map<String, String>>((user) {
+        return {
+          "name": user["name"] ?? "No Name",
+          "profession": user["profession"] ?? "No Profession",
+          "location": user["location"] ?? "USA",
+          "imagePath": _resolveImagePath(user["image"]),
+          "email": user["email"] ?? "No Email"
+        };
+      }).toList();
     } catch (e) {
-      print("Error fetching favorite users: $e");
+      print("Error fetching same-profession users: $e");
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
   void _onFavoriteIconTap(int userId) async {
     try {
       if (_favoriteUserIds.contains(userId)) {
-        // If already a favorite, remove it
+        // Remove favorite
         await _favoritesService.removeFavorite(userId: userId);
         setState(() => _favoriteUserIds.remove(userId));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Removed from favorites')),
+        );
       } else {
-        // If not a favorite, add it
+        // Add favorite
         await _favoritesService.addFavorite(userId: userId);
         setState(() => _favoriteUserIds.add(userId));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Added to favorites')),
+        );
       }
+
+      // Persist the updated favoriteUserIds to Flutter Secure Storage
+      await _secureStorage.write(
+        key: 'favoriteUserIds',
+        value: _favoriteUserIds.join(','), // Store as comma-separated string
+      );
     } catch (e) {
       print('Failed to update favorite status: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update favorite status: $e')),
+      );
     }
   }
+
 
   void _onLocationTap() {
     if (_isProfessionToggled) {
@@ -302,6 +350,7 @@ class _MemberscreenState extends State<Memberscreen> {
                         profession: member["profession"]!,
                         location: member["location"]!,
                         isCircular: true,
+                        isFavorite: _favoriteUserIds.contains(userId),
                         onTap: () {
                           navigationController.navigateToChild(
                             ProfileDetailsScreen(

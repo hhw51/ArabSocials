@@ -47,7 +47,9 @@ class UserController extends GetxController {
 
       if (userInfo['interests'] != null && userInfo['interests'] is List) {
         interests.assignAll(
-          (userInfo['interests'] as List).map((e) => e.toString().trim()).toList(),
+          (userInfo['interests'] as List)
+              .map((e) => e.toString().trim())
+              .toList(),
         );
       } else {
         interests.clear();
@@ -79,92 +81,96 @@ class UserController extends GetxController {
       return;
     }
 
-  Future<Map<String, dynamic>> signUp(String name, String email, String password) async {
-    isLoading(true);
-    try {
-      final response = await _authService.signUp(
-        name: name,
-        email: email,
-        password: password,
-      );
-
-      final statusCode = response['statusCode'];
-      if (statusCode == 200 || statusCode == 201) {
-        print("Signup successful: $response");
-        return response; // Return success response
-      } else {
-        print("Signup failed: ${response['body']}");
-        throw Exception(response['body']['error'] ?? 'Sign-Up Failed'); // Throw an error for non-200 status
-      }
-    } catch (e) {
-      print('Signup error: $e');
-      rethrow; // Re-throw the error to be handled in the UI
-    } finally {
-      isLoading(false);
-    }
-  }
-
-
-  Future<void> sendOtp(String email) async {
-
-    try {
-      isLoading.value = true;
-
-      final updatedData = await _authService.updateProfile(
-        name: nameController.text,
-        phone: phoneController.text,
-        location: locationController.text,
-        image: selectedImage.value,
-        nationality: nationalityController.text,
-        gender: genderController.text,
-        dob: dateofbirthController.text,
-        aboutMe: aboutMeController.text,
-        maritalStatus: maritalController.text,
-        interests: interests,
-        profession: professionController.text,
-      );
-
-      if (updatedData.isNotEmpty) {
-        this.updatedData = updatedData;
-        isFirstTimeSignup = false; // Mark first-time signup as complete
-        showSuccessSnackbar('Profile updated successfully.');
-      }
-    } catch (e) {
-      showErrorSnackbar(e.toString());
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-
-  // Handle image selection
-  Future<void> pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      selectedImage.value = File(pickedFile.path);
-
-  Future<Map<String, dynamic>> verifyOtp(String email, String otp) async {
-    try {
+    Future<Map<String, dynamic>> signUp(String name, String email,
+        String password) async {
       isLoading(true);
-      final response = await _authService.verifyOtp(
-        email: email,
-        otp: otp,
-      );
-      final statusCode = response['statusCode'];
-      if (statusCode == 200 || statusCode == 201) {
-        print("Signup successful: $response");
-        return response; // Return success response
-      } else {
-        print("Signup failed: ${response['body']}");
-        throw Exception(response['body']['error'] ?? 'Sign-Up Failed'); // Throw an error for non-200 status
-      }
-    } catch (e) {
-      print('Signup error: $e');
-      rethrow; // Re-throw the error to be handled in the UI
-    } finally {
-      isLoading(false);
+      try {
+        final response = await _authService.signUp(
+          name: name,
+          email: email,
+          password: password,
+        );
 
+        final statusCode = response['statusCode'];
+        if (statusCode == 200 || statusCode == 201) {
+          print("Signup successful: $response");
+          return response; // Return success response
+        } else {
+          print("Signup failed: ${response['body']}");
+          throw Exception(response['body']['error'] ??
+              'Sign-Up Failed'); // Throw an error for non-200 status
+        }
+      } catch (e) {
+        print('Signup error: $e');
+        rethrow; // Re-throw the error to be handled in the UI
+      } finally {
+        isLoading(false);
+      }
+    }
+
+
+    Future<void> sendOtp(String email) async {
+      try {
+        isLoading.value = true;
+
+        final updatedData = await _authService.updateProfile(
+          name: nameController.text,
+          phone: phoneController.text,
+          location: locationController.text,
+          image: selectedImage.value,
+          nationality: nationalityController.text,
+          gender: genderController.text,
+          dob: dateofbirthController.text,
+          aboutMe: aboutMeController.text,
+          maritalStatus: maritalController.text,
+          interests: interests,
+          profession: professionController.text,
+        );
+
+        if (updatedData.isNotEmpty) {
+          this.updatedData = updatedData;
+          isFirstTimeSignup = false; // Mark first-time signup as complete
+          showSuccessSnackbar('Profile updated successfully.');
+        }
+      } catch (e) {
+        showErrorSnackbar(e.toString());
+      } finally {
+        isLoading.value = false;
+      }
+    }
+
+
+    // Handle image selection
+    Future<void> pickImage() async {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
+        selectedImage.value = File(pickedFile.path);
+
+        Future<Map<String, dynamic>> verifyOtp(String email, String otp) async {
+          try {
+            isLoading(true);
+            final response = await _authService.verifyOtp(
+              email: email,
+              otp: otp,
+            );
+            final statusCode = response['statusCode'];
+            if (statusCode == 200 || statusCode == 201) {
+              print("Signup successful: $response");
+              return response; // Return success response
+            } else {
+              print("Signup failed: ${response['body']}");
+              throw Exception(response['body']['error'] ??
+                  'Sign-Up Failed'); // Throw an error for non-200 status
+            }
+          } catch (e) {
+            print('Signup error: $e');
+            rethrow; // Re-throw the error to be handled in the UI
+          } finally {
+            isLoading(false);
+          }
+        }
+      };
     }
   }
 }

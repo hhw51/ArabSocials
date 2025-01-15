@@ -74,16 +74,8 @@ final List<Widget> _screens = [
                   label: 'Home',
                 ),
                 BottomNavigationBarItem(
-                  icon: Image.asset(
-                    'assets/icons/events.png',
-                    width: 22.w,
-                    height: 23.h,
-                  ),
-                  activeIcon: Image.asset(
-                    'assets/icons/activebusiness.png',
-                    width: 22.w,
-                    height: 23.h,
-                  ),
+                  icon: Icon(Icons.event_note_outlined),
+                  activeIcon: Icon(Icons.event_note),
                   label: 'Events',
                 ),
                 const BottomNavigationBarItem(

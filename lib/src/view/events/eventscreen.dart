@@ -1,17 +1,18 @@
+// eventscreen.dart
 import 'package:arab_socials/src/view/events/promote_event.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:arab_socials/src/controllers/navigation_controller.dart';
-
-import 'package:arab_socials/src/models/event_model.dart';
-import 'package:arab_socials/src/view/events/promote_event.dart';
 import 'package:arab_socials/src/view/events/register_event.dart';
 import 'package:arab_socials/src/widgets/custombuttons.dart';
 import 'package:arab_socials/src/widgets/textfomr_feild.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../apis/approved_events.dart';
+import '../../apis/get_saved_events.dart';
+import '../../apis/save_events.dart';
 import '../../widgets/popup_event.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class Eventscreen extends StatefulWidget {
   Eventscreen({super.key});
@@ -23,16 +24,191 @@ class Eventscreen extends StatefulWidget {
 class _EventscreenState extends State<Eventscreen> {
   final NavigationController navigationController = Get.put(NavigationController());
   final ApprovedEvents approvedEventsService = ApprovedEvents();
+  final EventService _eventService = EventService(); // Initialize EventService
+  final GetSavedEvents _getSavedEvents = GetSavedEvents();
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   bool isLoading = true;
   List<dynamic> events = [];
   final String baseUrl = 'http://35.222.126.155:8000';
 
+  Set<int> _bookmarkedEventIds = {};
+  bool _showingSavedEvents = false; // Set to store bookmarked event IDs
+
   @override
   void initState() {
     super.initState();
+    _loadBookmarkedEventIds(); // Load bookmarked event IDs from secure storage
     fetchApprovedEvents();
   }
+
+  /// Loads bookmarked event IDs from secure storage.
+  Future<void> _loadBookmarkedEventIds() async {
+    try {
+      final bookmarkedIdsString = await _secureStorage.read(key: 'bookmarkedEventIds');
+      if (bookmarkedIdsString != null && bookmarkedIdsString.isNotEmpty) {
+        setState(() {
+          _bookmarkedEventIds = bookmarkedIdsString
+              .split(',')
+              .map((id) => int.parse(id))
+              .toSet();
+        });
+        print('Bookmarked Event IDs loaded: $_bookmarkedEventIds');
+      }
+    } catch (e) {
+      print('Error loading bookmarked event IDs: $e');
+    }
+  }
+
+  /// Saves the current set of bookmarked event IDs to secure storage.
+  Future<void> _saveBookmarkedEventIds() async {
+    try {
+      final bookmarkedIdsString = _bookmarkedEventIds.join(',');
+      await _secureStorage.write(key: 'bookmarkedEventIds', value: bookmarkedIdsString);
+      print('Bookmarked Event IDs saved: $_bookmarkedEventIds');
+    } catch (e) {
+      print('Error saving bookmarked event IDs: $e');
+    }
+  }
+
+  /// Toggles the bookmark state of an event.
+  Future<void> _toggleBookmark(int eventId) async {
+    try {
+      if (_bookmarkedEventIds.contains(eventId)) {
+        // If already bookmarked, remove it
+        await _eventService.saveEvent(eventId: eventId);
+        setState(() {
+          _bookmarkedEventIds.add(eventId);
+          _updateEventBookmarkState(eventId, true);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Removed from bookmarks')),
+        );
+      } else {
+        // If not bookmarked, add it
+        await _eventService.saveEvent(eventId: eventId);
+        setState(() {
+          _bookmarkedEventIds.remove(eventId);
+          _updateEventBookmarkState(eventId, false);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Added to bookmarks')),
+        );
+      }
+
+      // Persist the updated bookmarked event IDs
+      await _saveBookmarkedEventIds();
+    } catch (e) {
+      print('Failed to toggle bookmark: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update bookmark status: $e')),
+      );
+    }
+  }
+
+  /// Updates the 'bookmarked' property of an event in the events list.
+  void _updateEventBookmarkState(int eventId, bool isBookmarked) {
+    final index = events.indexWhere((event) => event['id'] == eventId);
+    if (index != -1) {
+      setState(() {
+        events[index]['bookmarked'] = isBookmarked;
+      });
+    }
+  }
+
+  Future<void> _toggleSavedEventsView() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    if (_showingSavedEvents) {
+      // Currently showing saved events, switch to all events
+      await fetchApprovedEvents();
+      setState(() {
+        _showingSavedEvents = false;
+      });
+    } else {
+      // Currently showing all events, switch to saved events
+      await fetchSavedEvents();
+      setState(() {
+        _showingSavedEvents = true;
+      });
+    }
+
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+  /// Fetches saved events from the backend.
+  Future<void> fetchSavedEvents() async {
+    try {
+      final fetchedSavedEvents = await _getSavedEvents.getSavedEvents();
+      setState(() {
+        events = fetchedSavedEvents.map((event) {
+          final eventDate = DateTime.parse(event['event_date']);
+          final day = eventDate.day;
+          final month = _monthAbbreviation(eventDate.month);
+          return {
+            ...event as Map<String, dynamic>,
+            'day': day,
+            'month': month,
+            'bookmarked': true, // Since these are saved events
+          };
+        }).toList();
+        isLoading = false;
+      });
+      print('Saved events fetched and updated.');
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+      });
+      print('Error fetching saved events: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load saved events: $error')),
+      );
+    }
+  }
+
+
+  String _monthAbbreviation(int month) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return months[month - 1];
+  }
+
+  Future<void> fetchApprovedEvents() async {
+    try {
+      final fetchedEvents = await approvedEventsService.getApprovedEvents();
+      setState(() {
+        events = fetchedEvents.map((event) {
+          final eventDate = DateTime.parse(event['event_date']);
+          final day = eventDate.day;
+          final month = _monthAbbreviation(eventDate.month);
+          return {
+            ...event as Map<String, dynamic>,
+            'day': day,
+            'month': month,
+            'bookmarked': _bookmarkedEventIds.contains(event['id']), // Set based on loaded bookmarks
+          };
+        }).toList();
+        isLoading = false;
+      });
+      print('Events fetched and updated with bookmark states.');
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+      });
+      print('Error fetching events: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load events: $error')),
+      );
+    }
+  }
+
+
 
   Widget _buildGoingSection() {
     return Row(
@@ -76,39 +252,6 @@ class _EventscreenState extends State<Eventscreen> {
     );
   }
 
-  String _monthAbbreviation(int month) {
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    return months[month - 1];
-  }
-
-  Future<void> fetchApprovedEvents() async {
-    try {
-      final fetchedEvents = await approvedEventsService.getApprovedEvents();
-      setState(() {
-        events = fetchedEvents.map((event) {
-          final eventDate = DateTime.parse(event['event_date']);
-          final day = eventDate.day;
-          final month = _monthAbbreviation(eventDate.month);
-          return {
-            ...event as Map<String, dynamic>,
-            'day': day,
-            'month': month,
-            'bookmarked': false, // Add a bookmarked property
-          };
-        }).toList();
-        isLoading = false;
-      });
-    } catch (error) {
-      setState(() {
-        isLoading = false;
-      });
-      print('Error fetching events: $error');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -142,7 +285,10 @@ class _EventscreenState extends State<Eventscreen> {
                           ),
                           SizedBox(width: 5.w),
                           Expanded(child: SizedBox()),
-                          const CustomContainer(
+                           CustomContainer(
+                            onTap: (){
+                              _toggleSavedEventsView();
+                            },
                             text: "Saved",
                             icon: Icons.bookmark_border,
                           ),
@@ -222,10 +368,12 @@ class _EventscreenState extends State<Eventscreen> {
                             itemCount: events.length,
                             itemBuilder: (context, index) {
                               final event = events[index];
+                              final eventId = event['id'] as int;
+
                               return InkWell(
                                 onTap: () {
                                   navigationController.navigateToChild(
-                                    RegisterEvent(eventId: event['id']),
+                                    RegisterEvent(eventId: eventId),
                                   );
                                 },
                                 child: Padding(
@@ -312,10 +460,7 @@ class _EventscreenState extends State<Eventscreen> {
                                                 right: 12.w,
                                                 child: GestureDetector(
                                                   onTap: () {
-                                                    setState(() {
-                                                      event['bookmarked'] =
-                                                      !event['bookmarked']; // Toggle bookmarked state
-                                                    });
+                                                    _toggleBookmark(eventId);
                                                   },
                                                   child: Container(
                                                     height: 36.h,
@@ -419,7 +564,6 @@ class _EventscreenState extends State<Eventscreen> {
             ),
             if (isLoading)
               Container(
-                color: Colors.black.withOpacity(0.2),
                 child: Center(
                   child: CircularProgressIndicator(),
                 ),

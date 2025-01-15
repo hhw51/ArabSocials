@@ -18,10 +18,12 @@ class RegisterEvent extends StatefulWidget {
 
 class _RegisterEventState extends State<RegisterEvent> {
   bool isRegistered = false;
+
   @override
   Widget build(BuildContext context) {
     final eventController = Get.find<RegisterEventController>();
-    final event = widget.eventId != null ? eventController.getEventById(widget.eventId!) : null;// Nullable event
+    final event = widget.eventId != null ? eventController.getEventById(widget.eventId!) : null; // Nullable event
+    final creator = widget.eventId != null ? eventController.getEventCreatorByEventId(widget.eventId!) : null; // Fetch creator details
     const String baseUrl = 'http://35.222.126.155:8000';
 
     return Scaffold(
@@ -229,54 +231,63 @@ class _RegisterEventState extends State<RegisterEvent> {
                     ),
                   ),
                 ),
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 18.r,
-                      backgroundImage: AssetImage("assets/logo/image1.png"),
-                    ),
-                    SizedBox(width: 12.w),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Ashfak Sayem",
+                SizedBox(height: 12.h), // Add some spacing before creator details
+                // **Dynamic Event Creator Details**
+                if (creator != null)
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 18.r,
+                        backgroundImage: creator['image'] != null && creator['image'] != ''
+                            ? NetworkImage('$baseUrl${creator['image']}')
+                            : AssetImage("assets/logo/member_group.png") as ImageProvider, // Fallback image
+                      ),
+                      SizedBox(width: 12.w),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            creator['name'] ?? "No Name",
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              color: Colors.black,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          Text(
+                            "Organizer",
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Spacer(),
+                      ElevatedButton(
+                        onPressed: () {
+                          // Implement follow functionality if needed
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color.fromARGB(255, 35, 94, 77),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.r),
+                          ),
+                        ),
+                        child: Text(
+                          "Follow",
                           style: TextStyle(
                             fontSize: 14.sp,
-                            color: Colors.black,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
                           ),
                         ),
-                        Text(
-                          "Organizer",
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Spacer(),
-                    ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                        const Color.fromARGB(255, 35, 94, 77),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.r),
-                        ),
                       ),
-                      child: Text(
-                        "Follow",
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                    ],
+                  )
+                else
+                // If creator details are not available, show a placeholder or nothing
+                  Container(),
                 SizedBox(height: 25.h),
                 Text(
                   "ABOUT",
