@@ -68,7 +68,7 @@ class _PromoteEventState extends State<PromoteEvent> {
       eventDate: formattedDate,
       ticketLink: ticketController.text,
       promoCode: codeController.text,
-      user: "User", // Replace with actual user value if needed
+      user: "User", 
       startTime: startTime,
       endTime: endTime,
       flyer: _selectedImage!,
@@ -82,16 +82,15 @@ class _PromoteEventState extends State<PromoteEvent> {
   }
 }
 
-  @override
-  Widget build(BuildContext context) {
-    final NavigationController navigationController =
-    Get.put(NavigationController());
+ @override
+Widget build(BuildContext context) {
+  final NavigationController navigationController = Get.put(NavigationController());
 
-    return SafeArea(
-      child: Scaffold(
-        resizeToAvoidBottomInset: false,
-        backgroundColor: const Color.fromARGB(255, 250, 244, 228),
-           appBar: AppBar(
+  return SafeArea(
+    child: Scaffold(
+      resizeToAvoidBottomInset: false,
+      backgroundColor: const Color.fromARGB(255, 250, 244, 228),
+      appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: const Color.fromARGB(255, 250, 244, 228),
         foregroundColor: const Color.fromARGB(255, 250, 244, 228),
@@ -103,154 +102,168 @@ class _PromoteEventState extends State<PromoteEvent> {
               color: Color.fromARGB(255, 35, 94, 77), size: 24),
         ),
       ),
-        body: GestureDetector(
-          onTap: () {
-            FocusScope.of(context).unfocus();
-          },
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 16.h),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24.w),
-                  child: const CustomText(
-                    text: "CREATE EVENT",
-                    fontSize: 16.0,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black,
-                  ),
-                ),
-                SizedBox(height: 12.h),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: GestureDetector(
-                    onTap: _pickImage,
-                    child: Container(
-                      height: 200.h,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(12),
-                        image: _selectedImage != null
-                            ? DecorationImage(
-                          image: FileImage(_selectedImage!),
-                          fit: BoxFit.cover,
-                        )
-                            : null,
-                      ),
-                      child: _selectedImage == null
-                          ? const Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.camera_alt,
-                            size: 40,
-                            color: Color.fromARGB(255, 35, 94, 77),
-                          ),
-                          SizedBox(height: 10),
-                          Text(
-                            "Upload your image",
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      )
-                          : null,
+      body: Stack(
+        children: [
+          // Scrollable content
+          SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.only(bottom: 80.h), 
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 16.h),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24.w),
+                    child: const CustomText(
+                      text: "CREATE EVENT",
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
                     ),
                   ),
-                ),
-                SizedBox(height: 16.h),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    children: [
-                      CustomTextField(
-                        controller: titleController,
-                        hintText: "Please enter event name",
-                        labelText: "Event Name",
-                        obscureText: false,
-                      ),
-                      CustomTextField(
-                        controller: descriptionController,
-                        hintText: "Your description",
-                        labelText: "Description",
-                        obscureText: false,
-                      ),
-                      CustomDropdown(
-                        controller: eventtypeController,
-                        hintText: "Event type",
-                        prefixIcon: Icons.person_2_outlined,
-                        items: const [
-                          "Online",
-                          "Offline"
-                        ],
-                        onChanged: (value) {
-                          print("Selected Event Type: $value");
-                        },
-                      ),
-                      CustomTextField(
-                        controller: locationController,
-                        hintText: "Please enter your location",
-                        labelText: "Your location",
-                        obscureText: false,
-                      ),
-                      CustomTextField(
-                        controller: ticketController,
-                        hintText: "Please enter Ticket link",
-                        labelText: "Ticket link",
-                        obscureText: false,
-                      ),
-                      CustomTextField(
-                        controller: codeController,
-                        hintText: "Please enter Promo-code",
-                        labelText: "Promo code",
-                        obscureText: false,
-                      ),
-                      DatePickerFieldWidget(
-                        controller: dateController,
-                        hintText: "Your event date",
-                      ),
-                      SizedBox(height: 10.h),
-                      TimePickerFieldWidget(
-                        controller: starttimeController,
-                        hintText: "Select Start Time",
-                      ),
-                      SizedBox(height: 10.h),
-                      TimePickerFieldWidget(
-                        controller: endtimeController,
-                        hintText: "Select End Time",
-                      ),
-                      SizedBox(height: 20.h),
-                      ElevatedButton(
-                        onPressed: _createEvent,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(255, 35, 94, 77),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: EdgeInsets.symmetric(vertical: 16.h),
-                          minimumSize: Size(double.infinity, 56.h),
+                  SizedBox(height: 12.h),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: GestureDetector(
+                      onTap: _pickImage,
+                      child: Container(
+                        height: 200.h,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(12),
+                          image: _selectedImage != null
+                              ? DecorationImage(
+                                  image: FileImage(_selectedImage!),
+                                  fit: BoxFit.cover,
+                                )
+                              : null,
                         ),
-                        child: Text(
-                          "CREATE",
-                          style: TextStyle(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
+                        child: _selectedImage == null
+                            ? const Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.camera_alt,
+                                    size: 40,
+                                    color: Color.fromARGB(255, 35, 94, 77),
+                                  ),
+                                  SizedBox(height: 10),
+                                  Text(
+                                    "Upload your image",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : null,
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              ],
+                  SizedBox(height: 16.h),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      children: [
+                        CustomTextField(
+                          controller: titleController,
+                          hintText: "Please enter event name",
+                          labelText: "Event Name",
+                          obscureText: false,
+                        ),
+                        CustomTextField(
+                          controller: descriptionController,
+                          hintText: "Your description",
+                          labelText: "Description",
+                          obscureText: false,
+                        ),
+                        CustomDropdown(
+                          controller: eventtypeController,
+                          hintText: "Event type",
+                          prefixIcon: Icons.person_2_outlined,
+                          items: const [
+                            "Online",
+                            "Offline"
+                          ],
+                          onChanged: (value) {
+                            print("Selected Event Type: $value");
+                          },
+                        ),
+                        CustomTextField(
+                          controller: locationController,
+                          hintText: "Please enter your location",
+                          labelText: "Your location",
+                          obscureText: false,
+                        ),
+                        CustomTextField(
+                          controller: ticketController,
+                          hintText: "Please enter Ticket link",
+                          labelText: "Ticket link",
+                          obscureText: false,
+                        ),
+                        CustomTextField(
+                          controller: codeController,
+                          hintText: "Please enter Promo-code",
+                          labelText: "Promo code",
+                          obscureText: false,
+                        ),
+                        DatePickerFieldWidget(
+                          controller: dateController,
+                          hintText: "Your event date",
+                        ),
+                        SizedBox(height: 10.h),
+                        TimePickerFieldWidget(
+                          controller: starttimeController,
+                          hintText: "Select Start Time",
+                        ),
+                        SizedBox(height: 10.h),
+                        TimePickerFieldWidget(
+                          controller: endtimeController,
+                          hintText: "Select End Time",
+                        ),
+                        SizedBox(height: 20.h),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
+          // Fixed button at the bottom
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              color: const Color.fromARGB(255, 250, 244, 228), 
+              padding: EdgeInsets.all(16.h),
+              child: ElevatedButton(
+                onPressed: _createEvent,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 35, 94, 77),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 16.h),
+                  minimumSize: Size(double.infinity, 56.h),
+                ),
+                child: Text(
+                  "REQUEST FOR APPROVAL",
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
+
 }

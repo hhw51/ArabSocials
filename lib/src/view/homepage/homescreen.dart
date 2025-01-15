@@ -560,7 +560,7 @@ class _HomescreenState extends State<Homescreen> {
                                   return Padding(
                                     padding: EdgeInsets.only(right: 12.w),
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
                                       children: [
                                         ClipOval(
                                           child: Image.network(
