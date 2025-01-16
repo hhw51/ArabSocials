@@ -1,3 +1,4 @@
+import 'package:arab_socials/src/controllers/navigation_controller.dart';
 import 'package:arab_socials/src/controllers/registerEventController.dart';
 import 'package:arab_socials/src/view/auth/splash_steps/splash.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import 'package:get/get_navigation/src/root/get_material_app.dart';
 
 void main() {
   Get.put(RegisterEventController());
+  Get.put(NavigationController());
   runApp(const MyApp());
 }
 

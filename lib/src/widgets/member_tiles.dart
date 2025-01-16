@@ -13,6 +13,7 @@ class MemberTile extends StatefulWidget {
   final VoidCallback? onTap;
   final VoidCallback? onFavoriteTap;
   final bool isFavorite;
+  final bool isProcessing;
 
   const MemberTile({
     super.key,
@@ -23,7 +24,8 @@ class MemberTile extends StatefulWidget {
     required this.isCircular,
     this.onTap,
     this.onFavoriteTap,
-    required this.isFavorite
+    required this.isFavorite,
+    this.isProcessing = false
   });
 
   @override

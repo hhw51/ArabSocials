@@ -10,6 +10,8 @@ class BusinessTile extends StatefulWidget {
   final String category;
   final String location;
   final bool isCircular;
+  final bool isFavorite;
+  final bool isProcessing;
   final VoidCallback? onTap; 
     final VoidCallback? onFavoriteTap;
   
@@ -22,7 +24,8 @@ class BusinessTile extends StatefulWidget {
     required this.isCircular,
     this.onTap, 
      this.onFavoriteTap,
-
+    this.isFavorite = false,
+this.isProcessing = false
   });
 
   @override

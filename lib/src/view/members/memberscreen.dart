@@ -6,7 +6,6 @@ import 'package:arab_socials/src/widgets/textfomr_feild.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -14,7 +13,7 @@ import '../../apis/get_favorites.dart';
 import '../../apis/get_other_users.dart';
 import '../../apis/same-profession.dart';
 import '../../apis/same_location.dart';
-import '../../apis/add_remove_favorite.dart';
+import '../../apis/add_remove_favorite.dart';// Ensure this import exists
 
 class Memberscreen extends StatefulWidget {
   Memberscreen({super.key});
@@ -28,10 +27,12 @@ class _MemberscreenState extends State<Memberscreen> {
   final FavoritesService _favoritesService = FavoritesService();
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
-
   List<Map<String, String>> _apiMembers = [];
   Set<int> _favoriteUserIds = {};
   bool _isLoading = true;
+
+  // **Added:** Set to track processing user IDs
+  Set<int> _processingUserIds = {};
 
   bool _isLocationToggled = false;
   bool _isProfessionToggled = false;
@@ -68,7 +69,6 @@ class _MemberscreenState extends State<Memberscreen> {
     }
   }
 
-
   /// If the backend path is something like "/media/user_images/xxx.jpg"
   /// we prefix it with _baseImageUrl => "http://.../media/user_images/xxx.jpg"
   /// If it's empty or null, fallback to local asset "assets/logo/member_group.png"
@@ -85,15 +85,15 @@ class _MemberscreenState extends State<Memberscreen> {
   void _fetchOtherUsers() async {
     setState(() => _isLoading = true);
     try {
-      final data = await GetOtherUsers().getOtherUsers();
+      final data = await GetOtherUsers().getOtherUsers(); // Returns List<User>
       _apiMembers = data.map<Map<String, String>>((user) {
         return {
-          "id": user["id"].toString(), // Ensure user ID is included here
-          "name": user["name"] ?? "No Name",
-          "profession": user["profession"] ?? "No Profession",
-          "location": user["location"] ?? "USA",
-          "imagePath": _resolveImagePath(user["image"]),
-          "email": user["email"] ?? "No Email"
+          "id": user.id.toString(), // Access via dot notation
+          "name": user.name,
+          "profession": user.profession ?? "No Profession",
+          "location": user.location ?? "USA",
+          "imagePath": _resolveImagePath(user.image),
+          "email": user.email
         };
       }).toList();
       // _loadFavoriteUserIds();
@@ -104,18 +104,18 @@ class _MemberscreenState extends State<Memberscreen> {
     }
   }
 
-
   void _fetchSameLocationUsers() async {
     setState(() => _isLoading = true);
     try {
-      final sameLocData = await SameLocation().getSameLocationUsers();
+      final sameLocData = await SameLocation().getSameLocationUsers(); // Ensure it returns List<User>
       _apiMembers = sameLocData.map<Map<String, String>>((user) {
         return {
-          "name": user["name"] ?? "No Name",
-          "profession": user["profession"] ?? "No Profession",
-          "location": user["location"] ?? "USA",
-          "imagePath": _resolveImagePath(user["image"]),
-          "email": user["email"] ?? "No Email"
+          "id": user.id.toString(), // Include 'id' if needed
+          "name": user.name,
+          "profession": user.profession ?? "No Profession",
+          "location": user.location ?? "USA",
+          "imagePath": _resolveImagePath(user.image),
+          "email": user.email
         };
       }).toList();
     } catch (e) {
@@ -128,14 +128,15 @@ class _MemberscreenState extends State<Memberscreen> {
   void _fetchSameProfessionUsers() async {
     setState(() => _isLoading = true);
     try {
-      final sameProfData = await SameProfession().getSameProfessionUsers();
+      final sameProfData = await SameProfession().getSameProfessionUsers(); // Ensure it returns List<User>
       _apiMembers = sameProfData.map<Map<String, String>>((user) {
         return {
-          "name": user["name"] ?? "No Name",
-          "profession": user["profession"] ?? "No Profession",
-          "location": user["location"] ?? "USA",
-          "imagePath": _resolveImagePath(user["image"]),
-          "email": user["email"] ?? "No Email"
+          "id": user.id.toString(), // Include 'id' if needed
+          "name": user.name,
+          "profession": user.profession ?? "No Profession",
+          "location": user.location ?? "USA",
+          "imagePath": _resolveImagePath(user.image),
+          "email": user.email
         };
       }).toList();
     } catch (e) {
@@ -148,54 +149,88 @@ class _MemberscreenState extends State<Memberscreen> {
   void _fetchFavoriteUsers() async {
     setState(() => _isLoading = true);
     try {
-      final sameProfData = await GetFavorites().getFavoriteUsers();
-      _apiMembers = sameProfData.map<Map<String, String>>((user) {
+      final favoriteData = await GetFavorites().getFavoriteUsers(); // Ensure it returns List<User>
+      _apiMembers = favoriteData.map<Map<String, String>>((user) {
         return {
-          "name": user["name"] ?? "No Name",
-          "profession": user["profession"] ?? "No Profession",
-          "location": user["location"] ?? "USA",
-          "imagePath": _resolveImagePath(user["image"]),
-          "email": user["email"] ?? "No Email"
+          "id": user.id.toString(), // Include 'id' if needed
+          "name": user.name,
+          "profession": user.profession ?? "No Profession",
+          "location": user.location ?? "USA",
+          "imagePath": _resolveImagePath(user.image),
+          "email": user.email
         };
       }).toList();
     } catch (e) {
-      print("Error fetching same-profession users: $e");
+      print("Error fetching favorite users: $e");
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
+  /// **Updated:** Optimistic UI implementation with error handling
   void _onFavoriteIconTap(int userId) async {
-    try {
-      if (_favoriteUserIds.contains(userId)) {
-        // Remove favorite
-        await _favoritesService.removeFavorite(userId: userId);
-        setState(() => _favoriteUserIds.remove(userId));
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Removed from favorites')),
-        );
+    if (_processingUserIds.contains(userId)) return; // Prevent multiple taps
+
+    final isCurrentlyFavorite = _favoriteUserIds.contains(userId);
+
+    // **Optimistically update the UI**
+    setState(() {
+      if (isCurrentlyFavorite) {
+        _favoriteUserIds.remove(userId);
       } else {
-        // Add favorite
+        _favoriteUserIds.add(userId);
+      }
+      _processingUserIds.add(userId); // Mark as processing
+    });
+
+    try {
+      if (isCurrentlyFavorite) {
+        await _favoritesService.removeFavorite(userId: userId);
+      } else {
         await _favoritesService.addFavorite(userId: userId);
-        setState(() => _favoriteUserIds.add(userId));
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Added to favorites')),
-        );
       }
 
-      // Persist the updated favoriteUserIds to Flutter Secure Storage
+      // **Persist the updated favoriteUserIds to Flutter Secure Storage**
       await _secureStorage.write(
         key: 'favoriteUserIds',
         value: _favoriteUserIds.join(','), // Store as comma-separated string
       );
+
+      // Optionally, show a success SnackBar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isCurrentlyFavorite ? 'Removed from favorites' : 'Added to favorites',
+          ),
+          duration: Duration(seconds: 2),
+        ),
+      );
     } catch (e) {
       print('Failed to update favorite status: $e');
+
+      // **Revert the UI state if the API call fails**
+      setState(() {
+        if (isCurrentlyFavorite) {
+          _favoriteUserIds.add(userId);
+        } else {
+          _favoriteUserIds.remove(userId);
+        }
+      });
+
+      // Show an error SnackBar
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update favorite status: $e')),
+        SnackBar(
+          content: Text('Failed to update favorite status. Please try again.'),
+          duration: Duration(seconds: 2),
+        ),
       );
+    } finally {
+      // **Remove the userId from processing set**
+      setState(() {
+        _processingUserIds.remove(userId);
+      });
     }
   }
-
 
   void _onLocationTap() {
     if (_isProfessionToggled) {
@@ -282,8 +317,8 @@ class _MemberscreenState extends State<Memberscreen> {
                       SizedBox(width: 3.w),
                       CustomContainer(
                         text: "Favourite",
-                        icon: Icons.favorite_border,
-                        onTap: (){
+                        icon: Icons.favorite_border, // Ensure color is updated
+                        onTap: () {
                           print("Favorite Container tapped!");
                           _onFavoriteTap();
                         },
@@ -291,7 +326,7 @@ class _MemberscreenState extends State<Memberscreen> {
                       SizedBox(width: 3.w),
                       CustomContainer(
                         text: "Location",
-                        icon: Icons.location_on_outlined,
+                        icon: Icons.location_on_outlined, // Ensure color is updated
                         onTap: () {
                           print("Location Container tapped!");
                           _onLocationTap();
@@ -300,7 +335,7 @@ class _MemberscreenState extends State<Memberscreen> {
                       SizedBox(width: 3.w),
                       CustomContainer(
                         text: "Profession",
-                        image: "assets/icons/calculator.png",
+                        image: "assets/icons/calculator.png", // Ensure color is updated
                         onTap: () {
                           print("Profession Container tapped!");
                           _onProfessionTap();
@@ -351,6 +386,8 @@ class _MemberscreenState extends State<Memberscreen> {
                         location: member["location"]!,
                         isCircular: true,
                         isFavorite: _favoriteUserIds.contains(userId),
+                        // **Pass isProcessing to MemberTile**
+                        isProcessing: _processingUserIds.contains(userId),
                         onTap: () {
                           navigationController.navigateToChild(
                             ProfileDetailsScreen(

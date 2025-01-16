@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:arab_socials/src/models/other_user_model.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
@@ -17,7 +18,7 @@ class GetFavorites {
     return await _secureStorage.read(key: 'token');
   }
 
-  Future<List<dynamic>> getFavoriteUsers() async {
+  Future<List<User>> getFavoriteUsers() async {
     try {
       final token = await getToken();
       if (token == null) {
@@ -40,9 +41,9 @@ class GetFavorites {
       print('Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        // Assuming the response is a JSON array
-        return data as List<dynamic>;
+        final List<dynamic> data = jsonDecode(response.body);
+        List<User> users = data.map((json) => User.fromJson(json)).toList();
+        return users;
       } else {
         throw Exception('❌ Error: ${response.statusCode} - ${response.body}');
       }

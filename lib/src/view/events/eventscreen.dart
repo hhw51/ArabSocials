@@ -10,7 +10,7 @@ import 'package:arab_socials/src/widgets/textfomr_feild.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../apis/approved_events.dart';
 import '../../apis/get_saved_events.dart';
-import '../../apis/save_events.dart';
+import '../../apis/save_remove_events.dart';
 import '../../widgets/popup_event.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -22,7 +22,8 @@ class Eventscreen extends StatefulWidget {
 }
 
 class _EventscreenState extends State<Eventscreen> {
-  final NavigationController navigationController = Get.put(NavigationController());
+  final NavigationController navigationController =
+      Get.put(NavigationController());
   final ApprovedEvents approvedEventsService = ApprovedEvents();
   final EventService _eventService = EventService(); // Initialize EventService
   final GetSavedEvents _getSavedEvents = GetSavedEvents();
@@ -33,27 +34,33 @@ class _EventscreenState extends State<Eventscreen> {
   final String baseUrl = 'http://35.222.126.155:8000';
 
   Set<int> _bookmarkedEventIds = {};
-  bool _showingSavedEvents = false; // Set to store bookmarked event IDs
+  Set<int> _processingEventIds = {}; // Tracks events currently being processed
+  bool _showingSavedEvents = false; // Indicates if showing saved events
 
   @override
   void initState() {
     super.initState();
-    _loadBookmarkedEventIds(); // Load bookmarked event IDs from secure storage
-    fetchApprovedEvents();
+    _loadBookmarkedEventIds().then((_) {
+      fetchApprovedEvents();
+    });
   }
 
   /// Loads bookmarked event IDs from secure storage.
   Future<void> _loadBookmarkedEventIds() async {
     try {
-      final bookmarkedIdsString = await _secureStorage.read(key: 'bookmarkedEventIds');
+      final bookmarkedIdsString =
+          await _secureStorage.read(key: 'bookmarkedEventIds');
       if (bookmarkedIdsString != null && bookmarkedIdsString.isNotEmpty) {
         setState(() {
-          _bookmarkedEventIds = bookmarkedIdsString
-              .split(',')
-              .map((id) => int.parse(id))
-              .toSet();
+          _bookmarkedEventIds =
+              bookmarkedIdsString.split(',').map((id) => int.parse(id)).toSet();
         });
         print('Bookmarked Event IDs loaded: $_bookmarkedEventIds');
+      } else {
+        setState(() {
+          _bookmarkedEventIds = {};
+        });
+        print('No bookmarked Event IDs found.');
       }
     } catch (e) {
       print('Error loading bookmarked event IDs: $e');
@@ -64,45 +71,99 @@ class _EventscreenState extends State<Eventscreen> {
   Future<void> _saveBookmarkedEventIds() async {
     try {
       final bookmarkedIdsString = _bookmarkedEventIds.join(',');
-      await _secureStorage.write(key: 'bookmarkedEventIds', value: bookmarkedIdsString);
+      await _secureStorage.write(
+          key: 'bookmarkedEventIds', value: bookmarkedIdsString);
       print('Bookmarked Event IDs saved: $_bookmarkedEventIds');
     } catch (e) {
       print('Error saving bookmarked event IDs: $e');
     }
   }
 
-  /// Toggles the bookmark state of an event.
+  /// Toggles the bookmark state of an event with optimistic UI update and processing flag.
   Future<void> _toggleBookmark(int eventId) async {
-    try {
+    if (_processingEventIds.contains(eventId)) {
+      // Prevent multiple taps while processing
+      return;
+    }
+
+    setState(() {
+      _processingEventIds.add(eventId);
+      // Optimistically update the UI
       if (_bookmarkedEventIds.contains(eventId)) {
-        // If already bookmarked, remove it
-        await _eventService.saveEvent(eventId: eventId);
-        setState(() {
-          _bookmarkedEventIds.add(eventId);
-          _updateEventBookmarkState(eventId, true);
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Removed from bookmarks')),
-        );
+        _bookmarkedEventIds.remove(eventId);
       } else {
-        // If not bookmarked, add it
-        await _eventService.saveEvent(eventId: eventId);
-        setState(() {
-          _bookmarkedEventIds.remove(eventId);
-          _updateEventBookmarkState(eventId, false);
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Added to bookmarks')),
-        );
+        _bookmarkedEventIds.add(eventId);
+      }
+      _updateEventBookmarkState(eventId, _bookmarkedEventIds.contains(eventId));
+    });
+
+    try {
+      bool isSaved;
+
+      if (_bookmarkedEventIds.contains(eventId)) {
+        // Add bookmark
+        final response = await _eventService.saveEvent(eventId: eventId);
+        isSaved = response['is_saved'];
+        print('Save Event Response: $response');
+
+        if (!isSaved) {
+          // If API indicates failure, revert the UI
+          setState(() {
+            _bookmarkedEventIds.remove(eventId);
+            _updateEventBookmarkState(eventId, false);
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to add to bookmarks')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Added to bookmarks')),
+          );
+        }
+      } else {
+        // Remove bookmark
+        final response = await _eventService.removeEvent(eventId: eventId);
+        isSaved = response['is_saved'];
+        print('Remove Event Response: $response');
+
+        if (isSaved) {
+          // If API indicates failure to remove, revert the UI
+          setState(() {
+            _bookmarkedEventIds.add(eventId);
+            _updateEventBookmarkState(eventId, true);
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to remove from bookmarks')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Removed from bookmarks')),
+          );
+        }
       }
 
       // Persist the updated bookmarked event IDs
       await _saveBookmarkedEventIds();
     } catch (e) {
       print('Failed to toggle bookmark: $e');
+      // Revert the optimistic UI update
+      setState(() {
+        if (_bookmarkedEventIds.contains(eventId)) {
+          _bookmarkedEventIds.remove(eventId);
+          _updateEventBookmarkState(eventId, false);
+        } else {
+          _bookmarkedEventIds.add(eventId);
+          _updateEventBookmarkState(eventId, true);
+        }
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to update bookmark status: $e')),
       );
+    } finally {
+      // Remove the processing flag
+      setState(() {
+        _processingEventIds.remove(eventId);
+      });
     }
   }
 
@@ -170,11 +231,20 @@ class _EventscreenState extends State<Eventscreen> {
     }
   }
 
-
   String _monthAbbreviation(int month) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
     ];
     return months[month - 1];
   }
@@ -191,7 +261,8 @@ class _EventscreenState extends State<Eventscreen> {
             ...event as Map<String, dynamic>,
             'day': day,
             'month': month,
-            'bookmarked': _bookmarkedEventIds.contains(event['id']), // Set based on loaded bookmarks
+            'bookmarked': _bookmarkedEventIds
+                .contains(event['id']), // Set based on loaded bookmarks
           };
         }).toList();
         isLoading = false;
@@ -207,8 +278,6 @@ class _EventscreenState extends State<Eventscreen> {
       );
     }
   }
-
-
 
   Widget _buildGoingSection() {
     return Row(
@@ -285,8 +354,8 @@ class _EventscreenState extends State<Eventscreen> {
                           ),
                           SizedBox(width: 5.w),
                           Expanded(child: SizedBox()),
-                           CustomContainer(
-                            onTap: (){
+                          CustomContainer(
+                            onTap: () {
                               _toggleSavedEventsView();
                             },
                             text: "Saved",
@@ -311,7 +380,8 @@ class _EventscreenState extends State<Eventscreen> {
                     const SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                         child: Row(
                           children: [
                             Custombutton(
@@ -377,7 +447,8 @@ class _EventscreenState extends State<Eventscreen> {
                                   );
                                 },
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 10),
                                   child: Container(
                                     height: 233.h,
                                     decoration: BoxDecoration(
@@ -392,28 +463,33 @@ class _EventscreenState extends State<Eventscreen> {
                                       ],
                                     ),
                                     child: Padding(
-                                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 8),
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Stack(
                                             children: [
                                               ClipRRect(
-                                                borderRadius: BorderRadius.circular(12),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
                                                 child: Image.network(
-                                                  event['flyer'] != null && event['flyer'] != ''
+                                                  event['flyer'] != null &&
+                                                          event['flyer'] != ''
                                                       ? '$baseUrl${event['flyer']}'
                                                       : 'assets/logo/homegrid.png',
                                                   fit: BoxFit.cover,
                                                   height: 131.h,
                                                   width: double.infinity,
-                                                  errorBuilder: (context, error, stackTrace) =>
+                                                  errorBuilder: (context, error,
+                                                          stackTrace) =>
                                                       Image.asset(
-                                                        'assets/logo/homegrid.png',
-                                                        fit: BoxFit.cover,
-                                                        height: 131.h,
-                                                        width: double.infinity,
-                                                      ),
+                                                    'assets/logo/homegrid.png',
+                                                    fit: BoxFit.cover,
+                                                    height: 131.h,
+                                                    width: double.infinity,
+                                                  ),
                                                 ),
                                               ),
                                               // Date Container
@@ -425,30 +501,44 @@ class _EventscreenState extends State<Eventscreen> {
                                                   width: 36.w,
                                                   decoration: BoxDecoration(
                                                     color: Colors.white,
-                                                    borderRadius: BorderRadius.circular(6.r),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            6.r),
                                                   ),
                                                   child: Column(
-                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
                                                     children: [
                                                       Text(
-                                                        event['day']?.toString() ?? '',
-                                                        style: GoogleFonts.playfairDisplaySc(
+                                                        event['day']
+                                                                ?.toString() ??
+                                                            '',
+                                                        style: GoogleFonts
+                                                            .playfairDisplaySc(
                                                           fontSize: 14.sp,
                                                           color: Colors.green,
-                                                          fontWeight: FontWeight.w700,
+                                                          fontWeight:
+                                                              FontWeight.w700,
                                                         ),
                                                         maxLines: 1,
-                                                        overflow: TextOverflow.ellipsis,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
                                                       ),
                                                       Text(
-                                                        event['month']?.toString() ?? '',
-                                                        style: GoogleFonts.playfairDisplaySc(
+                                                        event['month']
+                                                                ?.toString() ??
+                                                            '',
+                                                        style: GoogleFonts
+                                                            .playfairDisplaySc(
                                                           fontSize: 8.sp,
                                                           color: Colors.green,
-                                                          fontWeight: FontWeight.w700,
+                                                          fontWeight:
+                                                              FontWeight.w700,
                                                         ),
                                                         maxLines: 1,
-                                                        overflow: TextOverflow.ellipsis,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
                                                       ),
                                                     ],
                                                   ),
@@ -467,15 +557,36 @@ class _EventscreenState extends State<Eventscreen> {
                                                     width: 36.w,
                                                     decoration: BoxDecoration(
                                                       color: Colors.white,
-                                                      borderRadius: BorderRadius.circular(6.r),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              6.r),
                                                     ),
-                                                    child: Icon(
-                                                      event['bookmarked']
-                                                          ? Icons.bookmark
-                                                          : Icons.bookmark_outline,
-                                                      color: Colors.green,
-                                                      size: 18.sp,
-                                                    ),
+                                                    child: _processingEventIds
+                                                            .contains(eventId)
+                                                        ? Center(
+                                                            child: SizedBox(
+                                                              width: 18.w,
+                                                              height: 18.h,
+                                                              child:
+                                                                  CircularProgressIndicator(
+                                                                strokeWidth:
+                                                                    2.0,
+                                                                valueColor:
+                                                                    AlwaysStoppedAnimation<
+                                                                            Color>(
+                                                                        Colors
+                                                                            .green),
+                                                              ),
+                                                            ),
+                                                          )
+                                                        : Icon(
+                                                            event['bookmarked']
+                                                                ? Icons.bookmark
+                                                                : Icons
+                                                                    .bookmark_outline,
+                                                            color: Colors.green,
+                                                            size: 18.sp,
+                                                          ),
                                                   ),
                                                 ),
                                               ),
@@ -483,18 +594,24 @@ class _EventscreenState extends State<Eventscreen> {
                                           ),
                                           // Event Details
                                           Padding(
-                                            padding: const EdgeInsets.symmetric(vertical: 6),
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 6),
                                             child: Row(
                                               children: [
                                                 Expanded(
                                                   child: Text(
-                                                    event['title']?.toString() ?? '',
+                                                    event['title']
+                                                            ?.toString() ??
+                                                        '',
                                                     maxLines: 1,
-                                                    overflow: TextOverflow.ellipsis,
-                                                    style: GoogleFonts.playfairDisplaySc(
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: GoogleFonts
+                                                        .playfairDisplaySc(
                                                       fontSize: 12.sp,
                                                       color: Colors.black,
-                                                      fontWeight: FontWeight.w700,
+                                                      fontWeight:
+                                                          FontWeight.w700,
                                                     ),
                                                   ),
                                                 ),
@@ -502,14 +619,20 @@ class _EventscreenState extends State<Eventscreen> {
                                                   onTapDown: (details) {
                                                     // Implement popup menu
                                                     showCustomPopupMenu(
-                                                        context, details.globalPosition, event);
+                                                        context,
+                                                        details.globalPosition,
+                                                        event);
                                                   },
                                                   child: Container(
                                                     height: 20.h,
                                                     width: 20.w,
                                                     decoration: BoxDecoration(
-                                                      color: const Color.fromARGB(255, 35, 94, 77),
-                                                      borderRadius: BorderRadius.circular(6),
+                                                      color:
+                                                          const Color.fromARGB(
+                                                              255, 35, 94, 77),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              6),
                                                     ),
                                                     child: Icon(
                                                       Icons.more_vert,
@@ -525,7 +648,8 @@ class _EventscreenState extends State<Eventscreen> {
                                           SizedBox(height: 2.h),
                                           // Location
                                           Padding(
-                                            padding: const EdgeInsets.symmetric(vertical: 4),
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 4),
                                             child: Row(
                                               children: [
                                                 Icon(
@@ -536,13 +660,16 @@ class _EventscreenState extends State<Eventscreen> {
                                                 SizedBox(width: 4.w),
                                                 Expanded(
                                                   child: Text(
-                                                    event['location']?.toString() ?? '',
+                                                    event['location']
+                                                            ?.toString() ??
+                                                        '',
                                                     style: TextStyle(
                                                       fontSize: 12.sp,
                                                       color: Colors.grey,
                                                     ),
                                                     maxLines: 1,
-                                                    overflow: TextOverflow.ellipsis,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
                                                   ),
                                                 ),
                                               ],
