@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'package:arab_socials/src/services/auth_services.dart';
-import 'package:arab_socials/src/widgets/snack_bar_widget.dart';
+import 'package:arabsocials/src/services/auth_services.dart';
+import 'package:arabsocials/src/widgets/snack_bar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';

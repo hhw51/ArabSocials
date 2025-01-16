@@ -1,10 +1,10 @@
 
 import 'dart:io';
-import 'package:arab_socials/src/controllers/navigation_controller.dart';
-import 'package:arab_socials/src/services/auth_services.dart';
-import 'package:arab_socials/src/widgets/date_time_picker.dart';
-import 'package:arab_socials/src/widgets/snack_bar_widget.dart';
-import 'package:arab_socials/src/widgets/textfieled_widget.dart';
+import 'package:arabsocials/src/controllers/navigation_controller.dart';
+import 'package:arabsocials/src/services/auth_services.dart';
+import 'package:arabsocials/src/widgets/date_time_picker.dart';
+import 'package:arabsocials/src/widgets/snack_bar_widget.dart';
+import 'package:arabsocials/src/widgets/textfieled_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';

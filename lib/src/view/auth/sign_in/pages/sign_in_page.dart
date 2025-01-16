@@ -1,19 +1,14 @@
 
-import 'package:arab_socials/src/controllers/password_visible.dart';
-import 'package:arab_socials/src/controllers/userlogin_controller.dart'; 
-
-import 'package:arab_socials/src/controllers/user_controller.dart'; // <-- Make sure this is your SignUpController path
-
-import 'package:arab_socials/src/view/auth/sign_up/pages/sign_up_page.dart';
-import 'package:arab_socials/src/widgets/textfieled_widget.dart';
+import 'package:arabsocials/src/controllers/password_visible.dart';
+import 'package:arabsocials/src/controllers/userlogin_controller.dart';
+import 'package:arabsocials/src/view/auth/sign_up/pages/sign_up_page.dart';
+import 'package:arabsocials/src/widgets/textfieled_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-
-import '../../../../controllers/password_visible.dart';
 
 class Signinscreen extends StatefulWidget {
   const Signinscreen({super.key});

@@ -1,5 +1,5 @@
-import 'package:arab_socials/src/controllers/navigation_controller.dart';
-import 'package:arab_socials/src/view/events/register_event.dart';
+import 'package:arabsocials/src/controllers/navigation_controller.dart';
+import 'package:arabsocials/src/view/events/register_event.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

@@ -1,6 +1,6 @@
-import 'package:arab_socials/src/controllers/navigation_controller.dart';
-import 'package:arab_socials/src/widgets/custom_details.dart';
-import 'package:arab_socials/src/widgets/custombuttons.dart';
+import 'package:arabsocials/src/controllers/navigation_controller.dart';
+import 'package:arabsocials/src/widgets/custom_details.dart';
+import 'package:arabsocials/src/widgets/custombuttons.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';

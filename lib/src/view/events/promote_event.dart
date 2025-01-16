@@ -6,10 +6,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 // Import your custom widgets and services
-import 'package:arab_socials/src/controllers/navigation_controller.dart';
-import 'package:arab_socials/src/widgets/custom_header_text.dart';
-import 'package:arab_socials/src/widgets/date_time_picker.dart';
-import 'package:arab_socials/src/widgets/textfieled_widget.dart';
+import 'package:arabsocials/src/controllers/navigation_controller.dart';
+import 'package:arabsocials/src/widgets/custom_header_text.dart';
+import 'package:arabsocials/src/widgets/date_time_picker.dart';
+import 'package:arabsocials/src/widgets/textfieled_widget.dart';
 import '../../apis/create_event.dart'; // Adjust the import path as necessary
 
 class PromoteEvent extends StatefulWidget {

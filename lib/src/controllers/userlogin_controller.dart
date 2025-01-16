@@ -1,6 +1,6 @@
-import 'package:arab_socials/src/services/auth_services.dart';
-import 'package:arab_socials/src/view/auth/otpverify/otp_screen.dart';
-import 'package:arab_socials/src/widgets/snack_bar_widget.dart';
+import 'package:arabsocials/src/services/auth_services.dart';
+import 'package:arabsocials/src/view/auth/otpverify/otp_screen.dart';
+import 'package:arabsocials/src/widgets/snack_bar_widget.dart';
 import 'package:get/get.dart';
 import '../widgets/bottom_nav.dart';
 

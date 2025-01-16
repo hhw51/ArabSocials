@@ -1,5 +1,5 @@
 // register_event.dart
-import 'package:arab_socials/src/controllers/navigation_controller.dart';
+import 'package:arabsocials/src/controllers/navigation_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';

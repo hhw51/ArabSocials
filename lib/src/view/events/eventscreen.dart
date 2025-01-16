@@ -1,12 +1,12 @@
 // eventscreen.dart
-import 'package:arab_socials/src/view/events/promote_event.dart';
+import 'package:arabsocials/src/view/events/promote_event.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:arab_socials/src/controllers/navigation_controller.dart';
-import 'package:arab_socials/src/view/events/register_event.dart';
-import 'package:arab_socials/src/widgets/custombuttons.dart';
-import 'package:arab_socials/src/widgets/textfomr_feild.dart';
+import 'package:arabsocials/src/controllers/navigation_controller.dart';
+import 'package:arabsocials/src/view/events/register_event.dart';
+import 'package:arabsocials/src/widgets/custombuttons.dart';
+import 'package:arabsocials/src/widgets/textfomr_feild.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../apis/approved_events.dart';
 import '../../apis/get_saved_events.dart';

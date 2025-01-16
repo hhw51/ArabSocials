@@ -1,8 +1,8 @@
-import 'package:arab_socials/src/controllers/navigation_controller.dart';
-import 'package:arab_socials/src/view/profile/ProfileDetailsScreen.dart';
-import 'package:arab_socials/src/widgets/custombuttons.dart';
-import 'package:arab_socials/src/widgets/member_tiles.dart';
-import 'package:arab_socials/src/widgets/textfomr_feild.dart';
+import 'package:arabsocials/src/controllers/navigation_controller.dart';
+import 'package:arabsocials/src/view/profile/ProfileDetailsScreen.dart';
+import 'package:arabsocials/src/widgets/custombuttons.dart';
+import 'package:arabsocials/src/widgets/member_tiles.dart';
+import 'package:arabsocials/src/widgets/textfomr_feild.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';

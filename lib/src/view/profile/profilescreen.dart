@@ -1,10 +1,10 @@
-import 'package:arab_socials/src/controllers/navigation_controller.dart';
-import 'package:arab_socials/src/services/auth_services.dart';
-import 'package:arab_socials/src/view/auth/sign_in/pages/sign_in_page.dart';
-import 'package:arab_socials/src/widgets/abouMe_popup.dart';
-import 'package:arab_socials/src/widgets/custom_profiletext.dart';
-import 'package:arab_socials/src/widgets/custombuttons.dart';
-import 'package:arab_socials/src/widgets/edit_profile_popup.dart';
+import 'package:arabsocials/src/controllers/navigation_controller.dart';
+import 'package:arabsocials/src/services/auth_services.dart';
+import 'package:arabsocials/src/view/auth/sign_in/pages/sign_in_page.dart';
+import 'package:arabsocials/src/widgets/abouMe_popup.dart';
+import 'package:arabsocials/src/widgets/custom_profiletext.dart';
+import 'package:arabsocials/src/widgets/custombuttons.dart';
+import 'package:arabsocials/src/widgets/edit_profile_popup.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
