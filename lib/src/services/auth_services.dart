@@ -294,7 +294,7 @@ class AuthService {
     required String aboutMe,
     required String maritalStatus,
     required List<String> interests,
-    required String profession,
+    required String profession, required String token,
   }) async {
     print(
         '🔍 [updateProfile] Method called with name: $name, phone: $phone, location: $location');
@@ -350,7 +350,7 @@ class AuthService {
 
       if (response.statusCode == 200) {
         print("✅ [updateProfile] Profile updated successfully: $responseBody");
-        await getUserInfo();
+        await getUserInfo(token: token);
         return jsonDecode(responseBody);
       } else {
         print(
@@ -369,7 +369,7 @@ class AuthService {
   }
 
   // Get User Info Method
-  Future<Map<String, dynamic>> getUserInfo() async {
+  Future<Map<String, dynamic>> getUserInfo({required String token}) async {
     print('🔍 [getUserInfo] Method called.');
     try {
       final String? token = await _secureStorage.read(key: 'token');

@@ -2,8 +2,8 @@
 
 class User {
   final int id;
-  final String name;
-  final String email;
+  final String? name;
+  final String? email;
   final String? phone;
   final String? location;
   final String? maritalStatus;
@@ -39,24 +39,24 @@ class User {
     try {
       return User(
         id: json['id'],
-        name: json['name'],
-        email: json['email'],
-        phone: json['phone'],
-        location: json['location'],
-        maritalStatus: json['marital_status'],
+        name: json['name']?? "",
+        email: json['email']?? "",
+        phone: json['phone']?? "",
+        location: json['location']?? "",
+        maritalStatus: json['marital_status']?? "",
         interests: json['interests'] != null
             ? List<String>.from(json['interests'])
             : null,
-        profession: json['profession'],
+        profession: json['profession']?? "",
         socialLinks: json['social_links'] != null
             ? List<String>.from(json['social_links'])
             : null,
-        image: json['image'],
+        image: json['image']?? "",
         accountType: json['account_type'],
-        aboutMe: json['about_me'],
-        nationality: json['nationality'],
-        dob: json['dob'],
-        gender: json['gender'],
+        aboutMe: json['about_me']?? "",
+        nationality: json['nationality']?? "",
+        dob: json['dob']?? "",
+        gender: json['gender']?? "",
       );
     } catch (e) {
       print('Error parsing User JSON: $e');

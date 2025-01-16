@@ -1,4 +1,3 @@
-
 import 'dart:io';
 import 'package:arabsocials/src/controllers/navigation_controller.dart';
 import 'package:arabsocials/src/services/auth_services.dart';
@@ -21,20 +20,27 @@ mixin ShowEditProfileDialog {
   final TextEditingController profrssionController = TextEditingController();
   final TextEditingController aboutmeController = TextEditingController();
   final TextEditingController intrestController = TextEditingController();
-    final NavigationController navigationController = Get.put(NavigationController());
+  final NavigationController navigationController = Get.put(NavigationController());
 
   final RxList<String> interests = RxList();
   Rx<File?> selectedImage = Rx<File?>(null);
 
   Map<String, dynamic> updatedData = {};
 
-  Future<void> showPopUp(BuildContext context) async {
+  /// Now requires a `token` argument so we can pass it to our service methods.
+  ///
+  /// This returns a `Map<String, dynamic>?` containing updated data if saved,
+  /// or null if the user presses Back/cancels.
+  Future<Map<String, dynamic>?> showPopUp(
+      BuildContext context, {
+        required String token,
+      }) async {
     // Fetch the user profile data and populate the fields
-    await _fetchUserProfile();
+    await _fetchUserProfile(token);
 
-    await Get.dialog(
+    // Show the edit profile dialog and capture the returned result
+    final finalData = await Get.dialog<Map<String, dynamic>>(
       barrierColor: const Color.fromARGB(255, 250, 244, 228),
-      
       Material(
         color: const Color.fromARGB(255, 250, 244, 228),
         child: SafeArea(
@@ -47,75 +53,77 @@ mixin ShowEditProfileDialog {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                         Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 2.w),
-                      child: Row(
-                        children: [
-                          InkWell(
-                            onTap: () {
-                               Get.back();
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 2.w),
+                          child: Row(
+                            children: [
+                              InkWell(
+                                onTap: () {
+                                  // Return null if user taps Back
+                                  Get.back(result: null);
+                                },
+                                child: Icon(
+                                  Icons.arrow_back,
+                                  color: const Color.fromARGB(255, 35, 94, 77),
+                                  size: 24,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Profile Image
+                        Obx(
+                              () => GestureDetector(
+                            onTap: () async {
+                              final picker = ImagePicker();
+                              final pickedFile = await picker.pickImage(
+                                source: ImageSource.gallery,
+                              );
+                              if (pickedFile != null) {
+                                selectedImage.value = File(pickedFile.path);
+                              }
                             },
-                            child: Icon(
-                              Icons.arrow_back,
-                              color: const Color.fromARGB(255, 35, 94, 77),
-                              size: 24,
+                            child: Container(
+                              height: 200, // Fixed height for the container
+                              width: double.infinity, // Full width of the parent
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey), // Border style
+                                borderRadius: BorderRadius.circular(12), // Rounded corners
+                                image: selectedImage.value != null
+                                    ? DecorationImage(
+                                  image: FileImage(selectedImage.value!),
+                                  fit: BoxFit.cover, // Cover the entire container
+                                )
+                                    : (updatedData['image'] != null
+                                    ? DecorationImage(
+                                  image: NetworkImage(updatedData['image']),
+                                  fit: BoxFit.cover,
+                                )
+                                    : null),
+                              ),
+                              child: selectedImage.value == null && updatedData['image'] == null
+                                  ? const Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.camera_alt,
+                                    size: 40,
+                                    color: Color.fromARGB(255, 35, 94, 77),
+                                  ),
+                                  SizedBox(height: 10),
+                                  Text(
+                                    "Upload your image",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              )
+                                  : null,
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                        // Profile Image
-                        Obx(() =>
-                        GestureDetector(
-  onTap: () async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      selectedImage.value = File(pickedFile.path);
-    }
-  },
-  child: Container(
-    height: 200, // Fixed height for the container
-    width: double.infinity, // Full width of the parent
-    decoration: BoxDecoration(
-      border: Border.all(color: Colors.grey), // Border style
-      borderRadius: BorderRadius.circular(12), // Rounded corners
-      image: selectedImage.value != null
-          ? DecorationImage(
-              image: FileImage(selectedImage.value!),
-              fit: BoxFit.cover, // Cover the entire container
-            )
-          : (updatedData['image'] != null
-              ? DecorationImage(
-                  image: NetworkImage(updatedData['image']),
-                  fit: BoxFit.cover,
-                )
-              : null),
-    ),
-    child: selectedImage.value == null && updatedData['image'] == null
-        ? const Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.camera_alt,
-                size: 40,
-                color: Color.fromARGB(255, 35, 94, 77),
-              ),
-              SizedBox(height: 10),
-              Text(
-                "Upload your image",
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
-                ),
-              ),
-            ],
-          )
-        : null,
-  ),
-),
-
-                            ),
+                        ),
                         const SizedBox(height: 16),
                         CustomTextField(
                           controller: nameController,
@@ -138,7 +146,6 @@ mixin ShowEditProfileDialog {
                         DatePickerFieldWidget(
                           controller: dateofbirthController,
                           hintText: "Your Date of Birth",
-                          
                         ),
                         const SizedBox(height: 10),
                         CustomTextField(
@@ -160,7 +167,6 @@ mixin ShowEditProfileDialog {
                           },
                           controller: intrestController,
                           hintText: "Your Interests",
-                          
                           items: const [
                             "Games",
                             "Music",
@@ -201,7 +207,8 @@ mixin ShowEditProfileDialog {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     ElevatedButton(
-                      onPressed: () => Get.back(),
+                      // Also returns null if user taps Back here
+                      onPressed: () => Get.back(result: null),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color.fromARGB(255, 35, 94, 77),
                         shape: RoundedRectangleBorder(
@@ -220,12 +227,12 @@ mixin ShowEditProfileDialog {
                     ),
                     ElevatedButton(
                       onPressed: () async {
-                        final result = await updateProfileHandler(context);
-
+                        final result = await updateProfileHandler(context, token);
                         if (result != null) {
                           updatedData = result;
                           if (context.mounted) {
-                            Get.back();
+                            // Return the updatedData to the caller
+                            Get.back(result: updatedData);
                             showSuccessSnackbar("Profile Updated Successfully");
                           }
                         }
@@ -254,12 +261,17 @@ mixin ShowEditProfileDialog {
         ),
       ),
     );
+
+    // Return the data passed to `Get.back(result: ...)`
+    return finalData;
   }
 
-  Future<void> _fetchUserProfile() async {
+  /// Now requires `String token` so we can pass it to `authService.getUserInfo`.
+  Future<void> _fetchUserProfile(String token) async {
     try {
       final authService = AuthService();
-      final profileData = await authService.getUserInfo();
+      final profileData = await authService.getUserInfo(token: token);
+
       updatedData = profileData;
 
       // Prepopulate fields
@@ -285,19 +297,30 @@ mixin ShowEditProfileDialog {
     }
   }
 
-  Future<Map<String, dynamic>?> updateProfileHandler(BuildContext context) async {
+  /// Now requires `String token` so we can pass it to `authService` methods.
+  Future<Map<String, dynamic>?> updateProfileHandler(
+      BuildContext context,
+      String token,
+      ) async {
     try {
       final authService = AuthService();
 
-      final currentUserData = await authService.getUserInfo();
+      final currentUserData = await authService.getUserInfo(token: token);
 
       final updatedInterests = interests.isEmpty
-          ? (currentUserData['interests'] as List<dynamic>).map((e) => e.toString()).toList()
+          ? (currentUserData['interests'] as List<dynamic>)
+          .map((e) => e.toString())
+          .toList()
           : interests;
 
       final updatedData = await authService.updateProfile(
-        name: nameController.text.isNotEmpty ? nameController.text : currentUserData['name'],
-        phone: phoneController.text.isNotEmpty ? phoneController.text : currentUserData['phone'],
+        token: token, // Pass token here
+        name: nameController.text.isNotEmpty
+            ? nameController.text
+            : currentUserData['name'],
+        phone: phoneController.text.isNotEmpty
+            ? phoneController.text
+            : currentUserData['phone'],
         location: locationController.text.isNotEmpty
             ? locationController.text
             : currentUserData['location'],

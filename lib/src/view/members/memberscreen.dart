@@ -38,8 +38,6 @@ class _MemberscreenState extends State<Memberscreen> {
   bool _isProfessionToggled = false;
   bool _isFavoriteToggled = false;
 
-  final Color _lightGreen = const Color.fromARGB(255, 163, 214, 180);
-  final Color _darkGreen = const Color.fromARGB(255, 35, 94, 77);
 
   /// Your server domain for building the full image URL
   static const String _baseImageUrl = 'http://35.222.126.155:8000';
@@ -89,11 +87,11 @@ class _MemberscreenState extends State<Memberscreen> {
       _apiMembers = data.map<Map<String, String>>((user) {
         return {
           "id": user.id.toString(), // Access via dot notation
-          "name": user.name,
+          "name": user.name ?? "",
           "profession": user.profession ?? "No Profession",
           "location": user.location ?? "USA",
           "imagePath": _resolveImagePath(user.image),
-          "email": user.email
+          "email": user.email?? ""
         };
       }).toList();
       // _loadFavoriteUserIds();
@@ -111,11 +109,11 @@ class _MemberscreenState extends State<Memberscreen> {
       _apiMembers = sameLocData.map<Map<String, String>>((user) {
         return {
           "id": user.id.toString(), // Include 'id' if needed
-          "name": user.name,
+          "name": user.name?? "",
           "profession": user.profession ?? "No Profession",
           "location": user.location ?? "USA",
           "imagePath": _resolveImagePath(user.image),
-          "email": user.email
+          "email": user.email?? ""
         };
       }).toList();
     } catch (e) {
@@ -132,11 +130,11 @@ class _MemberscreenState extends State<Memberscreen> {
       _apiMembers = sameProfData.map<Map<String, String>>((user) {
         return {
           "id": user.id.toString(), // Include 'id' if needed
-          "name": user.name,
+          "name": user.name?? "",
           "profession": user.profession ?? "No Profession",
           "location": user.location ?? "USA",
           "imagePath": _resolveImagePath(user.image),
-          "email": user.email
+          "email": user.email?? ""
         };
       }).toList();
     } catch (e) {
@@ -153,11 +151,11 @@ class _MemberscreenState extends State<Memberscreen> {
       _apiMembers = favoriteData.map<Map<String, String>>((user) {
         return {
           "id": user.id.toString(), // Include 'id' if needed
-          "name": user.name,
+          "name": user.name?? "",
           "profession": user.profession ?? "No Profession",
           "location": user.location ?? "USA",
           "imagePath": _resolveImagePath(user.image),
-          "email": user.email
+          "email": user.email?? ""
         };
       }).toList();
     } catch (e) {
@@ -279,10 +277,6 @@ class _MemberscreenState extends State<Memberscreen> {
       _fetchFavoriteUsers();
     }
   }
-
-  Color get _locationButtonColor => _isLocationToggled ? _darkGreen : _lightGreen;
-  Color get _professionButtonColor => _isProfessionToggled ? _darkGreen : _lightGreen;
-  Color get _favoriteButtonColor => _isFavoriteToggled ? _darkGreen : _lightGreen;
 
   @override
   Widget build(BuildContext context) {

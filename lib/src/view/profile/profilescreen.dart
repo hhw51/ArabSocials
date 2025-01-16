@@ -9,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../apis/visibility_toggle.dart' as visibilityPrefService;
 
 class Profilescreen extends StatefulWidget {
   const Profilescreen({super.key});
@@ -18,12 +20,14 @@ class Profilescreen extends StatefulWidget {
   State<Profilescreen> createState() => ProfilescreenState();
 }
 
-
-class ProfilescreenState extends State<Profilescreen>
-    with ShowEditProfileDialog {
-  static final GlobalKey<ProfilescreenState> globalKey =
-      GlobalKey<ProfilescreenState>();
+class ProfilescreenState extends State<Profilescreen> with ShowEditProfileDialog {
   final AuthService _authService = AuthService();
+
+  // Secure storage
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+
+  // We'll store the token once we fetch it
+  String? _authToken;
 
   // Reactive state variables
   final RxString name = ''.obs;
@@ -40,65 +44,98 @@ class ProfilescreenState extends State<Profilescreen>
 
   final RxBool isLoading = true.obs;
 
+  // Visibility switches
+  // "false" means visually show the thumb on the right
   final RxBool aboutMeSwitch = false.obs;
   final RxBool interestsSwitch = false.obs;
   final RxBool locationSwitch = false.obs;
-  final RxBool phoneSwitch = true.obs;
-  final RxBool emailSwitch = true.obs;
-  final RxBool genderSwitch = true.obs;
-  final RxBool dobSwitch = true.obs;
-  final RxBool professionSwitch = true.obs;
-  final RxBool nationalitySwitch = true.obs;
-  final RxBool maritalStatusSwitch = true.obs;
+  final RxBool phoneSwitch = false.obs;
+  final RxBool emailSwitch = false.obs;
+  final RxBool genderSwitch = false.obs;
+  final RxBool dobSwitch = false.obs;
+  final RxBool professionSwitch = false.obs;
+  final RxBool nationalitySwitch = false.obs;
+  final RxBool maritalStatusSwitch = false.obs;
 
   @override
   void initState() {
     super.initState();
-
-    fetchUserInfo();
+    _loadTokenAndFetchUserInfo();
   }
 
- Future<void> fetchUserInfo() async {
-  try {
-    isLoading.value = true;
-    final userInfo = await _authService.getUserInfo();
-print("user info😀😀🤣🤣🤣 $userInfo");
-    // Assign values to reactive variables
-    name.value = userInfo['name'] ?? '';
-    aboutMe.value = userInfo['about_me'] ?? '';
-    phone.value = userInfo['phone'] ?? '';
-    email.value = userInfo['email'] ?? '';
-    location.value = userInfo['location'] ?? '';
-    gender.value = userInfo['gender'] ?? '';
-    dob.value = userInfo['dob'] ?? '';
-    profession.value = userInfo['profession'] ?? '';
-    nationality.value = userInfo['nationality'] ?? '';
-    maritalStatus.value = userInfo['marital_status'] ?? '';
+  /// Fetch the token from secure storage, then fetch the user info
+  Future<void> _loadTokenAndFetchUserInfo() async {
+    try {
+      final token = await getToken();
+      if (token != null) {
+        _authToken = token;
+        await fetchUserInfo();
+      } else {
+        // No token found, handle accordingly (maybe redirect to login)
+        isLoading.value = false;
+      }
+    } catch (e) {
+      print('Error loading token: $e');
+      isLoading.value = false;
+    }
+  }
 
-    // Process interests field safely
-    if (userInfo['interests'] != null && userInfo['interests'] is List) {
-      myInterest.assignAll(
-        (userInfo['interests'] as List<dynamic>).map((e) => e.toString().trim()).toList(),
-      );
+  /// Reads the token from secure storage
+  Future<String?> getToken() async {
+    return await _secureStorage.read(key: 'token');
+  }
+
+  Future<void> fetchUserInfo() async {
+    if (_authToken == null) {
+      return;
     }
 
-    // Assign switch values
-    phoneSwitch.value = userInfo['phoneSwitch'] ?? true;
-    emailSwitch.value = userInfo['emailSwitch'] ?? true;
-    genderSwitch.value = userInfo['genderSwitch'] ?? true;
-    dobSwitch.value = userInfo['dobSwitch'] ?? true;
-    professionSwitch.value = userInfo['professionSwitch'] ?? true;
-    nationalitySwitch.value = userInfo['nationalitySwitch'] ?? true;
-    maritalStatusSwitch.value = userInfo['maritalStatusSwitch'] ?? true;
-  } catch (e) {
-    print('Error fetching user info: $e');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Failed to load profile: $e')),
-    );
-  } finally {
-    isLoading.value = false;
+    try {
+      isLoading.value = true;
+      final userInfo = await _authService.getUserInfo(token: _authToken!);
+      print("User Info Fetched: $userInfo");
+
+      // Assign values to reactive variables
+      name.value = userInfo['name'] ?? '';
+      aboutMe.value = userInfo['about_me'] ?? '';
+      phone.value = userInfo['phone'] ?? '';
+      email.value = userInfo['email'] ?? '';
+      location.value = userInfo['location'] ?? '';
+      gender.value = userInfo['gender'] ?? '';
+      dob.value = userInfo['dob'] ?? '';
+      profession.value = userInfo['profession'] ?? '';
+      nationality.value = userInfo['nationality'] ?? '';
+      maritalStatus.value = userInfo['marital_status'] ?? '';
+
+      // Process interests field safely
+      if (userInfo['interests'] != null && userInfo['interests'] is List) {
+        myInterest.assignAll(
+          (userInfo['interests'] as List<dynamic>).map((e) => e.toString().trim()).toList(),
+        );
+      }
+
+      // Assign switch values (assuming backend returns booleans)
+      phoneSwitch.value = userInfo['phoneSwitch'] ?? false;
+      emailSwitch.value = userInfo['emailSwitch'] ?? false;
+      genderSwitch.value = userInfo['genderSwitch'] ?? false;
+      dobSwitch.value = userInfo['dobSwitch'] ?? false;
+      professionSwitch.value = userInfo['professionSwitch'] ?? false;
+      nationalitySwitch.value = userInfo['nationalitySwitch'] ?? false;
+      maritalStatusSwitch.value = userInfo['maritalStatusSwitch'] ?? false;
+
+      aboutMeSwitch.value = userInfo['aboutMeSwitch'] ?? false;
+      interestsSwitch.value = userInfo['interestsSwitch'] ?? false;
+      locationSwitch.value = userInfo['locationSwitch'] ?? false;
+
+    } catch (e) {
+      print('Error fetching user info: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load profile: $e')),
+      );
+    } finally {
+      isLoading.value = false;
+    }
   }
-}
 
   void _showParagraphDialog(BuildContext context) {
     showDialog(
@@ -110,20 +147,71 @@ print("user info😀😀🤣🤣🤣 $userInfo");
           initialText: aboutMe.value,
           onSave: (newText) {
             aboutMe.value = newText;
+            // Optionally, you can also update the backend here
           },
         );
       },
     );
   }
 
+  /// Function to handle toggle changes and update the API
+  Future<void> _handleToggleChange({
+    required String fieldName,
+    required bool currentValue,
+    required RxBool switchController,
+  }) async {
+    if (_authToken == null) {
+      // If no token, revert back
+      switchController.value = currentValue;
+      return;
+    }
+
+    print('--- Toggle Change Detected ---');
+    print('Field: $fieldName');
+    print('New Value (logic): ${switchController.value}');
+
+    // Prepare the updated visibility preferences
+    bool updatedEmail = emailSwitch.value;
+    bool updatedPhone = phoneSwitch.value;
+    bool updatedGender = genderSwitch.value;
+    bool updatedDob = dobSwitch.value;
+    bool updatedProfession = professionSwitch.value;
+    bool updatedNationality = nationalitySwitch.value;
+    bool updatedMaritalStatus = maritalStatusSwitch.value;
+
+    try {
+      final response = await visibilityPrefService.updateVisibilityPreferences(
+        authToken: _authToken!,
+        email: updatedEmail,
+        phone: updatedPhone,
+        gender: updatedGender,
+        dob: updatedDob,
+        profession: updatedProfession,
+        nationality: updatedNationality,
+        maritalStatus: updatedMaritalStatus,
+      );
+
+      print('API Response Message: ${response.message}');
+      print('Updated Visibility Settings: ${response.visibilitySettings}');
+    } catch (e) {
+      print('Error updating visibility preferences: $e');
+      // Revert the switch state in case of error
+      switchController.value = currentValue;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update preferences: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final NavigationController navigationController =
-        Get.put(NavigationController());
+    Get.put(NavigationController());
 
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: true,
         backgroundColor: const Color.fromARGB(255, 250, 244, 228),
         foregroundColor: const Color.fromARGB(255, 250, 244, 228),
         surfaceTintColor: const Color.fromARGB(255, 250, 244, 228),
@@ -140,7 +228,6 @@ print("user info😀😀🤣🤣🤣 $userInfo");
               onTap: () {
                 Get.to(const Signinscreen());
               },
-
               child: const ImageIcon(
                 AssetImage("assets/icons/profilelogout.png"),
                 size: 23,
@@ -148,45 +235,31 @@ print("user info😀😀🤣🤣🤣 $userInfo");
               ),
             ),
           ),
-         Padding(
-          padding: EdgeInsets.only(right: 16.0),
-           child: CustomContainer(
-    text: "Edit Profile",
-    image: "assets/icons/editprofile.png",
-    onTap: () {
-      showPopUp(context).then((value) {
-        // Handle interests safely
-        if (updatedData['interests'] != null && updatedData['interests'] is List) {
-          interests.assignAll(
-            (updatedData['interests'] as List).map((e) => e.toString().trim()).toList(),
-          );
-          myInterest.assignAll(interests);
-        }
-
-        // Assign other values
-        name.value = updatedData["name"] ?? '';
-        aboutMe.value = updatedData["about_me"] ?? '';
-        phone.value = updatedData["phone"] ?? '';
-        location.value = updatedData["location"] ?? '';
-        gender.value = updatedData["gender"] ?? '';
-        dob.value = updatedData["dob"] ?? '';
-        profession.value = updatedData["profession"] ?? '';
-        nationality.value = updatedData["nationality"] ?? '';
-        maritalStatus.value = updatedData["marital_status"] ?? '';
-
-        // Additional switches (if needed)
-        // phoneSwitch.value = updatedData["phoneSwitch"] ?? true;
-        // emailSwitch.value = updatedData["emailSwitch"] ?? true;
-        // genderSwitch.value = updatedData["genderSwitch"] ?? true;
-        // dobSwitch.value = updatedData["dobSwitch"] ?? true;
-        // professionSwitch.value = updatedData["professionSwitch"] ?? true;
-        // nationalitySwitch.value = updatedData["nationalitySwitch"] ?? true;
-        // maritalStatusSwitch.value = updatedData["maritalStatusSwitch"] ?? true;
-      });
-    },
-  ),
-),
-
+          Padding(
+            padding: EdgeInsets.only(right: 16.0),
+            child: CustomContainer(
+              text: "Edit Profile",
+              image: "assets/icons/editprofile.png",
+              onTap: () {
+                showPopUp(context,  token: _authToken!).then((value) {
+                  if (value != null && value['interests'] != null && value['interests'] is List) {
+                    myInterest.assignAll(
+                      (value['interests'] as List).map((e) => e.toString().trim()).toList(),
+                    );
+                  }
+                  name.value = value?["name"] ?? '';
+                  aboutMe.value = value?["about_me"] ?? '';
+                  phone.value = value?["phone"] ?? '';
+                  location.value = value?["location"] ?? '';
+                  gender.value = value?["gender"] ?? '';
+                  dob.value = value?["dob"] ?? '';
+                  profession.value = value?["profession"] ?? '';
+                  nationality.value = value?["nationality"] ?? '';
+                  maritalStatus.value = value?["marital_status"] ?? '';
+                });
+              },
+            ),
+          ),
         ],
       ),
       body: Obx(() {
@@ -225,21 +298,21 @@ print("user info😀😀🤣🤣🤣 $userInfo");
                         ),
                         SizedBox(height: 4.h),
                         Obx(() => Text(
-                              name.value,
-                              style: GoogleFonts.playfairDisplaySc(
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.w700,
-                                color: const Color.fromARGB(255, 35, 94, 77),
-                              ),
-                            )),
+                          name.value,
+                          style: GoogleFonts.playfairDisplaySc(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w700,
+                            color: const Color.fromARGB(255, 35, 94, 77),
+                          ),
+                        )),
                         Obx(() => Text(
-                              profession.value,
-                              style: TextStyle(
-                                fontSize: 10.sp,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.grey[400],
-                              ),
-                            )),
+                          profession.value,
+                          style: TextStyle(
+                            fontSize: 10.sp,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey[400],
+                          ),
+                        )),
                       ],
                     ),
                   ),
@@ -264,8 +337,10 @@ print("user info😀😀🤣🤣🤣 $userInfo");
                     Transform.scale(
                       scale: 0.7,
                       child: Switch(
-                        value: aboutMeSwitch.value,
-                        onChanged: null,
+                        value: !aboutMeSwitch.value,
+                        onChanged: (val) {
+                          aboutMeSwitch.value = !val;
+                        },
                         activeColor: Colors.white,
                         activeTrackColor: const Color.fromARGB(255, 35, 94, 77),
                         inactiveThumbColor: Colors.grey,
@@ -277,10 +352,11 @@ print("user info😀😀🤣🤣🤣 $userInfo");
                 Padding(
                   padding: const EdgeInsets.only(left: 15),
                   child: Obx(() => Text(
-                        aboutMe.value,
-                        style: TextStyle(fontSize: 14.sp, color: Colors.black),
-                      )),
+                    aboutMe.value,
+                    style: TextStyle(fontSize: 14.sp, color: Colors.black),
+                  )),
                 ),
+                SizedBox(height: 10.h),
                 Row(
                   children: [
                     Text(
@@ -295,8 +371,10 @@ print("user info😀😀🤣🤣🤣 $userInfo");
                     Transform.scale(
                       scale: 0.7,
                       child: Switch(
-                        value: interestsSwitch.value,
-                        onChanged: null,
+                        value: !interestsSwitch.value,
+                        onChanged: (val) {
+                          interestsSwitch.value = !val;
+                        },
                         activeColor: Colors.grey,
                         activeTrackColor: Colors.grey[300],
                         inactiveThumbColor: Colors.grey,
@@ -306,21 +384,20 @@ print("user info😀😀🤣🤣🤣 $userInfo");
                   ],
                 ),
                 Obx(
-                  () => SizedBox(
+                      () => SizedBox(
                     height: 25.h,
                     child: ListView.builder(
-                 
-                    scrollDirection: Axis.horizontal,
-                    itemCount: myInterest.length,
-                    itemBuilder: (context, index) {
-                      return CustomIntrestsContainer(
-                        text: Interest.fromApi(value: myInterest[index]).name,
-                        color: Interest.fromApi(value: myInterest[index]).color,
-                      );
-                    },
-                  )),
-
-          ),
+                      scrollDirection: Axis.horizontal,
+                      itemCount: myInterest.length,
+                      itemBuilder: (context, index) {
+                        return CustomIntrestsContainer(
+                          text: Interest.fromApi(value: myInterest[index]).name,
+                          color: Interest.fromApi(value: myInterest[index]).color,
+                        );
+                      },
+                    ),
+                  ),
+                ),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   child: Text(
@@ -333,28 +410,128 @@ print("user info😀😀🤣🤣🤣 $userInfo");
                   ),
                 ),
                 SizedBox(height: 8.h),
-                Obx(() => CustomData(title: "Phone",subtitle: phone.value,showSwitch: true,switchValue: phoneSwitch.value,onSwitchChanged: (value) {
-                      phoneSwitch.value = value;
-                    })),
-                Obx(() => CustomData(title: "Email",subtitle: email.value,showSwitch: true,switchValue: emailSwitch.value,onSwitchChanged: (value) {
-                      emailSwitch.value = value;
-                    })),
-                Obx(() => CustomData(title: "Location",subtitle: location.value,showSwitch: true,switchValue: false,onSwitchChanged: (value) {})),
-                Obx(() => CustomData(title: "Gender",subtitle: gender.value,showSwitch: true,switchValue: genderSwitch.value,onSwitchChanged: (value) {
-                      genderSwitch.value = value;
-                    })),
-                Obx(() => CustomData(title: "DOB",subtitle: dob.value,showSwitch: true,switchValue: dobSwitch.value,onSwitchChanged: (value) {
-                      dobSwitch.value = value;
-                    })),
-                Obx(() => CustomData(title: "Profession",subtitle: profession.value,showSwitch: true,switchValue: professionSwitch.value,onSwitchChanged: (value) {
-                      professionSwitch.value = value;
-                    })),
-                Obx(() => CustomData(title: "Nationality",subtitle: nationality.value,showSwitch: true,switchValue: nationalitySwitch.value,onSwitchChanged: (value) {
-                      nationalitySwitch.value = value;
-                    })),
-                Obx(() => CustomData(title: "Marital Status",subtitle: maritalStatus.value,showSwitch: true,switchValue: maritalStatusSwitch.value,onSwitchChanged: (value) {
-                      maritalStatusSwitch.value = value;
-                    })),
+                // Phone Toggle
+                Obx(() => CustomData(
+                  title: "Phone",
+                  subtitle: phone.value,
+                  showSwitch: true,
+                  switchValue: !phoneSwitch.value,
+                  onSwitchChanged: (val) {
+                    final oldValue = phoneSwitch.value;
+                    phoneSwitch.value = !val;
+                    _handleToggleChange(
+                      fieldName: 'phone',
+                      currentValue: oldValue,
+                      switchController: phoneSwitch,
+                    );
+                  },
+                )),
+                // Email Toggle
+                Obx(() => CustomData(
+                  title: "Email",
+                  subtitle: email.value,
+                  showSwitch: true,
+                  switchValue: !emailSwitch.value,
+                  onSwitchChanged: (val) {
+                    final oldValue = emailSwitch.value;
+                    emailSwitch.value = !val;
+                    _handleToggleChange(
+                      fieldName: 'email',
+                      currentValue: oldValue,
+                      switchController: emailSwitch,
+                    );
+                  },
+                )),
+                // Location Toggle (Assuming no API integration for location)
+                Obx(() => CustomData(
+                  title: "Location",
+                  subtitle: location.value,
+                  showSwitch: true,
+                  switchValue: !locationSwitch.value,
+                  onSwitchChanged: (val) {
+                    locationSwitch.value = !val;
+                  },
+                )),
+                // Gender Toggle
+                Obx(() => CustomData(
+                  title: "Gender",
+                  subtitle: gender.value,
+                  showSwitch: true,
+                  switchValue: !genderSwitch.value,
+                  onSwitchChanged: (val) {
+                    final oldValue = genderSwitch.value;
+                    genderSwitch.value = !val;
+                    _handleToggleChange(
+                      fieldName: 'gender',
+                      currentValue: oldValue,
+                      switchController: genderSwitch,
+                    );
+                  },
+                )),
+                // DOB Toggle
+                Obx(() => CustomData(
+                  title: "DOB",
+                  subtitle: dob.value,
+                  showSwitch: true,
+                  switchValue: !dobSwitch.value,
+                  onSwitchChanged: (val) {
+                    final oldValue = dobSwitch.value;
+                    dobSwitch.value = !val;
+                    _handleToggleChange(
+                      fieldName: 'dob',
+                      currentValue: oldValue,
+                      switchController: dobSwitch,
+                    );
+                  },
+                )),
+                // Profession Toggle
+                Obx(() => CustomData(
+                  title: "Profession",
+                  subtitle: profession.value,
+                  showSwitch: true,
+                  switchValue: !professionSwitch.value,
+                  onSwitchChanged: (val) {
+                    final oldValue = professionSwitch.value;
+                    professionSwitch.value = !val;
+                    _handleToggleChange(
+                      fieldName: 'profession',
+                      currentValue: oldValue,
+                      switchController: professionSwitch,
+                    );
+                  },
+                )),
+                // Nationality Toggle
+                Obx(() => CustomData(
+                  title: "Nationality",
+                  subtitle: nationality.value,
+                  showSwitch: true,
+                  switchValue: !nationalitySwitch.value,
+                  onSwitchChanged: (val) {
+                    final oldValue = nationalitySwitch.value;
+                    nationalitySwitch.value = !val;
+                    _handleToggleChange(
+                      fieldName: 'nationality',
+                      currentValue: oldValue,
+                      switchController: nationalitySwitch,
+                    );
+                  },
+                )),
+                // Marital Status Toggle
+                Obx(() => CustomData(
+                  title: "Marital Status",
+                  subtitle: maritalStatus.value,
+                  showSwitch: true,
+                  switchValue: !maritalStatusSwitch.value,
+                  onSwitchChanged: (val) {
+                    final oldValue = maritalStatusSwitch.value;
+                    maritalStatusSwitch.value = !val;
+                    _handleToggleChange(
+                      fieldName: 'marital_status',
+                      currentValue: oldValue,
+                      switchController: maritalStatusSwitch,
+                    );
+                  },
+                )),
               ],
             ),
           ),
