@@ -11,8 +11,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../apis/approved_events.dart';
 import '../../apis/get_saved_events.dart';
 import '../../apis/save_remove_events.dart';
+import '../../controllers/registerEventController.dart';
 import '../../widgets/popup_event.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // Import the controller
 
 class Eventscreen extends StatefulWidget {
   Eventscreen({super.key});
@@ -23,11 +24,14 @@ class Eventscreen extends StatefulWidget {
 
 class _EventscreenState extends State<Eventscreen> {
   final NavigationController navigationController =
-      Get.put(NavigationController());
+  Get.put(NavigationController());
   final ApprovedEvents approvedEventsService = ApprovedEvents();
   final EventService _eventService = EventService(); // Initialize EventService
   final GetSavedEvents _getSavedEvents = GetSavedEvents();
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+
+  final RegisterEventController eventController =
+  Get.put(RegisterEventController()); // Initialize RegisterEventController
 
   bool isLoading = true;
   List<dynamic> events = [];
@@ -36,6 +40,9 @@ class _EventscreenState extends State<Eventscreen> {
   Set<int> _bookmarkedEventIds = {};
   Set<int> _processingEventIds = {}; // Tracks events currently being processed
   bool _showingSavedEvents = false; // Indicates if showing saved events
+
+  // Map to cache attendees per eventId
+  Map<int, List<dynamic>> _attendeesMap = {};
 
   @override
   void initState() {
@@ -49,7 +56,7 @@ class _EventscreenState extends State<Eventscreen> {
   Future<void> _loadBookmarkedEventIds() async {
     try {
       final bookmarkedIdsString =
-          await _secureStorage.read(key: 'bookmarkedEventIds');
+      await _secureStorage.read(key: 'bookmarkedEventIds');
       if (bookmarkedIdsString != null && bookmarkedIdsString.isNotEmpty) {
         setState(() {
           _bookmarkedEventIds =
@@ -279,38 +286,36 @@ class _EventscreenState extends State<Eventscreen> {
     }
   }
 
-  Widget _buildGoingSection() {
+  Widget _buildGoingSection(List<dynamic> attendees) {
+    if (attendees.isEmpty) {
+      return SizedBox(); // Show nothing for 0 attendees
+    }
+
+    int displayCount = attendees.length <= 3 ? attendees.length : 3;
+    int extraCount = attendees.length > 3 ? attendees.length - 3 : 0;
+
     return Row(
       children: [
         Container(
           height: 24.h,
-          width: 56.w,
+          width: displayCount * 24.w + (displayCount - 1) * 6.w, // Adjust width based on number of images
           child: Stack(
-            children: [
-              CircleAvatar(
-                radius: 10.r,
-                backgroundImage: AssetImage('assets/logo/image1.png'),
-              ),
-              Positioned(
-                left: 15.w,
+            children: List.generate(displayCount, (i) {
+              return Positioned(
+                left: i * 18.w, // Overlap images slightly
                 child: CircleAvatar(
                   radius: 10.r,
-                  backgroundImage: AssetImage('assets/logo/image2.png'),
+                  backgroundImage: attendees[i]['image'] != null && attendees[i]['image'].isNotEmpty
+                      ? NetworkImage('$baseUrl${attendees[i]['image']}')
+                      : AssetImage('assets/logo/member_group.png') as ImageProvider,
                 ),
-              ),
-              Positioned(
-                left: 30.w,
-                child: CircleAvatar(
-                  radius: 10.r,
-                  backgroundImage: AssetImage('assets/logo/image3.png'),
-                ),
-              ),
-            ],
+              );
+            }),
           ),
         ),
         SizedBox(width: 4.w),
         Text(
-          "+25 Going",
+          attendees.length > 3 ? '+$extraCount Going' : 'Going',
           style: TextStyle(
             fontSize: 12.sp,
             color: const Color.fromARGB(255, 35, 94, 77),
@@ -381,7 +386,7 @@ class _EventscreenState extends State<Eventscreen> {
                       scrollDirection: Axis.horizontal,
                       child: Padding(
                         padding:
-                            EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                         child: Row(
                           children: [
                             Custombutton(
@@ -440,246 +445,309 @@ class _EventscreenState extends State<Eventscreen> {
                               final event = events[index];
                               final eventId = event['id'] as int;
 
-                              return InkWell(
-                                onTap: () {
-                                  navigationController.navigateToChild(
-                                    RegisterEvent(eventId: eventId),
-                                  );
-                                },
-                                child: Padding(
-                                  padding:
+                              return FutureBuilder<List<dynamic>>(
+                                future: _fetchAttendees(eventId),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return Padding(
+                                      padding:
                                       const EdgeInsets.symmetric(vertical: 10),
-                                  child: Container(
-                                    height: 233.h,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(16.r),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.1),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 4),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Padding(
-                                      padding: EdgeInsets.symmetric(
-                                          horizontal: 12, vertical: 8),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Stack(
-                                            children: [
-                                              ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                                child: Image.network(
-                                                  event['flyer'] != null &&
-                                                          event['flyer'] != ''
-                                                      ? '$baseUrl${event['flyer']}'
-                                                      : 'assets/logo/homegrid.png',
-                                                  fit: BoxFit.cover,
-                                                  height: 131.h,
-                                                  width: double.infinity,
-                                                  errorBuilder: (context, error,
-                                                          stackTrace) =>
-                                                      Image.asset(
-                                                    'assets/logo/homegrid.png',
-                                                    fit: BoxFit.cover,
-                                                    height: 131.h,
-                                                    width: double.infinity,
-                                                  ),
-                                                ),
+                                      child: Container(
+                                        height: 233.h,
+                                        child: Center(
+                                            child: CircularProgressIndicator()),
+                                      ),
+                                    );
+                                  } else if (snapshot.hasError) {
+                                    return Padding(
+                                      padding:
+                                      const EdgeInsets.symmetric(vertical: 10),
+                                      child: Container(
+                                        height: 233.h,
+                                        child: Center(
+                                            child: Text(
+                                                'Failed to load event data')),
+                                      ),
+                                    );
+                                  } else {
+                                    final attendees = snapshot.data ?? [];
+                                    return InkWell(
+                                      onTap: () {
+                                        navigationController.navigateToChild(
+                                          RegisterEvent(eventId: eventId),
+                                        );
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 10),
+                                        child: Container(
+                                          height: 233.h,
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius:
+                                            BorderRadius.circular(16.r),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black
+                                                    .withOpacity(0.1),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 4),
                                               ),
-                                              // Date Container
-                                              Positioned(
-                                                top: 8.h,
-                                                left: 8.w,
-                                                child: Container(
-                                                  height: 36.h,
-                                                  width: 36.w,
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.white,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            6.r),
-                                                  ),
-                                                  child: Column(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
-                                                    children: [
-                                                      Text(
-                                                        event['day']
-                                                                ?.toString() ??
-                                                            '',
-                                                        style: GoogleFonts
-                                                            .playfairDisplaySc(
-                                                          fontSize: 14.sp,
-                                                          color: Colors.green,
-                                                          fontWeight:
-                                                              FontWeight.w700,
-                                                        ),
-                                                        maxLines: 1,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
+                                            ],
+                                          ),
+                                          child: Padding(
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 12,
+                                                vertical: 8),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                              children: [
+                                                Stack(
+                                                  children: [
+                                                    ClipRRect(
+                                                      borderRadius:
+                                                      BorderRadius.circular(
+                                                          12),
+                                                      child: Image.network(
+                                                        event['flyer'] != null &&
+                                                            event['flyer'] !=
+                                                                ''
+                                                            ? '$baseUrl${event['flyer']}'
+                                                            : 'assets/logo/homegrid.png',
+                                                        fit: BoxFit.cover,
+                                                        height: 131.h,
+                                                        width: double.infinity,
+                                                        errorBuilder: (context,
+                                                            error,
+                                                            stackTrace) =>
+                                                            Image.asset(
+                                                              'assets/logo/homegrid.png',
+                                                              fit: BoxFit.cover,
+                                                              height: 131.h,
+                                                              width: double.infinity,
+                                                            ),
                                                       ),
-                                                      Text(
-                                                        event['month']
-                                                                ?.toString() ??
-                                                            '',
-                                                        style: GoogleFonts
-                                                            .playfairDisplaySc(
-                                                          fontSize: 8.sp,
-                                                          color: Colors.green,
-                                                          fontWeight:
-                                                              FontWeight.w700,
+                                                    ),
+                                                    // Date Container
+                                                    Positioned(
+                                                      top: 8.h,
+                                                      left: 8.w,
+                                                      child: Container(
+                                                        height: 36.h,
+                                                        width: 36.w,
+                                                        decoration:
+                                                        BoxDecoration(
+                                                          color: Colors.white,
+                                                          borderRadius:
+                                                          BorderRadius
+                                                              .circular(
+                                                              6.r),
                                                         ),
-                                                        maxLines: 1,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
+                                                        child: Column(
+                                                          mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                          children: [
+                                                            Text(
+                                                              event['day']
+                                                                  ?.toString() ??
+                                                                  '',
+                                                              style: GoogleFonts
+                                                                  .playfairDisplaySc(
+                                                                fontSize: 14.sp,
+                                                                color:
+                                                                Colors.green,
+                                                                fontWeight:
+                                                                FontWeight
+                                                                    .w700,
+                                                              ),
+                                                              maxLines: 1,
+                                                              overflow:
+                                                              TextOverflow
+                                                                  .ellipsis,
+                                                            ),
+                                                            Text(
+                                                              event['month']
+                                                                  ?.toString() ??
+                                                                  '',
+                                                              style: GoogleFonts
+                                                                  .playfairDisplaySc(
+                                                                fontSize: 8.sp,
+                                                                color:
+                                                                Colors.green,
+                                                                fontWeight:
+                                                                FontWeight
+                                                                    .w700,
+                                                              ),
+                                                              maxLines: 1,
+                                                              overflow:
+                                                              TextOverflow
+                                                                  .ellipsis,
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    // Bookmark Button
+                                                    Positioned(
+                                                      top: 10.h,
+                                                      right: 12.w,
+                                                      child: GestureDetector(
+                                                        onTap: () {
+                                                          _toggleBookmark(eventId);
+                                                        },
+                                                        child: Container(
+                                                          height: 36.h,
+                                                          width: 36.w,
+                                                          decoration:
+                                                          BoxDecoration(
+                                                            color:
+                                                            Colors.white,
+                                                            borderRadius:
+                                                            BorderRadius
+                                                                .circular(
+                                                                6.r),
+                                                          ),
+                                                          child: _processingEventIds
+                                                              .contains(
+                                                              eventId)
+                                                              ? Center(
+                                                            child:
+                                                            SizedBox(
+                                                              width: 18.w,
+                                                              height: 18.h,
+                                                              child:
+                                                              CircularProgressIndicator(
+                                                                strokeWidth:
+                                                                2.0,
+                                                                valueColor:
+                                                                AlwaysStoppedAnimation<
+                                                                    Color>(
+                                                                  Colors
+                                                                      .green,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          )
+                                                              : Icon(
+                                                            event['bookmarked']
+                                                                ? Icons
+                                                                .bookmark
+                                                                : Icons
+                                                                .bookmark_outline,
+                                                            color: Colors
+                                                                .green,
+                                                            size: 18.sp,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                // Event Details
+                                                Padding(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(vertical: 6),
+                                                  child: Row(
+                                                    children: [
+                                                      Expanded(
+                                                        child: Text(
+                                                          event['title']
+                                                              ?.toString() ??
+                                                              '',
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          style: GoogleFonts
+                                                              .playfairDisplaySc(
+                                                            fontSize: 12.sp,
+                                                            color: Colors.black,
+                                                            fontWeight:
+                                                            FontWeight
+                                                                .w700,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      GestureDetector(
+                                                        onTapDown: (details) {
+                                                          // Implement popup menu
+                                                          showCustomPopupMenu(
+                                                              context,
+                                                              details
+                                                                  .globalPosition,
+                                                              event);
+                                                        },
+                                                        child: Container(
+                                                          height: 20.h,
+                                                          width: 20.w,
+                                                          decoration:
+                                                          BoxDecoration(
+                                                            color:
+                                                            const Color
+                                                                .fromARGB(
+                                                                255,
+                                                                35,
+                                                                94,
+                                                                77),
+                                                            borderRadius:
+                                                            BorderRadius
+                                                                .circular(
+                                                                6),
+                                                          ),
+                                                          child: Icon(
+                                                            Icons.more_vert,
+                                                            size: 16.sp,
+                                                            color: Colors.white,
+                                                          ),
+                                                        ),
                                                       ),
                                                     ],
                                                   ),
                                                 ),
-                                              ),
-                                              // Bookmark Button
-                                              Positioned(
-                                                top: 10.h,
-                                                right: 12.w,
-                                                child: GestureDetector(
-                                                  onTap: () {
-                                                    _toggleBookmark(eventId);
-                                                  },
-                                                  child: Container(
-                                                    height: 36.h,
-                                                    width: 36.w,
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.white,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              6.r),
-                                                    ),
-                                                    child: _processingEventIds
-                                                            .contains(eventId)
-                                                        ? Center(
-                                                            child: SizedBox(
-                                                              width: 18.w,
-                                                              height: 18.h,
-                                                              child:
-                                                                  CircularProgressIndicator(
-                                                                strokeWidth:
-                                                                    2.0,
-                                                                valueColor:
-                                                                    AlwaysStoppedAnimation<
-                                                                            Color>(
-                                                                        Colors
-                                                                            .green),
-                                                              ),
-                                                            ),
-                                                          )
-                                                        : Icon(
-                                                            event['bookmarked']
-                                                                ? Icons.bookmark
-                                                                : Icons
-                                                                    .bookmark_outline,
-                                                            color: Colors.green,
-                                                            size: 18.sp,
+                                                // Attendees Section
+                                                _buildGoingSection(attendees),
+                                                SizedBox(height: 2.h),
+                                                // Location
+                                                Padding(
+                                                  padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 4),
+                                                  child: Row(
+                                                    children: [
+                                                      Icon(
+                                                        Icons.location_on,
+                                                        size: 16.sp,
+                                                        color: Colors.grey,
+                                                      ),
+                                                      SizedBox(width: 4.w),
+                                                      Expanded(
+                                                        child: Text(
+                                                          event['location']
+                                                              ?.toString() ??
+                                                              '',
+                                                          style: TextStyle(
+                                                            fontSize: 12.sp,
+                                                            color: Colors.grey,
                                                           ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          // Event Details
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                vertical: 6),
-                                            child: Row(
-                                              children: [
-                                                Expanded(
-                                                  child: Text(
-                                                    event['title']
-                                                            ?.toString() ??
-                                                        '',
-                                                    maxLines: 1,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: GoogleFonts
-                                                        .playfairDisplaySc(
-                                                      fontSize: 12.sp,
-                                                      color: Colors.black,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                  ),
-                                                ),
-                                                GestureDetector(
-                                                  onTapDown: (details) {
-                                                    // Implement popup menu
-                                                    showCustomPopupMenu(
-                                                        context,
-                                                        details.globalPosition,
-                                                        event);
-                                                  },
-                                                  child: Container(
-                                                    height: 20.h,
-                                                    width: 20.w,
-                                                    decoration: BoxDecoration(
-                                                      color:
-                                                          const Color.fromARGB(
-                                                              255, 35, 94, 77),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              6),
-                                                    ),
-                                                    child: Icon(
-                                                      Icons.more_vert,
-                                                      size: 16.sp,
-                                                      color: Colors.white,
-                                                    ),
+                                                          maxLines: 1,
+                                                          overflow:
+                                                          TextOverflow
+                                                              .ellipsis,
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
                                                 ),
                                               ],
                                             ),
                                           ),
-                                          _buildGoingSection(),
-                                          SizedBox(height: 2.h),
-                                          // Location
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                vertical: 4),
-                                            child: Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.location_on,
-                                                  size: 16.sp,
-                                                  color: Colors.grey,
-                                                ),
-                                                SizedBox(width: 4.w),
-                                                Expanded(
-                                                  child: Text(
-                                                    event['location']
-                                                            ?.toString() ??
-                                                        '',
-                                                    style: TextStyle(
-                                                      fontSize: 12.sp,
-                                                      color: Colors.grey,
-                                                    ),
-                                                    maxLines: 1,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                ),
+                                    );
+                                  }
+                                },
                               );
                             },
                           ),
@@ -726,5 +794,24 @@ class _EventscreenState extends State<Eventscreen> {
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       ),
     );
+  }
+
+  /// Fetch attendees for a specific event and cache them
+  Future<List<dynamic>> _fetchAttendees(int eventId) async {
+    if (_attendeesMap.containsKey(eventId)) {
+      return _attendeesMap[eventId]!;
+    } else {
+      try {
+        final attendees =
+        await eventController.getRegisteredUsersByEventId(eventId);
+        setState(() {
+          _attendeesMap[eventId] = attendees!;
+        });
+        return attendees!;
+      } catch (e) {
+        print('Error fetching attendees for event $eventId: $e');
+        return [];
+      }
+    }
   }
 }

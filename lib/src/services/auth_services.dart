@@ -112,12 +112,16 @@ class AuthService {
     required String name,
     required String email,
     required String password,
+    String? account_type,
+    String? phone,
   }) async {
     print('🔍 [signUp] Method called with name: $name, email: $email');
     final Map<String, dynamic> body = {
       'name': name,
       'email': email,
       'password': password,
+      'account_type': account_type,
+      'phone': phone,
     };
 
     try {
@@ -151,22 +155,19 @@ class AuthService {
           await _secureStorage.write(
               key: 'id', value: responseData['user']['id'].toString());
           print(
-              '🔐 [login] User ID saved to secure storage: ${responseData['user']['id']}');
+              '🔐 [signUp] User ID saved to secure storage: ${responseData['user']['id']}');
         } else {
-          print('❌ [login] user_id not found in the response.');
+          print('❌ [signUp] user_id not found in the response.');
           throw Exception('❌ user_id not found in the response.');
         }
-        return {
-          'statusCode': response.statusCode,
-          'body': responseData,
-        };
+
+        // **Return only the response data directly**
+        return responseData;
       } else {
         final errorBody = jsonDecode(response.body);
         print('❌ [signUp] Error: ${response.statusCode} - ${response.body}');
-        return {
-          'statusCode': response.statusCode,
-          'body': errorBody,
-        };
+        // **Return only the error message**
+        return {'error': errorBody['error'] ?? 'Signup failed'};
       }
     } on SocketException catch (e) {
       print('🌐 [signUp] No Internet connection: $e');
@@ -181,7 +182,6 @@ class AuthService {
       print('🔍 [signUp] Method execution completed.');
     }
   }
-
   /// Send OTP API call
   Future<Map<String, dynamic>> sendOtp({
     required String email,

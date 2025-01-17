@@ -167,8 +167,11 @@ class SignUpScreen extends StatelessWidget {
                         final name = nameController.text.trim();
                         final email = emailController.text.trim();
                         final password = passwordController.text.trim();
+                        final accountType = accountController.text.trim();  // Add this
+                        final phone = phoneController.text.trim();
 
-                        if (name.isEmpty || email.isEmpty || password.isEmpty) {
+                        if (name.isEmpty || email.isEmpty || password.isEmpty ||
+                            accountType.isEmpty || phone.isEmpty) {
                           showErrorSnackbar('All fields are required');
 
                           return;
@@ -176,13 +179,19 @@ class SignUpScreen extends StatelessWidget {
 
                         try {
                           // Call the signUp method
-                          await _signUpController.signUp(name, email, password);
+                          // await _signUpController.signUp(name, email, password);
 
                           // If sign-up is successful, proceed to send OTP
                           await _signUpController.sendOtp(email);
 
                           // Navigate to OTP verification screen
-                          Get.to(() => OtpVerifyScreen(email: email));
+                          Get.to(() => OtpVerifyScreen(
+                            email: email,
+                            name: name,
+                            password: password,
+                            account_type: accountController.text.trim(), // Add this
+                            phone: phoneController.text.trim(),
+                          ));
                         } catch (error) {
                           // Handle any error from signUp or sendOtp
                          showErrorSnackbar(error.toString());

@@ -27,6 +27,8 @@ class _HomescreenState extends State<Homescreen> {
   List<dynamic> savedEvents = [];
   List<dynamic> favoriteUsers = [];
 
+  static const String _baseImageUrl = 'http://35.222.126.155:8000';
+
   @override
   void initState() {
     super.initState();
@@ -74,6 +76,16 @@ class _HomescreenState extends State<Homescreen> {
         ),
       ],
     );
+  }
+
+  ImageProvider _resolveImagePath(String? rawPath) {
+    if (rawPath == null || rawPath.isEmpty) {
+      return const AssetImage("assets/logo/member_group.png"); // Local fallback
+    }
+    if (!rawPath.startsWith('http')) {
+      return NetworkImage('$_baseImageUrl$rawPath');
+    }
+    return NetworkImage(rawPath);
   }
 
   String _monthAbbreviation(int month) {
@@ -564,7 +576,7 @@ class _HomescreenState extends State<Homescreen> {
                                       children: [
                                         ClipOval(
                                           child: Image.network(
-                                            user['profile_picture'] ?? 'assets/logo/logoimage1.png',
+                                            user['image'] ?? 'assets/logo/logoimage1.png',
                                             width: 58.w,
                                             height: 58.h,
                                             fit: BoxFit.cover,

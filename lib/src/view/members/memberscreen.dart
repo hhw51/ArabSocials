@@ -194,15 +194,6 @@ class _MemberscreenState extends State<Memberscreen> {
         value: _favoriteUserIds.join(','), // Store as comma-separated string
       );
 
-      // Optionally, show a success SnackBar
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            isCurrentlyFavorite ? 'Removed from favorites' : 'Added to favorites',
-          ),
-          duration: Duration(seconds: 2),
-        ),
-      );
     } catch (e) {
       print('Failed to update favorite status: $e');
 
@@ -215,13 +206,6 @@ class _MemberscreenState extends State<Memberscreen> {
         }
       });
 
-      // Show an error SnackBar
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to update favorite status. Please try again.'),
-          duration: Duration(seconds: 2),
-        ),
-      );
     } finally {
       // **Remove the userId from processing set**
       setState(() {
@@ -373,15 +357,7 @@ class _MemberscreenState extends State<Memberscreen> {
                     itemBuilder: (context, index) {
                       final member = _apiMembers[index];
                       final userId = int.tryParse(member["id"] ?? "") ?? 0;
-                      return MemberTile(
-                        imagePath: member["imagePath"]!,
-                        name: member["name"]!,
-                        profession: member["profession"]!,
-                        location: member["location"]!,
-                        isCircular: true,
-                        isFavorite: _favoriteUserIds.contains(userId),
-                        // **Pass isProcessing to MemberTile**
-                        isProcessing: _processingUserIds.contains(userId),
+                      return InkWell(
                         onTap: () {
                           navigationController.navigateToChild(
                             ProfileDetailsScreen(
@@ -409,7 +385,44 @@ class _MemberscreenState extends State<Memberscreen> {
                             ),
                           );
                         },
-                        onFavoriteTap: () => _onFavoriteIconTap(userId),
+                        child: MemberTile(
+                          imagePath: member["imagePath"]!,
+                          name: member["name"]!,
+                          profession: member["profession"]!,
+                          location: member["location"]!,
+                          isCircular: true,
+                          isFavorite: _favoriteUserIds.contains(userId),
+                          // **Pass isProcessing to MemberTile**
+                          isProcessing: _processingUserIds.contains(userId),
+                          onTap: () {
+                            navigationController.navigateToChild(
+                              ProfileDetailsScreen(
+                                title: "Member Profile",
+                                name: member["name"]!,
+                                professionOrCategory: member["profession"]!,
+                                location: member["location"]!,
+                                imagePath: member["imagePath"]!,
+                                about: "This is some info about ${member["name"]}",
+                                interestsOrCategories: [
+                                  "Music",
+                                  "Art",
+                                  "Technology"
+                                ],
+                                personalDetails: {
+                                  "Phone": "4788743654478",
+                                  "Email": member["email"]!,
+                                  "Location": member["location"]!,
+                                  "Gender": "Female",
+                                  "D.O.B": "03-11-2005",
+                                  "Profession": member["profession"]!,
+                                  "Nationality": "USA",
+                                  "Marital Status": "Single",
+                                },
+                              ),
+                            );
+                          },
+                          onFavoriteTap: () => _onFavoriteIconTap(userId),
+                        ),
                       );
                     },
                   ),

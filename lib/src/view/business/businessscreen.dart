@@ -53,9 +53,7 @@ class _BusinessscreenState extends State<Businessscreen> {
 
   void _loadFavoriteBusinessIds() async {
     try {
-      // Read the stored favorite business IDs as a comma-separated string
       final favoriteIdsString = await _secureStorage.read(key: 'favoriteBusinessIds');
-
       if (favoriteIdsString != null && favoriteIdsString.isNotEmpty) {
         setState(() {
           _favoriteBusinessIds = favoriteIdsString
@@ -134,20 +132,18 @@ class _BusinessscreenState extends State<Businessscreen> {
   }
 
 
-  /// **Updated:** Optimistic UI implementation with error handling
   void _onFavoriteIconTap(int businessId) async {
-    if (_processingBusinessIds.contains(businessId)) return; // Prevent multiple taps
+    if (_processingBusinessIds.contains(businessId)) return;
 
     final isCurrentlyFavorite = _favoriteBusinessIds.contains(businessId);
 
-    // Optimistically update the UI
     setState(() {
       if (isCurrentlyFavorite) {
         _favoriteBusinessIds.remove(businessId);
       } else {
         _favoriteBusinessIds.add(businessId);
       }
-      _processingBusinessIds.add(businessId); // Mark as processing
+      _processingBusinessIds.add(businessId);
     });
 
     try {
@@ -157,25 +153,16 @@ class _BusinessscreenState extends State<Businessscreen> {
         await _favoritesService.addFavorite(userId: businessId);
       }
 
-      // Persist the updated favoriteBusinessIds to Flutter Secure Storage
+      // Persist to secure storage
       await _secureStorage.write(
         key: 'favoriteBusinessIds',
-        value: _favoriteBusinessIds.join(','), // Store as comma-separated string
+        value: _favoriteBusinessIds.join(','),
       );
 
-      // Optionally, show a success SnackBar
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            isCurrentlyFavorite ? 'Removed from favorites' : 'Added to favorites',
-          ),
-          duration: Duration(seconds: 2),
-        ),
-      );
     } catch (e) {
       print('Failed to update favorite status: $e');
 
-      // Revert the UI state if the API call fails
+      // Revert UI state on error
       setState(() {
         if (isCurrentlyFavorite) {
           _favoriteBusinessIds.add(businessId);
@@ -183,16 +170,7 @@ class _BusinessscreenState extends State<Businessscreen> {
           _favoriteBusinessIds.remove(businessId);
         }
       });
-
-      // Show an error SnackBar
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to update favorite status. Please try again.'),
-          duration: Duration(seconds: 2),
-        ),
-      );
     } finally {
-      // Remove the businessId from processing set
       setState(() {
         _processingBusinessIds.remove(businessId);
       });
@@ -315,14 +293,7 @@ class _BusinessscreenState extends State<Businessscreen> {
                       final businessId = int.tryParse(business["id"] ?? "") ?? 0;
                       final isFavorite = _favoriteBusinessIds.contains(businessId);
                       final isProcessing = _processingBusinessIds.contains(businessId);
-                      return BusinessTile(
-                        imagePath: business["imagePath"]!,
-                        name: business["name"]!,
-                        category: business["category"]!,
-                        location: business["location"]!,
-                        isCircular: true,
-                        isFavorite: isFavorite, // Pass favorite status to the tile
-                        isProcessing: isProcessing, // Pass processing status
+                      return InkWell(
                         onTap: () {
                           navigationController.navigateToChild(
                             ProfileDetailsScreen(
@@ -346,7 +317,39 @@ class _BusinessscreenState extends State<Businessscreen> {
                             ),
                           );
                         },
-                        onFavoriteTap: () => _onFavoriteIconTap(businessId), // Pass businessId
+                        child: BusinessTile(
+                          imagePath: business["imagePath"]!,
+                          name: business["name"]!,
+                          category: business["category"]!,
+                          location: business["location"]!,
+                          isCircular: true,
+                          isFavorite: isFavorite, // Pass favorite status to the tile
+                          isProcessing: isProcessing,
+                          onFavoriteTap: () => _onFavoriteIconTap(businessId),// Pass processing status
+                          onTap: () {
+                            navigationController.navigateToChild(
+                              ProfileDetailsScreen(
+                                title: "Business Profile",
+                                name: business["name"]!,
+                                professionOrCategory: business["category"]!,
+                                location: business["location"]!,
+                                imagePath: business["imagePath"]!,
+                                about: "Details about ${business["name"]}",
+                                interestsOrCategories: [
+                                  "Technology",
+                                  "Innovation",
+                                  "Finance"
+                                ],
+                                personalDetails: {
+                                  "Phone": "1234567890",
+                                  "Email": business["email"]!,
+                                  "Location": business["location"]!,
+                                  "Category": business["category"]!,
+                                },
+                              ),
+                            );
+                          }, // Pass businessId
+                        ),
                       );
                     },
                   ),

@@ -1,29 +1,36 @@
-
-import 'package:arabsocials/src/controllers/userlogin_controller.dart';
-import 'package:arabsocials/src/view/homepage/homescreen.dart';
-import 'dart:async';
-import 'package:arabsocials/src/controllers/user_controller.dart';
-
-import 'package:arabsocials/src/widgets/bottom_nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:async';
+import 'package:arabsocials/src/controllers/userlogin_controller.dart';
+import 'package:arabsocials/src/widgets/bottom_nav.dart';
 import 'package:arabsocials/src/widgets/otp_widget.dart';
 
 class OtpVerifyScreen extends StatefulWidget {
   final String email;
+  final String name;
+  final String password;
+  final String? account_type;
+  final String? phone;
 
-  OtpVerifyScreen({Key? key, required this.email}) : super(key: key);
+  const OtpVerifyScreen({
+    Key? key,
+    required this.email,
+    required this.name,
+    this.account_type,
+    required this.password,
+    this.phone,
+  }) : super(key: key);
 
   @override
-  _OtpVerifyScreenState createState() => _OtpVerifyScreenState();
+  State<OtpVerifyScreen> createState() => _OtpVerifyScreenState();
 }
 
 class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
   final TextEditingController _pinController = TextEditingController();
   late Timer _timer;
-  int _remainingSeconds = 300; // 5 minutes in seconds
+  int _remainingSeconds = 300; // 5 minutes
   bool _canResendOtp = false;
 
   @override
@@ -40,7 +47,7 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
   }
 
   void _startTimer() {
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_remainingSeconds == 0) {
         setState(() {
           _canResendOtp = true;
@@ -76,31 +83,69 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
 
     try {
       final signUpController = Get.find<SignUpController>();
-      final response = await signUpController.verifyOtp(widget.email, enteredOtp);
+      final otpResponse = await signUpController.verifyOtp(widget.email, enteredOtp);
 
-      if (response['statusCode'] == 200 || response['statusCode'] == 201) {
-        // If successful, navigate to the BottomNav
-        Get.snackbar(
-          "Success",
-          "OTP Verified!",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
-        Get.to(() => const BottomNav());
+      if (otpResponse['status'] == 'success') {
+        if (widget.account_type != null && widget.phone != null) {
+          final signupResponse = await signUpController.signUp(
+            widget.name,
+            widget.email,
+            widget.password,
+            widget.account_type!.toLowerCase(),
+            widget.phone!,
+          );
+
+          // Debug print
+          print('Full Signup Response: $signupResponse');
+
+          // Check if signup was successful
+          if (
+          signupResponse['user'] != null &&
+              signupResponse['token'] != null
+          ) {
+            Get.snackbar(
+              "Success",
+              "Account created successfully!",
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.green,
+              colorText: Colors.white,
+            );
+
+            // Add a small delay before navigation
+            await Future.delayed(const Duration(milliseconds: 500));
+
+            // Navigate to BottomNav
+            Get.offAll(() => const BottomNav());
+          } else {
+            print('Signup failed. Response: $signupResponse');
+            Get.snackbar(
+              "Error",
+              signupResponse['error'] ?? "Signup failed. Please try again.",
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.red,
+              colorText: Colors.white,
+            );
+          }
+        } else {
+          Get.snackbar(
+            "Error",
+            "Missing required signup information.",
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+          );
+        }
       } else {
-        // Handle non-successful status codes
-        final errorMessage = response['body']['error'] ?? 'OTP Verification Failed';
         Get.snackbar(
           "Error",
-          errorMessage,
+          otpResponse['error'] ?? "OTP Verification Failed",
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.red,
           colorText: Colors.white,
         );
       }
     } catch (error) {
-      // Handle unexpected errors
+      print('🚫 [handleVerifyOtp] Error: $error');
       Get.snackbar(
         "Error",
         error.toString(),
@@ -111,10 +156,9 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
     }
   }
 
-
   void _handleResendOtp() async {
     setState(() {
-      _remainingSeconds = 300; // Reset timer to 5 minutes
+      _remainingSeconds = 300;
       _canResendOtp = false;
     });
     _startTimer();
@@ -123,16 +167,14 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
       final signUpController = Get.find<SignUpController>();
       await signUpController.sendOtp(widget.email);
 
-      // Show success message
       Get.snackbar(
-        "OTP Resent",
-        "We have resent the OTP to your email.",
+        "Success",
+        "OTP has been resent to your email",
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
     } catch (error) {
-      // Show error message if sending OTP fails
       Get.snackbar(
         "Error",
         error.toString(),
@@ -156,9 +198,7 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
             color: Color.fromARGB(255, 35, 94, 77),
             size: 28,
           ),
-          onPressed: () {
-            Get.back();
-          },
+          onPressed: () => Get.back(),
         ),
       ),
       body: Padding(
@@ -182,7 +222,7 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
               child: Padding(
                 padding: const EdgeInsets.only(right: 17),
                 child: Text(
-                  "We’ve sent you the verification code on ${widget.email}",
+                  "We've sent you the verification code on ${widget.email}",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 15.sp,
@@ -200,7 +240,7 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
                   onCompleted: (pin) => _handleVerifyOtp(),
                 ),
                 SizedBox(height: 30.h),
-                if (_canResendOtp) ...[
+                if (_canResendOtp)
                   ElevatedButton(
                     onPressed: _handleResendOtp,
                     style: ElevatedButton.styleFrom(
@@ -219,8 +259,7 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
                       ),
                     ),
                   ),
-                ],
-                if (!_canResendOtp) ...[
+                if (!_canResendOtp)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -243,7 +282,6 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
                       ),
                     ],
                   ),
-                ],
               ],
             ),
           ],

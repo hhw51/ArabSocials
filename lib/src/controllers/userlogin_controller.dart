@@ -1,6 +1,5 @@
 import 'package:arabsocials/src/services/auth_services.dart';
-import 'package:arabsocials/src/view/auth/otpverify/otp_screen.dart';
-import 'package:arabsocials/src/widgets/snack_bar_widget.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../widgets/bottom_nav.dart';
 
@@ -8,6 +7,8 @@ class SignUpController extends GetxController {
   final AuthService _authService = AuthService();
 
   var isLoading = false.obs;
+  final Rx<Map<String, dynamic>> userData = Rx<Map<String, dynamic>>({});
+  final RxString authToken = ''.obs;
 
   Future<void> login(String email, String password) async {
     isLoading(true);
@@ -27,25 +28,72 @@ class SignUpController extends GetxController {
     }
   }
 
-  Future<void> signUp(String name, String email, String password) async {
-    isLoading(true);
+  void showSuccessSnackbar(String message) {
+    Get.snackbar(
+      "Success",
+      message,
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.green,
+      colorText: Colors.white,
+    );
+  }
+
+  void showErrorSnackbar(String message) {
+    Get.snackbar(
+      "Error",
+      message,
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.red,
+      colorText: Colors.white,
+    );
+  }
+
+  Future<Map<String, dynamic>> signUp(
+      String name,
+      String email,
+      String password,
+      String account_type,
+      String phone,
+      ) async {
     try {
+      isLoading(true);
       final response = await _authService.signUp(
         name: name,
         email: email,
         password: password,
+        account_type: account_type,
+        phone: phone,
       );
-      print('Signup successful: $response');
-       showSuccessSnackbar('Account created successfully!');
-      // Navigate to OTP screen or another page if needed
-      Get.to(() => OtpVerifyScreen(email: email));
+
+      print("📬 [signUp] Response: $response");
+
+      if (response['user'] != null && response['token'] != null) {
+        // Store user data and token
+        userData.value = response['user'];
+        authToken.value = response['token'];
+
+        // Save token to secure storage
+        await _authService.getToken();
+
+        return {
+          'data': response,
+          'user': response['user'],
+          'token': response['token']
+        };
+      } else if (response.containsKey('error')) {
+        return {'status': 'error', 'error': response['error']};
+      } else {
+        return {'status': 'error', 'error': 'Invalid response format'};
+      }
     } catch (e) {
-      print('Signup error: $e');
-      showErrorSnackbar(e.toString());
+      print('🚫 [signUp] Error: $e');
+      return {'status': 'error', 'error': e.toString()};
     } finally {
       isLoading(false);
     }
   }
+
+
 
   Future<void> sendOtp(String email) async {
     try {
@@ -67,22 +115,23 @@ class SignUpController extends GetxController {
         email: email,
         otp: otp,
       );
-      final statusCode = response['statusCode'];
-      if (statusCode == 200 || statusCode == 201) {
-        print("Signup successful: $response");
-        Get.to(() => const BottomNav());
-        return response;
-        // Return success response
+
+      print("📬 [verifyOtp] Response: $response");
+
+      if (response['detail'] == 'Authentication successful') {
+        return {'status': 'success', 'detail': 'Authentication successful'};
       } else {
-        print("Signup failed: ${response['body']}");
-        throw Exception(response['body']['error'] ??
-            'Sign-Up Failed'); // Throw an error for non-200 status
+        return {
+          'status': 'error',
+          'error': response['error'] ?? 'Verification Failed'
+        };
       }
     } catch (e) {
-      print('Signup error: $e');
-      rethrow; // Re-throw the error to be handled in the UI
+      print('🚫 [verifyOtp] Error: $e');
+      return {'status': 'error', 'error': e.toString()};
     } finally {
       isLoading(false);
     }
   }
 }
+

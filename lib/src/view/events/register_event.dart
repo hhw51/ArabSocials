@@ -19,7 +19,13 @@ class RegisterEvent extends StatefulWidget {
 
 class _RegisterEventState extends State<RegisterEvent> {
   bool isRegistered = false;
-  bool isProcessing = false; // Flag to indicate if processing is ongoing
+  bool isProcessing = false;
+  final String baseUrl = 'http://35.222.126.155:8000';// Flag to indicate if processing is ongoing
+
+  final RegisterEventController eventController = Get.put(RegisterEventController());
+
+  // Map to cache attendees per eventId
+  Map<int, List<dynamic>> _attendeesMap = {};
 
   @override
   void initState() {
@@ -105,6 +111,65 @@ class _RegisterEventState extends State<RegisterEvent> {
         isProcessing = false;
       });
     }
+  }
+
+  /// Fetches attendees for a specific event and caches them.
+  Future<List<dynamic>> _fetchAttendees(int eventId) async {
+    if (_attendeesMap.containsKey(eventId)) {
+      return _attendeesMap[eventId]!;
+    } else {
+      try {
+        final attendees = await eventController.getRegisteredUsersByEventId(eventId);
+        setState(() {
+          _attendeesMap[eventId] = attendees!;
+        });
+        return attendees!;
+      } catch (e) {
+        print('Error fetching attendees for event $eventId: $e');
+        return [];
+      }
+    }
+  }
+
+  /// Builds the "Going" section dynamically based on attendee count.
+  Widget _buildGoingSection(List<dynamic> attendees) {
+    if (attendees.isEmpty) {
+      return SizedBox(); // Show nothing for 0 attendees
+    }
+
+    int displayCount = attendees.length <= 3 ? attendees.length : 3;
+    int extraCount = attendees.length > 3 ? attendees.length - 3 : 0;
+
+    return Row(
+      children: [
+        Container(
+          height: 24.h,
+          width: displayCount * 24.w + (displayCount - 1) * 6.w, // Adjust width based on number of images
+          child: Stack(
+            children: List.generate(displayCount, (i) {
+              return Positioned(
+                left: i * 18.w, // Overlap images slightly
+                child: CircleAvatar(
+                  radius: 13.r,
+                  backgroundImage: attendees[i]['image'] != null && attendees[i]['image'].isNotEmpty
+                      ? NetworkImage('$baseUrl${attendees[i]['image']}')
+                      : AssetImage('assets/logo/member_group.png') as ImageProvider,
+                ),
+              );
+            }),
+          ),
+        ),
+        SizedBox(width: 4.w),
+        Text(
+          attendees.length > 3 ? '+$extraCount Going' : 'Going',
+          style: TextStyle(
+            fontSize: 12.sp,
+            color: const Color.fromARGB(255, 35, 94, 77),
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -201,43 +266,33 @@ class _RegisterEventState extends State<RegisterEvent> {
                       ],
                     ),
                     child: Row(
-                      children: [
-                        // Overlapping Circular Avatars
-                        Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            CircleAvatar(
-                              radius: 18.r,
-                              backgroundImage: AssetImage("assets/logo/image1.png"),
-                            ),
-                            Positioned(
-                              left: 24.w,
-                              child: CircleAvatar(
-                                radius: 18.r,
-                                backgroundImage: AssetImage("assets/logo/image2.png"),
-                              ),
-                            ),
-                            Positioned(
-                              left: 48.w,
-                              child: CircleAvatar(
-                                radius: 18.r,
-                                backgroundImage: AssetImage("assets/logo/image3.png"),
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(width: 60.w),
-                        Text(
-                          "+20 Going",
-                          style: TextStyle(
-                            fontSize: 15.sp,
-                            color: const Color.fromARGB(255, 35, 94, 77),
-                            fontWeight: FontWeight.w500,
-                          ),
+                      children: [ // Overlapping Circular Avatars
+                        // **Dynamic "Going" Section**
+                        FutureBuilder<List<dynamic>>(
+                          future: widget.eventId != null ? _fetchAttendees(widget.eventId!) : Future.value([]),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return SizedBox(
+                                height: 24.h,
+                                width: 56.w,
+                                child: Center(child: CircularProgressIndicator(strokeWidth: 2.0)),
+                              );
+                            } else if (snapshot.hasError) {
+                              return Text(
+                                'Error',
+                                style: TextStyle(color: Colors.red),
+                              );
+                            } else {
+                              final attendees = snapshot.data ?? [];
+                              return _buildGoingSection(attendees);
+                            }
+                          },
                         ),
                         const Spacer(),
                         ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            // Implement invite functionality if needed
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color.fromARGB(255, 35, 94, 77),
                             shape: RoundedRectangleBorder(
@@ -399,7 +454,10 @@ class _RegisterEventState extends State<RegisterEvent> {
                       color: const Color.fromARGB(255, 143, 146, 137),
                     ),
                   ),
+
                   SizedBox(height: 15.h),
+
+                  // **Register/Unregister Button**
                   ElevatedButton(
                     onPressed: isProcessing ? null : _handleRegistration,
                     style: ElevatedButton.styleFrom(
