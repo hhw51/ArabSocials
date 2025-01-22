@@ -1,4 +1,5 @@
 import 'package:arabsocials/src/apis/approved_events.dart';
+import 'package:arabsocials/src/apis/get_featured_events.dart';
 import 'package:arabsocials/src/controllers/navigation_controller.dart';
 import 'package:arabsocials/src/models/home_model1.dart';
 import 'package:arabsocials/src/services/auth_services.dart';
@@ -28,6 +29,7 @@ class _HomescreenState extends State<Homescreen> {
   bool isLoading = true;
   List<dynamic> savedEvents = [];
   List<dynamic> favoriteUsers = [];
+   List<dynamic> featuredEvents = [];
 
   static const String _baseImageUrl = 'http://35.222.126.155:8000';
 
@@ -36,6 +38,7 @@ class _HomescreenState extends State<Homescreen> {
     super.initState();
     fetchInitialData();
     fetchApprovedEvents();
+     fetchFeaturedEvents();
   }
 
   Widget _buildGoingSection() {
@@ -167,6 +170,21 @@ class _HomescreenState extends State<Homescreen> {
       print('Error fetching favorite users: $error');
     }
   }
+  void fetchFeaturedEvents() async {
+    try {
+      final events = await GetFeaturedEvents().getFeaturedEvents();
+      setState(() {
+        featuredEvents = events;
+         print("Featured Events are fetching 🌹🌹🌹🌹🌹$featuredEvents");
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      print('Error fetching featured events: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -245,151 +263,149 @@ class _HomescreenState extends State<Homescreen> {
                         },
                       ),
                     ),
-                    SizedBox(
+                   SizedBox(
+      height: 237.h,
+      child: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: EdgeInsets.symmetric(horizontal: 12.w),
+              itemCount: featuredEvents.length,
+              itemBuilder: (context, index) {
+                final event = featuredEvents[index];
+                return InkWell(
+                  onTap: () {
+                    navigationController.navigateToChild(RegisterEvent());
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.only(right: 10.w),
+                    child: Container(
+                      width: 218.w,
                       height: 237.h,
-                      child: isLoading
-                          ? const Center(child: CircularProgressIndicator())
-                          : ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              padding: EdgeInsets.symmetric(horizontal: 12.w),
-                              itemCount: savedEvents.length,
-                              itemBuilder: (context, index) {
-                                final event = savedEvents[index];
-                                return InkWell(
-                                  onTap: () {
-                                    navigationController.navigateToChild(RegisterEvent());
-                                  },
-                                  child: Padding(
-                                    padding: EdgeInsets.only(right: 10.w),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16.r),
+                        color: const Color.fromARGB(255, 247, 247, 247),
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.all(8.w),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(16.r),
+                                  child: Image.network(
+                                    event['flyer'] != null
+                                        ? 'http://35.222.126.155:8000${event['flyer']}'
+                                        : 'assets/logo/default.png',
+                                    fit: BoxFit.cover,
+                                    height: 131.h,
+                                    width: double.infinity,
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        Image.asset(
+                                      'assets/logo/default.png',
+                                      fit: BoxFit.cover,
+                                      height: 131.h,
+                                      width: double.infinity,
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 8.h,
+                                  left: 8.w,
+                                  child: Container(
+                                    height: 36.h,
+                                    width: 36.w,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(6.r),
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          event['day']?.toString() ?? '',
+                                          style: GoogleFonts.playfairDisplaySc(
+                                            fontSize: 14.sp,
+                                            color: Colors.green,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                        Text(
+                                          event['month']?.toString() ?? '',
+                                          style: GoogleFonts.playfairDisplaySc(
+                                            fontSize: 8.sp,
+                                            color: Colors.green,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 10.h,
+                                  right: 12.w,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        event['bookmarked'] =
+                                            !(event['bookmarked'] ?? false); // Toggle bookmarked
+                                      });
+                                    },
                                     child: Container(
-                                      width: 218.w,
-                                      height: 237.h,
+                                      height: 36.h,
+                                      width: 36.w,
                                       decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(16.r),
-                                        color: const Color.fromARGB(255, 247, 247, 247),
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(6.r),
                                       ),
-                                      child: Padding(
-                                        padding: EdgeInsets.all(8.w),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Stack(
-                                              children: [
-                                                ClipRRect(
-                                                  borderRadius: BorderRadius.circular(16.r),
-                                                  child: Image.network(
-                                                    event['flyer'] != null
-                                                        ? 'http://35.222.126.155:8000${event['flyer']}'
-                                                        : 'assets/logo/default.png',
-                                                    fit: BoxFit.cover,
-                                                    height: 131.h,
-                                                    width: double.infinity,
-                                                    errorBuilder: (context, error, stackTrace) =>
-                                                        Image.asset(
-                                                      'assets/logo/default.png',
-                                                      fit: BoxFit.cover,
-                                                      height: 131.h,
-                                                      width: double.infinity,
-                                                    ),
-                                                  ),
-                                                ),
-                                                Positioned(
-                                                  top: 8.h,
-                                                  left: 8.w,
-                                                  child: Container(
-                                                    height: 36.h,
-                                                    width: 36.w,
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.white,
-                                                      borderRadius: BorderRadius.circular(6.r),
-                                                    ),
-                                                    child: Column(
-                                                      mainAxisAlignment: MainAxisAlignment.center,
-                                                      children: [
-                                                        Text(
-                                                          event['day']?.toString() ?? '',
-                                                          style: GoogleFonts.playfairDisplaySc(
-                                                            fontSize: 14.sp,
-                                                            color: Colors.green,
-                                                            fontWeight: FontWeight.w700,
-                                                          ),
-                                                        ),
-                                                        Text(
-                                                          event['month']?.toString() ?? '',
-                                                          style: GoogleFonts.playfairDisplaySc(
-                                                            fontSize: 8.sp,
-                                                            color: Colors.green,
-                                                            fontWeight: FontWeight.w700,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                                Positioned(
-                                                  top: 10.h,
-                                                  right: 12.w,
-                                                  child: GestureDetector(
-                                                    onTap: () {
-                                                      setState(() {
-                                                        event['bookmarked'] =
-                                                            !(event['bookmarked'] ?? false); // Toggle bookmarked
-                                                      });
-                                                    },
-                                                    child: Container(
-                                                      height: 36.h,
-                                                      width: 36.w,
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.white,
-                                                        borderRadius: BorderRadius.circular(6.r),
-                                                      ),
-                                                      child: Icon(
-                                                        event['bookmarked'] ?? false
-                                                            ? Icons.bookmark
-                                                            : Icons.bookmark_outline,
-                                                        color: Colors.green,
-                                                        size: 18.sp,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            SizedBox(height: 8.h),
-                                            Text(
-                                              event['title'] ?? 'No Title',
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: GoogleFonts.playfairDisplaySc(
-                                                fontSize: 12.sp,
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                            SizedBox(height: 8.h),
-                                            _buildGoingSection(),
-                                            SizedBox(height: 8.h),
-                                            Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.location_on,
-                                                  size: 16.sp,
-                                                  color: Colors.grey,
-                                                ),
-                                                SizedBox(width: 4.w),
-                                                Expanded(
-                                                  child: Text(
-                                                    event['location'] ?? 'Unknown Location',
-                                                    style: TextStyle(
-                                                      fontSize: 12.sp,
-                                                      color: Colors.grey,
-                                                    ),
-                                                    maxLines: 1,
-                                                    overflow: TextOverflow.ellipsis,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
+                                      child: Icon(
+                                        event['bookmarked'] ?? false
+                                            ? Icons.bookmark
+                                            : Icons.bookmark_outline,
+                                        color: Colors.green,
+                                        size: 18.sp,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 8.h),
+                            Text(
+                              event['title'] ?? 'No Title',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.playfairDisplaySc(
+                                fontSize: 12.sp,
+                                color: Colors.black,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            SizedBox(height: 8.h),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.location_on,
+                                  size: 16.sp,
+                                  color: Colors.grey,
+                                ),
+                                SizedBox(width: 4.w),
+                                Expanded(
+                                  child: Text(
+                                    event['location'] ?? 'Unknown Location',
+                                    style: TextStyle(
+                                      fontSize: 12.sp,
+                                      color: Colors.grey,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
                                           ],
                                         ),
                                       ),
@@ -618,13 +634,13 @@ class _HomescreenState extends State<Homescreen> {
                                               fit: BoxFit.cover,
                                               errorBuilder: (context, error, stackTrace) =>
                                                   Image.asset(
-                                                'assets/logo/logoimage1.png',
+                                                "assets/logo/member_group.png",
                                                 width: 58.w,
                                                 height: 58.h,
                                                 fit: BoxFit.cover,
                                               ),
                                             ):Image.asset(
-                                                'assets/logo/logoimage1.png',
+                                               "assets/logo/member_group.png",
                                                 width: 58.w,
                                                 height: 58.h,
                                                 fit: BoxFit.cover,
