@@ -1,3 +1,4 @@
+// register_event.dart
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -6,15 +7,22 @@ import 'package:http/http.dart' as http;
 
 class RegisterEvents {
   static const String _baseUrl = 'http://35.222.126.155:8000';
-
   static const String _registerEventsUrl = '$_baseUrl/events/register-event/';
 
   static final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
+  /// Retrieves the authentication token from secure storage.
   Future<String?> getToken() async {
     return await _secureStorage.read(key: 'token');
   }
 
+  /// Registers or unregisters for an event by sending a POST request to the API.
+  ///
+  /// - [eventId]: The ID of the event.
+  /// - [status]: "registered" to register and "cancelled" to unregister.
+  ///
+  /// Returns the response data as a [Map<String, dynamic>] if successful.
+  /// Throws an [Exception] if the request fails.
   Future<Map<String, dynamic>> registerForEvent(int eventId, String status) async {
     try {
       final token = await getToken();
@@ -43,7 +51,13 @@ class RegisterEvents {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
-        return data as Map<String, dynamic>;
+        // Check for 'id' and 'status' OR 'message' to confirm successful operation
+        if ((data.containsKey('id') && data.containsKey('status')) ||
+            data.containsKey('message')) {
+          return data as Map<String, dynamic>;
+        } else {
+          throw Exception('Invalid response structure.');
+        }
       } else {
         throw Exception('❌ Error: ${response.statusCode} - ${response.body}');
       }

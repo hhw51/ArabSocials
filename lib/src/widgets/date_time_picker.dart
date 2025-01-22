@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
@@ -6,12 +5,16 @@ import 'package:intl/intl.dart';
 class DatePickerFieldWidget extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
+  final DateTime? firstDate;
+  final DateTime? lastDate;
 
-  DatePickerFieldWidget({
-    super.key,
+  const DatePickerFieldWidget({
+    Key? key,
     required this.controller,
     required this.hintText,
-  });
+    this.firstDate,
+    this.lastDate,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +29,7 @@ class DatePickerFieldWidget extends StatelessWidget {
         fillColor: const Color.fromARGB(255, 250, 244, 228),
         floatingLabelBehavior: FloatingLabelBehavior.always,
         contentPadding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+        suffixIcon: const Icon(Icons.calendar_today),
         focusedBorder: OutlineInputBorder(
           borderSide: const BorderSide(
             color: Colors.grey,
@@ -42,18 +46,29 @@ class DatePickerFieldWidget extends StatelessWidget {
         ),
       ),
       onTap: () async {
+        DateTime initialDate = DateTime.now();
+        DateTime firstDateConstraint = firstDate ?? DateTime(1900);
+        DateTime lastDateConstraint = lastDate ?? DateTime(2100);
+
         DateTime? pickedDate = await showDatePicker(
           context: context,
-          initialDate: DateTime.now(),
-          firstDate: DateTime(1900),
-          lastDate: DateTime.now(),
+          initialDate: initialDate.isAfter(firstDateConstraint)
+              ? initialDate
+              : firstDateConstraint,
+          firstDate: firstDateConstraint,
+          lastDate: lastDateConstraint,
         );
+
         if (pickedDate != null) {
           controller.text = DateFormat('yyyy-MM-dd').format(pickedDate);
         }
       },
-      validator: (value) =>
-          value!.isEmpty ? 'Please enter your date of birth' : null,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter your event date';
+        }
+        return null;
+      },
     );
   }
 }
@@ -228,8 +243,9 @@ class _TimePickerFieldWidgetState extends State<TimePickerFieldWidget> {
                   style: TextStyle(
                     fontSize: 16.sp,
                     color: Colors.black,
-                    fontWeight:
-                    _selectedPart == 'hour' ? FontWeight.bold : FontWeight.normal,
+                    fontWeight: _selectedPart == 'hour'
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                   ),
                 ),
                 // Decrement Button (visible only when hour is selected)
@@ -279,8 +295,9 @@ class _TimePickerFieldWidgetState extends State<TimePickerFieldWidget> {
                   style: TextStyle(
                     fontSize: 16.sp,
                     color: Colors.black,
-                    fontWeight:
-                    _selectedPart == 'minute' ? FontWeight.bold : FontWeight.normal,
+                    fontWeight: _selectedPart == 'minute'
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                   ),
                 ),
                 // Decrement Button (visible only when minute is selected)
@@ -341,4 +358,3 @@ class _TimePickerFieldWidgetState extends State<TimePickerFieldWidget> {
     );
   }
 }
-

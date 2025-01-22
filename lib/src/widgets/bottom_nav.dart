@@ -1,12 +1,13 @@
-import 'package:arab_socials/src/controllers/navigation_controller.dart';
-import 'package:arab_socials/src/view/business/businessscreen.dart';
-import 'package:arab_socials/src/view/events/eventscreen.dart';
-import 'package:arab_socials/src/view/homepage/homescreen.dart';
-import 'package:arab_socials/src/view/members/memberscreen.dart';
-import 'package:arab_socials/src/view/profile/profilescreen.dart';
+import 'package:arabsocials/src/controllers/navigation_controller.dart';
+import 'package:arabsocials/src/view/business/businessscreen.dart';
+import 'package:arabsocials/src/view/events/eventscreen.dart';
+import 'package:arabsocials/src/view/homepage/homescreen.dart';
+import 'package:arabsocials/src/view/members/memberscreen.dart';
+import 'package:arabsocials/src/view/profile/profilescreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+
 
 class BottomNav extends StatefulWidget {
   final Widget? child;

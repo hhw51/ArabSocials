@@ -10,6 +10,7 @@ class FavoritesService {
   static const String _removeFavoriteUrl = '$_baseUrl/users/remove_favorite/';
 
   static final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+  static const String _favoriteBusinessKey = 'favoriteBusinessIds';
 
   Future<String?> getToken() async {
     return await _secureStorage.read(key: 'token');
@@ -99,6 +100,31 @@ class FavoritesService {
     } catch (e) {
       print('⚠️ Unexpected error: $e');
       throw Exception('⚠️ Unexpected error: $e');
+    }
+  }
+
+  Future<void> saveFavoriteBusinessIds(Set<int> favoriteIds) async {
+    try {
+      await _secureStorage.write(
+        key: _favoriteBusinessKey,
+        value: favoriteIds.join(','), // Store as comma-separated string
+      );
+    } catch (e) {
+      print('Error saving favorite businesses: $e');
+    }
+  }
+
+  Future<Set<int>> loadFavoriteBusinessIds() async {
+    try {
+      final favoriteIdsString = await _secureStorage.read(
+          key: _favoriteBusinessKey);
+      if (favoriteIdsString != null && favoriteIdsString.isNotEmpty) {
+        return favoriteIdsString.split(',').map((id) => int.parse(id)).toSet();
+      }
+      return {};
+    } catch (e) {
+      print('Error loading favorite businesses: $e');
+      return {};
     }
   }
 }

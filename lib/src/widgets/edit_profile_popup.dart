@@ -1,14 +1,17 @@
-
 import 'dart:io';
-import 'package:arab_socials/src/controllers/navigation_controller.dart';
-import 'package:arab_socials/src/services/auth_services.dart';
-import 'package:arab_socials/src/widgets/date_time_picker.dart';
-import 'package:arab_socials/src/widgets/snack_bar_widget.dart';
-import 'package:arab_socials/src/widgets/textfieled_widget.dart';
+import 'package:arabsocials/src/controllers/edit_profile_controller.dart';
+import 'package:arabsocials/src/controllers/navigation_controller.dart';
+import 'package:arabsocials/src/widgets/custom_elevated_button.dart';
+import 'package:arabsocials/src/widgets/date_time_picker.dart';
+import 'package:arabsocials/src/widgets/snack_bar_widget.dart';
+import 'package:arabsocials/src/widgets/textfieled_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+
+import '../services/auth_services.dart';
 
 mixin ShowEditProfileDialog {
   final TextEditingController nameController = TextEditingController();
@@ -21,247 +24,420 @@ mixin ShowEditProfileDialog {
   final TextEditingController profrssionController = TextEditingController();
   final TextEditingController aboutmeController = TextEditingController();
   final TextEditingController intrestController = TextEditingController();
-    final NavigationController navigationController = Get.put(NavigationController());
+  final NavigationController navigationController = Get.put(NavigationController());
+
+  static final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   final RxList<String> interests = RxList();
   Rx<File?> selectedImage = Rx<File?>(null);
 
   Map<String, dynamic> updatedData = {};
 
-  Future<void> showPopUp(BuildContext context) async {
-    // Fetch the user profile data and populate the fields
-    await _fetchUserProfile();
+  Future<void> showEditProfilePopup(BuildContext context, Function refreshCallback) async {
+    final EditProfileController controller = Get.put(EditProfileController());
+
+    // Ensure the popup always starts from Step 1
+    controller.currentStep.value = 0;
+
+    await controller.fetchUserProfile();
 
     await Get.dialog(
-      barrierColor: const Color.fromARGB(255, 250, 244, 228),
-      
       Material(
         color: const Color.fromARGB(255, 250, 244, 228),
-        child: SafeArea(
-          child: Column(
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                         Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 2.w),
-                      child: Row(
-                        children: [
-                          InkWell(
-                            onTap: () {
-                               Get.back();
-                            },
-                            child: Icon(
-                              Icons.arrow_back,
-                              color: const Color.fromARGB(255, 35, 94, 77),
-                              size: 24,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                        // Profile Image
-                        Obx(() =>
-                        GestureDetector(
-  onTap: () async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      selectedImage.value = File(pickedFile.path);
-    }
-  },
-  child: Container(
-    height: 200, // Fixed height for the container
-    width: double.infinity, // Full width of the parent
-    decoration: BoxDecoration(
-      border: Border.all(color: Colors.grey), // Border style
-      borderRadius: BorderRadius.circular(12), // Rounded corners
-      image: selectedImage.value != null
-          ? DecorationImage(
-              image: FileImage(selectedImage.value!),
-              fit: BoxFit.cover, // Cover the entire container
-            )
-          : (updatedData['image'] != null
-              ? DecorationImage(
-                  image: NetworkImage(updatedData['image']),
-                  fit: BoxFit.cover,
-                )
-              : null),
-    ),
-    child: selectedImage.value == null && updatedData['image'] == null
-        ? const Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.camera_alt,
-                size: 40,
-                color: Color.fromARGB(255, 35, 94, 77),
-              ),
-              SizedBox(height: 10),
-              Text(
-                "Upload your image",
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
-                ),
-              ),
-            ],
-          )
-        : null,
-  ),
-),
-
-                            ),
-                        const SizedBox(height: 16),
-                        CustomTextField(
-                          controller: nameController,
-                          hintText: "Enter your name",
-                          labelText: "Your Name",
-                          obscureText: false,
-                        ),
-                        CustomTextField(
-                          controller: phoneController,
-                          hintText: "Enter your phone",
-                          labelText: "Phone Number",
-                          obscureText: false,
-                        ),
-                        CustomTextField(
-                          controller: locationController,
-                          hintText: "Enter your location",
-                          labelText: "Your location",
-                          obscureText: false,
-                        ),
-                        DatePickerFieldWidget(
-                          controller: dateofbirthController,
-                          hintText: "Your Date of Birth",
-                          
-                        ),
-                        const SizedBox(height: 10),
-                        CustomTextField(
-                          controller: profrssionController,
-                          hintText: "Your Profession",
-                          labelText: "Your Profession",
-                          obscureText: false,
-                        ),
-                        CustomDropdown(
-                          controller: genderController,
-                          hintText: "Your Gender",
-                          prefixIcon: Icons.person_2_outlined,
-                          items: const ["Male", "Female", "Other"],
-                          onChanged: (value) {},
-                        ),
-                        CustomMultiSelectDropdown(
-                          onSelect: (selectedValues) {
-                            interests.assignAll(selectedValues);
-                          },
-                          controller: intrestController,
-                          hintText: "Your Interests",
-                          
-                          items: const [
-                            "Games",
-                            "Music",
-                            "Movies",
-                            "Art",
-                            "Technology",
-                            "Innovation",
-                            "Networking",
-                          ],
-                        ),
-                        CustomTextField(
-                          controller: nationalityController,
-                          hintText: "Your Nationality",
-                          labelText: "Your Nationality",
-                          obscureText: false,
-                        ),
-                        CustomTextField(
-                          controller: martialController,
-                          hintText: "Your Marital Status",
-                          labelText: "Martial Status",
-                          obscureText: false,
-                        ),
-                        CustomTextField(
-                          controller: aboutmeController,
-                          hintText: "About me",
-                          labelText: "About Me",
-                          obscureText: false,
-                        ),
-                      ],
+        child: Obx(
+              () => SafeArea(
+            child: Column(
+              children: [
+                // Linear Progress Indicator
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                  child: LinearProgressIndicator(
+                    value: (controller.currentStep.value + 1) / 3,
+                    backgroundColor: Colors.grey[300],
+                    minHeight: 8,
+                    borderRadius: BorderRadius.circular(10),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      const Color.fromARGB(255, 35, 94, 77),
                     ),
                   ),
                 ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                color: const Color.fromARGB(255, 250, 244, 228),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () => Get.back(),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 35, 94, 77),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      ),
-                      child: const Text(
-                        "Back",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: Color.fromARGB(255, 250, 244, 228),
-                        ),
+                const SizedBox(height: 10),
+                // Step Content
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          // Step 1: Image Upload
+                          if (controller.currentStep.value == 0)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 30),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Upload Your Photo",
+                                    style: TextStyle(
+                                      fontSize: 18.sp,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color.fromARGB(255, 35, 94, 77),
+                                    ),
+                                  ),
+                                  SizedBox(height: 10.h),
+                                  Text(
+                                    "Regulations require you to upload image. Don't worry, your data will stay safe and private.",
+                                    style: TextStyle(
+                                      fontSize: 14.sp,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  SizedBox(height: 20.h),
+                                  GestureDetector(
+                                    onTap: () async {
+                                      final picker = ImagePicker();
+                                      final pickedFile = await picker.pickImage(
+                                        source: ImageSource.gallery,
+                                      );
+                                      if (pickedFile != null) {
+                                        controller.selectedImage.value =
+                                            File(pickedFile.path);
+                                      }
+                                    },
+                                    child: Container(
+                                      height: 200,
+                                      width: double.infinity,
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color: const Color.fromARGB(255, 35, 94, 77),
+                                          width: 2,
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
+                                        image: controller.selectedImage.value != null
+                                            ? DecorationImage(
+                                          image: FileImage(controller.selectedImage.value!),
+                                          fit: BoxFit.cover,
+                                        )
+                                            : null,
+                                      ),
+                                      child: controller.selectedImage.value == null
+                                          ? Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(
+                                            Icons.insert_photo,
+                                            size: 50,
+                                            color: Colors.grey,
+                                          ),
+                                          SizedBox(height: 10.h),
+                                          Text(
+                                            "Select Image",
+                                            style: TextStyle(
+                                              fontSize: 16.sp,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                          : null,
+                                    ),
+                                  ),
+                                  SizedBox(height: 20.h),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Divider(
+                                          color: Colors.grey[500],
+                                          thickness: 1.0,
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsets.symmetric(horizontal: 10.w),
+                                        child: Text(
+                                          "or",
+                                          style: TextStyle(
+                                            fontSize: 16.sp,
+                                            color: Colors.grey[600],
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Divider(
+                                          color: Colors.grey[500],
+                                          thickness: 1.0,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 20.h),
+                                  Center(
+                                    child: ElevatedButton.icon(
+                                      onPressed: () async {
+                                        final picker = ImagePicker();
+                                        final pickedFile = await picker.pickImage(
+                                          source: ImageSource.camera,
+                                        );
+                                        if (pickedFile != null) {
+                                          controller.selectedImage.value =
+                                              File(pickedFile.path);
+                                        }
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color.fromARGB(255, 35, 94, 77),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                      ),
+                                      icon: const Icon(
+                                        Icons.camera_alt,
+                                        color: Colors.white,
+                                      ),
+                                      label: Text(
+                                        "Open Camera & Take Photo",
+                                        style: TextStyle(
+                                          fontSize: 14.sp,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          // Step 2: Basic Information
+                          if (controller.currentStep.value == 1)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 30),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Upload Your Personal Details",
+                                    style: TextStyle(
+                                      fontSize: 18.sp,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color.fromARGB(255, 35, 94, 77),
+                                    ),
+                                  ),
+                                  SizedBox(height: 30.h),
+                                  CustomTextField(
+                                    controller: controller.nameController,
+                                    hintText: "Enter your name",
+                                    labelText: "Your Name",
+                                    obscureText: false,
+                                  ),
+                                  SizedBox(height: 10.h),
+                                  CustomTextField(
+                                    controller: controller.phoneController,
+                                    hintText: "Enter your phone number",
+                                    labelText: "Phone Number",
+                                    obscureText: false,
+                                  ),
+                                  SizedBox(height: 10.h),
+                                  CustomDropdown(
+                                    controller: controller.locationController,
+                                    hintText: "Your Location",
+                                    items: [
+                                      'Alabama',
+                                      'Alaska',
+                                      'Arizona',
+                                      'Arkansas',
+                                      'California',
+                                      'Colorado',
+                                      'Connecticut',
+                                      'Delaware',
+                                      'Florida',
+                                      'Georgia',
+                                      'Hawaii',
+                                      'Idaho',
+                                      'Illinois',
+                                      'Indiana',
+                                      'Iowa',
+                                      'Kansas',
+                                      'Kentucky',
+                                      'Louisiana',
+                                      'Maine',
+                                      'Maryland',
+                                      'Massachusetts',
+                                      'Michigan',
+                                      'Minnesota',
+                                      'Mississippi',
+                                      'Missouri',
+                                      'Montana',
+                                      'Nebraska',
+                                      'Nevada',
+                                      'New Hampshire',
+                                      'New Jersey',
+                                      'New Mexico',
+                                      'New York',
+                                      'North Carolina',
+                                      'North Dakota',
+                                      'Ohio',
+                                      'Oklahoma',
+                                      'Oregon',
+                                      'Pennsylvania',
+                                      'Rhode Island',
+                                      'South Carolina',
+                                      'South Dakota',
+                                      'Tennessee',
+                                      'Texas',
+                                      'Utah',
+                                      'Vermont',
+                                      'Virginia',
+                                      'Washington',
+                                      'West Virginia',
+                                      'Wisconsin',
+                                      'Wyoming',
+                                    ],
+                                    onChanged: (value) {},
+                                  ),
+                                  SizedBox(height: 10.h),
+                                  CustomTextField(
+                                    controller: controller.nationalityController,
+                                    hintText: "Enter your nationality",
+                                    labelText: "Nationality",
+                                    obscureText: false,
+                                  ),
+                                  SizedBox(height: 10.h),
+                                  CustomDropdown(
+                                    controller: controller.genderController,
+                                    hintText: "Your Gender",
+                                    items: const ["Male", "Female", "Other"],
+                                    onChanged: (value) {},
+                                  ),
+                                ],
+                              ),
+                            ),
+                          // Step 3: Additional Information
+                          if (controller.currentStep.value == 2)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 30),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Upload Your Personal Details",
+                                    style: TextStyle(
+                                      fontSize: 18.sp,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color.fromARGB(255, 35, 94, 77),
+                                    ),),
+                                  SizedBox(height: 30.h),
+                                  CustomTextField(
+                                    controller: controller.profrssionController,
+                                    hintText: "Your Profession",
+                                    labelText: "Profession",
+                                    obscureText: false,
+                                  ),
+                                  SizedBox(height: 10.h),
+                                  CustomDropdown(
+                                    controller: controller.martialController,
+                                    hintText: "Your Marital Status",
+                                    items: const ["Single", "Married", "Divorced", "Widow"],
+                                    onChanged: (value) {},
+                                  ),
+                                  SizedBox(height: 10.h),
+                                  CustomMultiSelectDropdown(
+                                    onSelect: (selectedValues) {
+                                      controller.interests.assignAll(selectedValues);
+                                      controller.intrestController.text = selectedValues.join(', ');
+                                    },
+                                    controller: controller.intrestController,
+                                    hintText: "Your Interests",
+                                    items: const [
+                                      "Games",
+                                      "Music",
+                                      "Movies",
+                                      "Art",
+                                      "Technology",
+                                      "Networking",
+                                    ],
+                                  ),
+                                  SizedBox(height: 10.h),
+                                  DatePickerFieldWidget(
+                                    controller: controller.dateofbirthController,
+                                    hintText: "Date of Birth",
+                                  ),
+                                  SizedBox(height: 20.h),
+                                  CustomTextField(
+                                    controller: controller.aboutmeController,
+                                    hintText: "About Me",
+                                    labelText: "About Me",
+                                    obscureText: false,
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                    ElevatedButton(
-                      onPressed: () async {
-                        final result = await updateProfileHandler(context);
-
-                        if (result != null) {
-                          updatedData = result;
-                          if (context.mounted) {
-                            Get.back();
-                            showSuccessSnackbar("Profile Updated Successfully");
-                          }
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 35, 94, 77),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      ),
-                      child: const Text(
-                        "Save",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: Color.fromARGB(255, 250, 244, 228),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+
+                // Navigation Buttons
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                  color: const Color.fromARGB(255, 250, 244, 228),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CustomElevatedButton(
+                        text: "Back",
+                        onPressed: () {
+                          if (controller.currentStep.value == 0) {
+                            Get.back(); // Navigate to Profile Screen
+                          } else {
+                            controller.previousStep();
+                          }
+                        },
+                      ),
+                      CustomElevatedButton(
+                        text: (controller.currentStep.value == 2 ? "Save" : "Next"),
+                        onPressed: () async {
+                          if (controller.currentStep.value < 2) {
+                            controller.nextStep();
+                          } else {
+                            Get.dialog(
+                              Center(child: CircularProgressIndicator()),
+                              barrierDismissible: false,
+                            );
+
+                            final result = await updateProfileHandler(context);
+                            // Close spinner
+                            Get.back();
+                            if (result != null) {
+                              Get.back();
+                              refreshCallback();
+                              showSuccessSnackbar("Profile Updated Successfully");
+                            } else {
+                              showErrorSnackbar("Failed to update profile");
+                            }
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
+  Future<String?> getToken() async {
+    return await _secureStorage.read(key: 'token');
+  }
+
   Future<void> _fetchUserProfile() async {
     try {
       final authService = AuthService();
-      final profileData = await authService.getUserInfo();
+      String? token = await getToken();
+      final profileData = await authService.getUserInfo(token: token!);
+      print("profile dataa👌👌😒👌👌$profileData");
       updatedData = profileData;
-
       // Prepopulate fields
       nameController.text = profileData['name'] ?? '';
       phoneController.text = profileData['phone'] ?? '';
@@ -286,44 +462,49 @@ mixin ShowEditProfileDialog {
   }
 
   Future<Map<String, dynamic>?> updateProfileHandler(BuildContext context) async {
+    final controller = Get.find<EditProfileController>();
+
     try {
       final authService = AuthService();
-
-      final currentUserData = await authService.getUserInfo();
+      String? token = await getToken();
+      final currentUserData = await authService.getUserInfo(token: token!);
 
       final updatedInterests = interests.isEmpty
           ? (currentUserData['interests'] as List<dynamic>).map((e) => e.toString()).toList()
           : interests;
 
+
       final updatedData = await authService.updateProfile(
-        name: nameController.text.isNotEmpty ? nameController.text : currentUserData['name'],
-        phone: phoneController.text.isNotEmpty ? phoneController.text : currentUserData['phone'],
-        location: locationController.text.isNotEmpty
-            ? locationController.text
+
+        name:controller. nameController.text.isNotEmpty ?controller. nameController.text : currentUserData['name'],
+        phone:controller. phoneController.text.isNotEmpty ?controller. phoneController.text : currentUserData['phone'],
+        location:controller. locationController.text.isNotEmpty
+            ? controller.locationController.text
             : currentUserData['location'],
-        image: selectedImage.value,
-        nationality: nationalityController.text.isNotEmpty
-            ? nationalityController.text
+        image:controller. selectedImage.value,
+        nationality: controller.nationalityController.text.isNotEmpty
+            ?controller. nationalityController.text
             : currentUserData['nationality'],
-        gender: genderController.text.isNotEmpty
-            ? genderController.text
+        gender:controller. genderController.text.isNotEmpty
+            ?controller. genderController.text
             : currentUserData['gender'],
-        dob: dateofbirthController.text.isNotEmpty
-            ? dateofbirthController.text
+        dob: controller.dateofbirthController.text.isNotEmpty
+            ? controller.dateofbirthController.text
             : currentUserData['dob'],
-        aboutMe: aboutmeController.text.isNotEmpty
-            ? aboutmeController.text
+        aboutMe: controller.aboutmeController.text.isNotEmpty
+            ? controller.aboutmeController.text
             : currentUserData['about_me'],
-        maritalStatus: martialController.text.isNotEmpty
-            ? martialController.text
+        maritalStatus:controller. martialController.text.isNotEmpty
+            ?controller. martialController.text
             : currentUserData['marital_status'],
-        interests: updatedInterests,
-        profession: profrssionController.text.isNotEmpty
-            ? profrssionController.text
-            : currentUserData['profession'],
+        interests: controller.interests.isNotEmpty?controller.interests:updatedInterests,
+        profession: controller.profrssionController.text.isNotEmpty
+            ? controller.profrssionController.text
+            : currentUserData['profession'], token: token,
       );
 
       if (updatedData.isNotEmpty) {
+        print("Data updated: $updatedData");
         return updatedData;
       }
 

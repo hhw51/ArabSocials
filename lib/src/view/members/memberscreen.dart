@@ -1,23 +1,22 @@
-import 'package:arab_socials/src/controllers/navigation_controller.dart';
-import 'package:arab_socials/src/view/profile/ProfileDetailsScreen.dart';
-import 'package:arab_socials/src/widgets/custombuttons.dart';
-import 'package:arab_socials/src/widgets/member_tiles.dart';
-import 'package:arab_socials/src/widgets/textfomr_feild.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:arabsocials/src/controllers/navigation_controller.dart';
+import 'package:arabsocials/src/view/profile/ProfileDetailsScreen.dart';
+import 'package:arabsocials/src/widgets/custombuttons.dart';
+import 'package:arabsocials/src/widgets/member_tiles.dart';
+import 'package:arabsocials/src/widgets/textfomr_feild.dart';
 import '../../apis/get_favorites.dart';
 import '../../apis/get_other_users.dart';
 import '../../apis/same-profession.dart';
 import '../../apis/same_location.dart';
-import '../../apis/add_remove_favorite.dart';
+import '../../apis/add_remove_favorite.dart'; // Ensure this import exists
 
 class Memberscreen extends StatefulWidget {
-  Memberscreen({super.key});
+  Memberscreen({Key? key}) : super(key: key);
 
   @override
   State<Memberscreen> createState() => _MemberscreenState();
@@ -28,19 +27,25 @@ class _MemberscreenState extends State<Memberscreen> {
   final FavoritesService _favoritesService = FavoritesService();
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
+  // Master list of all fetched members based on current filter
+  List<Map<String, dynamic>> _allMembers = [];
 
-  List<Map<String, String>> _apiMembers = [];
-  Set<int> _favoriteUserIds = {};
+  // List to display members after applying search filter
+  List<Map<String, dynamic>> _filteredMembers = [];
+
+  Set<int> _processingUserIds = {}; // To track processing user IDs
   bool _isLoading = true;
 
   bool _isLocationToggled = false;
   bool _isProfessionToggled = false;
   bool _isFavoriteToggled = false;
 
-  final Color _lightGreen = const Color.fromARGB(255, 163, 214, 180);
-  final Color _darkGreen = const Color.fromARGB(255, 35, 94, 77);
+  // Controller for the search field
+  final TextEditingController _searchController = TextEditingController();
 
-  /// Your server domain for building the full image URL
+  // Timer for debounce
+  Timer? _debounce;
+
   static const String _baseImageUrl = 'http://35.222.126.155:8000';
 
   @override
@@ -48,6 +53,16 @@ class _MemberscreenState extends State<Memberscreen> {
     super.initState();
     _fetchOtherUsers();
     _loadFavoriteUserIds();
+
+    // Listen to changes in the search field with debounce
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _debounce?.cancel(); // Cancel the debounce timer
+    super.dispose();
   }
 
   void _loadFavoriteUserIds() async {
@@ -57,10 +72,23 @@ class _MemberscreenState extends State<Memberscreen> {
 
       if (favoriteIdsString != null && favoriteIdsString.isNotEmpty) {
         setState(() {
-          _favoriteUserIds = favoriteIdsString
-              .split(',')
-              .map((id) => int.parse(id))
-              .toSet();
+          _allMembers.forEach((member) {
+            final userId = int.tryParse(member["id"] ?? "") ?? 0;
+            if (favoriteIdsString.split(',').contains(userId.toString())) {
+              member["is_favorite"] = true;
+            } else {
+              member["is_favorite"] = false;
+            }
+          });
+          _filteredMembers = List.from(_allMembers);
+        });
+      } else {
+        // Initialize is_favorite to false if no favorites are stored
+        setState(() {
+          _allMembers.forEach((member) {
+            member["is_favorite"] = false;
+          });
+          _filteredMembers = List.from(_allMembers);
         });
       }
     } catch (e) {
@@ -68,10 +96,7 @@ class _MemberscreenState extends State<Memberscreen> {
     }
   }
 
-
-  /// If the backend path is something like "/media/user_images/xxx.jpg"
-  /// we prefix it with _baseImageUrl => "http://.../media/user_images/xxx.jpg"
-  /// If it's empty or null, fallback to local asset "assets/logo/member_group.png"
+  /// Resolves the image path for a member.
   String _resolveImagePath(String? rawPath) {
     if (rawPath == null || rawPath.isEmpty) {
       return "assets/logo/member_group.png"; // local fallback
@@ -82,120 +107,215 @@ class _MemberscreenState extends State<Memberscreen> {
     return rawPath;
   }
 
-  void _fetchOtherUsers() async {
+  /// Apply search filter to _allMembers and update _filteredMembers
+  void _applySearchFilter() {
+    final query = _searchController.text.trim().toLowerCase();
+    if (query.isEmpty) {
+      setState(() {
+        _filteredMembers = List.from(_allMembers);
+      });
+    } else {
+      setState(() {
+        _filteredMembers = _allMembers.where((member) {
+          final name = member["name"]?.toLowerCase() ?? "";
+          final profession = member["profession"]?.toLowerCase() ?? "";
+          return name.contains(query) || profession.contains(query);
+        }).toList();
+      });
+    }
+  }
+
+  /// Listener callback for search input changes with debounce
+  void _onSearchChanged() {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      _applySearchFilter();
+    });
+  }
+
+  /// Fetches all members from the backend.
+  Future<void> _fetchOtherUsers() async {
     setState(() => _isLoading = true);
     try {
-      final data = await GetOtherUsers().getOtherUsers();
-      _apiMembers = data.map<Map<String, String>>((user) {
+      final data = await GetOtherUsers().getOtherUsers(); // Returns List<User>
+      _allMembers = data.map<Map<String, dynamic>>((user) {
         return {
-          "id": user["id"].toString(), // Ensure user ID is included here
-          "name": user["name"] ?? "No Name",
-          "profession": user["profession"] ?? "No Profession",
-          "location": user["location"] ?? "USA",
-          "imagePath": _resolveImagePath(user["image"]),
-          "email": user["email"] ?? "No Email"
+          "id": user.id.toString(),
+          "name": user.name ?? "",
+          "profession": user.profession ?? "No Profession",
+          "location": user.location ?? "USA",
+          "imagePath": _resolveImagePath(user.image),
+          "email": user.email ?? "",
+          "is_favorite": user.is_favorite == true,
+          "phone": user.phone?? "",
+          "gender": user.gender?? "",
+          "nationality": user.nationality?? "",
+          "dob": user.dob ?? "",
+          "marital_status": user.maritalStatus?? ""// Ensure is_favorite is fetched
         };
       }).toList();
-      // _loadFavoriteUserIds();
+      _applySearchFilter(); // Apply any existing search query
     } catch (e) {
       print("Error fetching users: $e");
+      // Clear lists on error
+      setState(() {
+        _allMembers = [];
+        _filteredMembers = [];
+      });
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
-
-  void _fetchSameLocationUsers() async {
+  Future<void> _fetchSameLocationUsers() async {
     setState(() => _isLoading = true);
     try {
-      final sameLocData = await SameLocation().getSameLocationUsers();
-      _apiMembers = sameLocData.map<Map<String, String>>((user) {
+      final sameLocData = await SameLocation().getSameLocationUsers(); // Returns List<User>
+      _allMembers = sameLocData.map<Map<String, dynamic>>((user) {
         return {
-          "name": user["name"] ?? "No Name",
-          "profession": user["profession"] ?? "No Profession",
-          "location": user["location"] ?? "USA",
-          "imagePath": _resolveImagePath(user["image"]),
-          "email": user["email"] ?? "No Email"
+          "id": user.id.toString(),
+          "name": user.name ?? "",
+          "profession": user.profession ?? "No Profession",
+          "location": user.location ?? "USA",
+          "imagePath": _resolveImagePath(user.image),
+          "email": user.email ?? "",
+          "is_favorite": user.is_favorite == true,
+          "phone": user.phone?? "",
+          "gender": user.gender?? "",
+          "nationality": user.nationality?? "",
+          "dob": user.dob ?? "",
+          "marital_status": user.maritalStatus?? ""// Ensure is_favorite is fetched
         };
       }).toList();
+      _applySearchFilter(); // Apply any existing search query
     } catch (e) {
       print("Error fetching same-location users: $e");
+      // Clear lists on error
+      setState(() {
+        _allMembers = [];
+        _filteredMembers = [];
+      });
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
-  void _fetchSameProfessionUsers() async {
+  Future<void> _fetchSameProfessionUsers() async {
     setState(() => _isLoading = true);
     try {
-      final sameProfData = await SameProfession().getSameProfessionUsers();
-      _apiMembers = sameProfData.map<Map<String, String>>((user) {
+      final sameProfData = await SameProfession().getSameProfessionUsers(); // Returns List<User>
+      _allMembers = sameProfData.map<Map<String, dynamic>>((user) {
         return {
-          "name": user["name"] ?? "No Name",
-          "profession": user["profession"] ?? "No Profession",
-          "location": user["location"] ?? "USA",
-          "imagePath": _resolveImagePath(user["image"]),
-          "email": user["email"] ?? "No Email"
+          "id": user.id.toString(),
+          "name": user.name ?? "",
+          "profession": user.profession ?? "No Profession",
+          "location": user.location ?? "USA",
+          "imagePath": _resolveImagePath(user.image),
+          "email": user.email ?? "",
+          "is_favorite": user.is_favorite == true,
+          "phone": user.phone?? "",
+          "gender": user.gender?? "",
+          "nationality": user.nationality?? "",
+          "dob": user.dob ?? "",
+          "marital_status": user.maritalStatus?? ""// Ensure is_favorite is fetched
         };
       }).toList();
+      _applySearchFilter(); // Apply any existing search query
     } catch (e) {
       print("Error fetching same-profession users: $e");
+      // Clear lists on error
+      setState(() {
+        _allMembers = [];
+        _filteredMembers = [];
+      });
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
-  void _fetchFavoriteUsers() async {
+  Future<void> _fetchFavoriteUsers() async {
     setState(() => _isLoading = true);
     try {
-      final sameProfData = await GetFavorites().getFavoriteUsers();
-      _apiMembers = sameProfData.map<Map<String, String>>((user) {
+      final favoriteData = await GetFavorites().getFavoriteUsers(); // Returns List<User>
+      _allMembers = favoriteData.map<Map<String, dynamic>>((user) {
         return {
-          "name": user["name"] ?? "No Name",
-          "profession": user["profession"] ?? "No Profession",
-          "location": user["location"] ?? "USA",
-          "imagePath": _resolveImagePath(user["image"]),
-          "email": user["email"] ?? "No Email"
+          "id": user.id.toString(),
+          "name": user.name ?? "",
+          "profession": user.profession ?? "No Profession",
+          "location": user.location ?? "USA",
+          "imagePath": _resolveImagePath(user.image),
+          "email": user.email ?? "",
+          "is_favorite": user.is_favorite == true,
+          "phone": user.phone?? "",
+          "gender": user.gender?? "",
+          "nationality": user.nationality?? "",
+          "dob": user.dob ?? "",
+          "marital_status": user.maritalStatus?? ""// Ensure is_favorite is fetched
         };
       }).toList();
+      _applySearchFilter(); // Apply any existing search query
     } catch (e) {
-      print("Error fetching same-profession users: $e");
+      print("Error fetching favorite users: $e");
+      // Clear lists on error
+      setState(() {
+        _allMembers = [];
+        _filteredMembers = [];
+      });
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
-  void _onFavoriteIconTap(int userId) async {
+  /// Toggles the favorite status of a member with optimistic UI update and processing flag.
+  Future<void> _onFavoriteIconTap(int userId) async {
+    if (_processingUserIds.contains(userId)) return; // Prevent multiple taps
+
+    final memberIndex = _allMembers.indexWhere((member) => int.parse(member["id"]!) == userId);
+    if (memberIndex == -1) return;
+
+    final isCurrentlyFavorite = _allMembers[memberIndex]["is_favorite"] == true;
+
+    // **Optimistically update the UI**
+    setState(() {
+      _allMembers[memberIndex]["is_favorite"] = !isCurrentlyFavorite;
+      _processingUserIds.add(userId); // Mark as processing
+    });
+
     try {
-      if (_favoriteUserIds.contains(userId)) {
-        // Remove favorite
+      if (isCurrentlyFavorite) {
         await _favoritesService.removeFavorite(userId: userId);
-        setState(() => _favoriteUserIds.remove(userId));
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Removed from favorites')),
-        );
       } else {
-        // Add favorite
         await _favoritesService.addFavorite(userId: userId);
-        setState(() => _favoriteUserIds.add(userId));
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Added to favorites')),
-        );
       }
 
-      // Persist the updated favoriteUserIds to Flutter Secure Storage
+      // **Persist the updated favoriteUserIds to Flutter Secure Storage**
+      final favoriteIds = _allMembers
+          .where((member) => member["is_favorite"] == true)
+          .map((member) => member["id"])
+          .join(',');
+
       await _secureStorage.write(
         key: 'favoriteUserIds',
-        value: _favoriteUserIds.join(','), // Store as comma-separated string
+        value: favoriteIds,
       );
     } catch (e) {
       print('Failed to update favorite status: $e');
+
+      // **Revert the UI state if the API call fails**
+      setState(() {
+        _allMembers[memberIndex]["is_favorite"] = isCurrentlyFavorite;
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to update favorite status: $e')),
       );
+    } finally {
+      // **Remove the userId from processing set**
+      setState(() {
+        _processingUserIds.remove(userId);
+      });
     }
   }
-
 
   void _onLocationTap() {
     if (_isProfessionToggled) {
@@ -245,10 +365,6 @@ class _MemberscreenState extends State<Memberscreen> {
     }
   }
 
-  Color get _locationButtonColor => _isLocationToggled ? _darkGreen : _lightGreen;
-  Color get _professionButtonColor => _isProfessionToggled ? _darkGreen : _lightGreen;
-  Color get _favoriteButtonColor => _isFavoriteToggled ? _darkGreen : _lightGreen;
-
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -283,7 +399,7 @@ class _MemberscreenState extends State<Memberscreen> {
                       CustomContainer(
                         text: "Favourite",
                         icon: Icons.favorite_border,
-                        onTap: (){
+                        onTap: () {
                           print("Favorite Container tapped!");
                           _onFavoriteTap();
                         },
@@ -300,7 +416,7 @@ class _MemberscreenState extends State<Memberscreen> {
                       SizedBox(width: 3.w),
                       CustomContainer(
                         text: "Profession",
-                        image: "assets/icons/calculator.png",
+                        image: "assets/icons/calculator.png", // Use appropriate icon
                         onTap: () {
                           print("Profession Container tapped!");
                           _onProfessionTap();
@@ -328,7 +444,8 @@ class _MemberscreenState extends State<Memberscreen> {
                 /// Search
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 12.w),
-                  child: const CustomTextFormField(
+                  child: CustomTextFormField(
+                    controller: _searchController,
                     hintText: "Member names or professions",
                   ),
                 ),
@@ -337,20 +454,26 @@ class _MemberscreenState extends State<Memberscreen> {
                 Expanded(
                   child: _isLoading
                       ? const Center(child: CircularProgressIndicator())
+                      : _filteredMembers.isEmpty
+                      ? Center(
+                    child: Text(
+                      "No members found.",
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  )
                       : ListView.builder(
                     padding: EdgeInsets.zero,
                     physics: const BouncingScrollPhysics(),
-                    itemCount: _apiMembers.length,
+                    itemCount: _filteredMembers.length,
                     itemBuilder: (context, index) {
-                      final member = _apiMembers[index];
+                      final member = _filteredMembers[index];
                       final userId = int.tryParse(member["id"] ?? "") ?? 0;
-                      return MemberTile(
-                        imagePath: member["imagePath"]!,
-                        name: member["name"]!,
-                        profession: member["profession"]!,
-                        location: member["location"]!,
-                        isCircular: true,
-                        isFavorite: _favoriteUserIds.contains(userId),
+                      final isFavorite = member["is_favorite"] == true;
+                      final isProcessing = _processingUserIds.contains(userId);
+                      return InkWell(
                         onTap: () {
                           navigationController.navigateToChild(
                             ProfileDetailsScreen(
@@ -366,19 +489,56 @@ class _MemberscreenState extends State<Memberscreen> {
                                 "Technology"
                               ],
                               personalDetails: {
-                                "Phone": "4788743654478",
+                                "Phone": member['phone']!,
                                 "Email": member["email"]!,
                                 "Location": member["location"]!,
-                                "Gender": "Female",
-                                "D.O.B": "03-11-2005",
+                                "Gender": member['gender']!,
+                                "D.O.B": member['dob']!,
                                 "Profession": member["profession"]!,
-                                "Nationality": "USA",
-                                "Marital Status": "Single",
+                                "Nationality": member['nationality']!,
+                                "Marital Status": member['marital_status']!,
                               },
                             ),
                           );
                         },
-                        onFavoriteTap: () => _onFavoriteIconTap(userId),
+                        child: MemberTile(
+                          imagePath: member["imagePath"]!,
+                          name: member["name"]!,
+                          profession: member["profession"]!,
+                          location: member["location"]!,
+                          isCircular: true,
+                          isFavorite: isFavorite, // Use 'is_favorite' from API
+                          isProcessing: isProcessing,
+                          onFavoriteTap: () => _onFavoriteIconTap(userId),
+                          onTap: () {
+                            navigationController.navigateToChild(
+                              ProfileDetailsScreen(
+                                title: "Member Profile",
+                                name: member["name"]!,
+                                professionOrCategory: member["profession"]!,
+                                location: member["location"]!,
+                                imagePath: member["imagePath"]!,
+                                about: "This is some info about ${member["name"]}",
+                                interestsOrCategories: [
+                                  "Music",
+                                  "Art",
+                                  "Technology"
+                                ],
+                                personalDetails: {
+                                  "Phone": member['phone'],
+                                  "Email": member["email"],
+                                  "Location": member["location"],
+                                  "Gender": member['gender'],
+                                  "D.O.B": member['dob'],
+                                  "Profession": member["profession"],
+                                  "Nationality": member['nationality'],
+                                  "Marital Status": member['marital_status']!,
+
+                                },
+                              ),
+                            );
+                          },
+                        ),
                       );
                     },
                   ),

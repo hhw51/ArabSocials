@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'package:arab_socials/src/services/auth_services.dart';
-import 'package:arab_socials/src/widgets/snack_bar_widget.dart';
+import 'package:arabsocials/src/services/auth_services.dart';
+import 'package:arabsocials/src/widgets/snack_bar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -28,11 +28,11 @@ class UserController extends GetxController {
   // Flag for first-time signup
   bool isFirstTimeSignup = true;
 
-  Future<void> fetchUserInfo() async {
+  Future<void> fetchUserInfo(String token) async {
     try {
       isLoading.value = true;
 
-      final userInfo = await _authService.getUserInfo();
+      final userInfo = await _authService.getUserInfo(token: token);
       updatedData = userInfo;
 
       nameController.text = userInfo['name'] ?? '';
@@ -109,7 +109,7 @@ class UserController extends GetxController {
     }
 
 
-    Future<void> sendOtp(String email) async {
+    Future<void> sendOtp(String email, String token) async {
       try {
         isLoading.value = true;
 
@@ -124,7 +124,7 @@ class UserController extends GetxController {
           aboutMe: aboutMeController.text,
           maritalStatus: maritalController.text,
           interests: interests,
-          profession: professionController.text,
+          profession: professionController.text, token: token,
         );
 
         if (updatedData.isNotEmpty) {

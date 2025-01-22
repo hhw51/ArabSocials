@@ -1,5 +1,5 @@
-import 'package:arab_socials/src/controllers/step_controller.dart';
-import 'package:arab_socials/src/view/auth/sign_in/pages/sign_in_page.dart';
+import 'package:arabsocials/src/controllers/step_controller.dart';
+import 'package:arabsocials/src/view/auth/sign_in/pages/sign_in_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';

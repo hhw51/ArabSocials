@@ -1,14 +1,15 @@
-import 'package:arab_socials/src/controllers/navigation_controller.dart';
-import 'package:arab_socials/src/services/auth_services.dart';
-import 'package:arab_socials/src/view/profile/ProfileDetailsScreen.dart';
-import 'package:arab_socials/src/widgets/business_tiles.dart';
-import 'package:arab_socials/src/widgets/custombuttons.dart';
-import 'package:arab_socials/src/widgets/textfomr_feild.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:arabsocials/src/controllers/navigation_controller.dart';
+import 'package:arabsocials/src/services/auth_services.dart';
+import 'package:arabsocials/src/widgets/business_tiles.dart';
+import 'package:arabsocials/src/widgets/custombuttons.dart';
+import 'package:arabsocials/src/widgets/textfomr_feild.dart';
+import '../../apis/add_remove_favorite.dart';
+import '../../view/profile/ProfileDetailsScreen.dart';
 
 class Businessscreen extends StatefulWidget {
   const Businessscreen({super.key});
@@ -20,29 +21,48 @@ class Businessscreen extends StatefulWidget {
 class _BusinessscreenState extends State<Businessscreen> {
   final NavigationController navigationController = Get.put(NavigationController());
   final AuthService _authService = AuthService();
+  final FavoritesService _favoritesService = FavoritesService();
 
-  List<Map<String, String>> _apiBusinesses = [];
-  Set<int> _favoriteBusinessIds = {};
+  // Master list of all fetched businesses based on current filter
+  List<Map<String, dynamic>> _allBusinesses = [];
+
+  // List to display businesses after applying search filter
+  List<Map<String, dynamic>> _filteredBusinesses = [];
+
+  Set<int> _processingBusinessIds = {}; // To track processing business IDs
   bool _isLoading = true;
 
   bool _isLocationToggled = false;
   bool _isFavoriteToggled = false;
 
-  final Color _lightGreen = const Color.fromARGB(255, 163, 214, 180);
-  final Color _darkGreen = const Color.fromARGB(255, 35, 94, 77);
+  // Controller for the search field
+  final TextEditingController _searchController = TextEditingController();
+
+  // Timer for debounce
+  Timer? _debounce;
 
   static const String _baseImageUrl = 'http://35.222.126.155:8000';
 
   @override
   void initState() {
     super.initState();
-    _fetchAllBusinesses();
-    _fetchFavoriteBusinesses();
+    _fetchAllBusinesses(); // Fetch business data
+
+    // Listen to changes in the search field with debounce
+    _searchController.addListener(_onSearchChanged);
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _debounce?.cancel(); // Cancel the debounce timer
+    super.dispose();
+  }
+
+  /// Resolves the image path for a business.
   String _resolveImagePath(String? rawPath) {
     if (rawPath == null || rawPath.isEmpty) {
-      return "assets/logo/default.png";
+      return "assets/logo/member_group.png";
     }
     if (!rawPath.startsWith('http')) {
       return '$_baseImageUrl$rawPath';
@@ -50,11 +70,42 @@ class _BusinessscreenState extends State<Businessscreen> {
     return rawPath;
   }
 
-  void _fetchAllBusinesses() async {
+  /// Apply search filter to _allBusinesses and update _filteredBusinesses
+  void _applySearchFilter() {
+    final query = _searchController.text.trim().toLowerCase();
+    if (query.isEmpty) {
+      setState(() {
+        _filteredBusinesses = List.from(_allBusinesses);
+      });
+    } else {
+      setState(() {
+        _filteredBusinesses = _allBusinesses.where((business) {
+          final name = business["name"]?.toLowerCase() ?? "";
+          final category = business["category"]?.toLowerCase() ?? "";
+          final location = business["location"]?.toLowerCase() ?? "";
+          // Add more fields if necessary
+          return name.contains(query) ||
+              category.contains(query) ||
+              location.contains(query);
+        }).toList();
+      });
+    }
+  }
+
+  /// Listener callback for search input changes with debounce
+  void _onSearchChanged() {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      _applySearchFilter();
+    });
+  }
+
+  /// Fetches all businesses from the backend.
+  Future<void> _fetchAllBusinesses() async {
     setState(() => _isLoading = true);
     try {
       final businessData = await _authService.getOtherBusinessUsers();
-      _apiBusinesses = businessData.map<Map<String, String>>((business) {
+      _allBusinesses = businessData.map<Map<String, dynamic>>((business) {
         return {
           "id": business["id"].toString(),
           "name": business["name"] ?? "No Name",
@@ -62,20 +113,31 @@ class _BusinessscreenState extends State<Businessscreen> {
           "location": business["location"] ?? "Unknown",
           "imagePath": _resolveImagePath(business["image"]),
           "email": business["email"] ?? "No Email",
+          "is_favorite": business["is_favorite"] == true, // Correctly mapped as boolean
         };
       }).toList();
+
+      setState(() {
+        _filteredBusinesses = List.from(_allBusinesses); // Initialize filtered list
+        _isLoading = false;
+      });
+      print('All businesses fetched and updated.');
     } catch (e) {
       print("Error fetching businesses: $e");
-    } finally {
-      setState(() => _isLoading = false);
+      setState(() {
+        _allBusinesses = [];
+        _filteredBusinesses = [];
+        _isLoading = false;
+      });
     }
   }
 
-  void _fetchSameLocationBusinesses() async {
+  /// Fetches businesses with the same location from the backend.
+  Future<void> _fetchSameLocationBusinesses() async {
     setState(() => _isLoading = true);
     try {
       final locationData = await _authService.getBusinessUsersWithSameLocation();
-      _apiBusinesses = locationData.map<Map<String, String>>((business) {
+      _allBusinesses = locationData.map<Map<String, dynamic>>((business) {
         return {
           "id": business["id"].toString(),
           "name": business["name"] ?? "No Name",
@@ -83,53 +145,99 @@ class _BusinessscreenState extends State<Businessscreen> {
           "location": business["location"] ?? "Unknown",
           "imagePath": _resolveImagePath(business["image"]),
           "email": business["email"] ?? "No Email",
+          "is_favorite": business["is_favorite"] == true, // Correctly mapped as boolean
         };
       }).toList();
+
+      setState(() {
+        _filteredBusinesses = List.from(_allBusinesses); // Initialize filtered list
+        _isLoading = false;
+      });
+      print('Same-location businesses fetched and updated.');
     } catch (e) {
       print("Error fetching same-location businesses: $e");
-    } finally {
-      setState(() => _isLoading = false);
+      setState(() {
+        _allBusinesses = [];
+        _filteredBusinesses = [];
+        _isLoading = false;
+      });
     }
   }
 
-  void _fetchFavoriteBusinesses() async {
+  /// Fetches favorite businesses from the backend.
+  Future<void> _fetchFavoriteBusinesses() async {
+    setState(() => _isLoading = true);
     try {
-      final favorites = await _authService.getFavoriteBusinessUsers();
+      final favoriteData = await _authService.getFavoriteBusinessUsers();
+      _allBusinesses = favoriteData.map<Map<String, dynamic>>((business) {
+        return {
+          "id": business["id"].toString(),
+          "name": business["name"] ?? "No Name",
+          "category": business["category"] ?? "No Category",
+          "location": business["location"] ?? "Unknown",
+          "imagePath": _resolveImagePath(business["image"]),
+          "email": business["email"] ?? "No Email",
+          "is_favorite": business["is_favorite"] == true, // Correctly mapped as boolean
+        };
+      }).toList();
+
       setState(() {
-        _favoriteBusinessIds = favorites.map<int>((business) => business["id"] as int).toSet();
+        _filteredBusinesses = List.from(_allBusinesses); // Initialize filtered list
+        _isLoading = false;
       });
+      print('Favorite businesses fetched and updated.');
     } catch (e) {
       print("Error fetching favorite businesses: $e");
+      setState(() {
+        _allBusinesses = [];
+        _filteredBusinesses = [];
+        _isLoading = false;
+      });
     }
   }
 
-  void _onFavoriteIconTap(int businessId) async {
+  /// Toggles the bookmark state of a business with optimistic UI update and processing flag.
+  Future<void> _onFavoriteIconTap(int businessId) async {
+    if (_processingBusinessIds.contains(businessId)) return;
+
+    final businessIndex = _allBusinesses.indexWhere((business) => int.parse(business["id"]!) == businessId);
+    if (businessIndex == -1) return;
+
+    final isCurrentlyFavorite = _allBusinesses[businessIndex]["is_favorite"] == true;
+
+    setState(() {
+      _allBusinesses[businessIndex]["is_favorite"] = !isCurrentlyFavorite;
+      _processingBusinessIds.add(businessId);
+    });
+
     try {
-      if (_favoriteBusinessIds.contains(businessId)) {
-        await _authService.removeFavoriteBusiness(businessId);
-        setState(() => _favoriteBusinessIds.remove(businessId));
+      if (isCurrentlyFavorite) {
+        await _favoritesService.removeFavorite(userId: businessId);
       } else {
-        await _authService.addFavoriteBusiness(businessId);
-        setState(() => _favoriteBusinessIds.add(businessId));
+        await _favoritesService.addFavorite(userId: businessId);
       }
+
+      // Optionally, refetch the business list to ensure consistency
+      // await _fetchAllBusinesses();
     } catch (e) {
       print('Failed to update favorite status: $e');
+
+      // Revert UI state on error
+      setState(() {
+        _allBusinesses[businessIndex]["is_favorite"] = isCurrentlyFavorite;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update bookmark status: $e')),
+      );
+    } finally {
+      setState(() {
+        _processingBusinessIds.remove(businessId);
+      });
     }
   }
 
-  void _onLocationTap() {
-    if (_isFavoriteToggled) {
-      setState(() => _isFavoriteToggled = false);
-    }
-    if (_isLocationToggled) {
-      setState(() => _isLocationToggled = false);
-      _fetchAllBusinesses();
-    } else {
-      setState(() => _isLocationToggled = true);
-      _fetchSameLocationBusinesses();
-    }
-  }
-
+  /// Toggles between showing all businesses and favorite businesses.
   void _onFavoriteTap() {
     if (_isLocationToggled) {
       setState(() => _isLocationToggled = false);
@@ -143,8 +251,19 @@ class _BusinessscreenState extends State<Businessscreen> {
     }
   }
 
-  Color get _locationButtonColor => _isLocationToggled ? _darkGreen : _lightGreen;
-  Color get _favoriteButtonColor => _isFavoriteToggled ? _darkGreen : _lightGreen;
+  /// Toggles between showing all businesses and same-location businesses.
+  void _onLocationTap() {
+    if (_isFavoriteToggled) {
+      setState(() => _isFavoriteToggled = false);
+    }
+    if (_isLocationToggled) {
+      setState(() => _isLocationToggled = false);
+      _fetchAllBusinesses();
+    } else {
+      setState(() => _isLocationToggled = true);
+      _fetchSameLocationBusinesses();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -159,6 +278,7 @@ class _BusinessscreenState extends State<Businessscreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                /// Top bar
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 24.w),
                   child: Row(
@@ -184,26 +304,28 @@ class _BusinessscreenState extends State<Businessscreen> {
                       SizedBox(width: 3.w),
                       CustomContainer(
                         text: "Location",
-                        icon: Icons.location_on_outlined,
+                        icon: Icons.location_on_outlined, // Update color based on toggle
                         onTap: () {
                           _onLocationTap();
                         },
                       ),
-                       SizedBox(width: 3.w),
+                      SizedBox(width: 3.w),
                       CustomContainer(
                         text: "Categories",
-                        icon: Icons.location_on_outlined,
+                        icon: Icons.category, // Use appropriate icon
                         onTap: () {
+                          // Implement categories filter if needed
                         },
                       ),
                     ],
                   ),
                 ),
                 SizedBox(height: 16.h),
+                /// Title
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 24.w),
                   child: Text(
-                    "Businesses Directory",
+                    "Explore Businesses",
                     style: GoogleFonts.playfairDisplaySc(
                       fontSize: 16.sp,
                       fontWeight: FontWeight.w700,
@@ -212,55 +334,100 @@ class _BusinessscreenState extends State<Businessscreen> {
                   ),
                 ),
                 SizedBox(height: 12.h),
+                /// Search
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 12.w),
-                  child: const CustomTextFormField(
+                  child: CustomTextFormField(
+                    controller: _searchController, // Assign controller
                     hintText: "Search businesses by name or category",
                   ),
                 ),
+                /// Content
                 Expanded(
                   child: _isLoading
                       ? const Center(child: CircularProgressIndicator())
+                      : _filteredBusinesses.isEmpty
+                      ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: Text(
+                        "No businesses found.",
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                  )
                       : ListView.builder(
-                          padding: EdgeInsets.zero,
-                          physics: const BouncingScrollPhysics(),
-                          itemCount: _apiBusinesses.length,
-                          itemBuilder: (context, index) {
-                            final business = _apiBusinesses[index];
-                            final businessId = int.tryParse(business["id"] ?? "") ?? 0;
-                            return BusinessTile(
-                              imagePath: business["imagePath"]!,
+                    padding: EdgeInsets.zero,
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: _filteredBusinesses.length,
+                    itemBuilder: (context, index) {
+                      final business = _filteredBusinesses[index];
+                      final businessId = int.tryParse(business["id"] ?? "") ?? 0;
+                      final isFavorite = business["is_favorite"] == true;
+                      final isProcessing = _processingBusinessIds.contains(businessId);
+                      return InkWell(
+                        onTap: () {
+                          navigationController.navigateToChild(
+                            ProfileDetailsScreen(
+                              title: "Business Profile",
                               name: business["name"]!,
-                              category: business["category"]!,
+                              professionOrCategory: business["category"]!,
                               location: business["location"]!,
-                              isCircular: true,
-                              onTap: () {
-                                navigationController.navigateToChild(
-                                  ProfileDetailsScreen(
-                                    title: "Business Profile",
-                                    name: business["name"]!,
-                                    professionOrCategory: business["category"]!,
-                                    location: business["location"]!,
-                                    imagePath: business["imagePath"]!,
-                                    about: "Details about ${business["name"]}",
-                                    interestsOrCategories: [
-                                      "Technology",
-                                      "Innovation",
-                                      "Finance"
-                                    ],
-                                    personalDetails: {
-                                      "Phone": "1234567890",
-                                      "Email": business["email"]!,
-                                      "Location": business["location"]!,
-                                      "Category": business["category"]!,
-                                    },
-                                  ),
-                                );
+                              imagePath: business["imagePath"]!,
+                              about: "Details about ${business["name"]}",
+                              interestsOrCategories: [
+                                "Technology",
+                                "Innovation",
+                                "Finance"
+                              ],
+                              personalDetails: {
+                                "Phone": "1234567890",
+                                "Email": business["email"]!,
+                                "Location": business["location"]!,
+                                "Category": business["category"]!,
                               },
-                              onFavoriteTap: () => _onFavoriteIconTap(businessId),
+                            ),
+                          );
+                        },
+                        child: BusinessTile(
+                          imagePath: business["imagePath"]!,
+                          name: business["name"]!,
+                          category: business["category"]!,
+                          location: business["location"]!,
+                          isCircular: true,
+                          isFavorite: isFavorite, // Use 'is_favorite' from API
+                          isProcessing: isProcessing,
+                          onFavoriteTap: () => _onFavoriteIconTap(businessId),
+                          onTap: () {
+                            navigationController.navigateToChild(
+                              ProfileDetailsScreen(
+                                title: "Business Profile",
+                                name: business["name"]!,
+                                professionOrCategory: business["category"]!,
+                                location: business["location"]!,
+                                imagePath: business["imagePath"]!,
+                                about: "Details about ${business["name"]}",
+                                interestsOrCategories: [
+                                  "Technology",
+                                  "Innovation",
+                                  "Finance"
+                                ],
+                                personalDetails: {
+                                  "Phone": "1234567890",
+                                  "Email": business["email"]!,
+                                  "Location": business["location"]!,
+                                  "Category": business["category"]!,
+                                },
+                              ),
                             );
                           },
                         ),
+                      );
+                    },
+                  ),
                 ),
               ],
             ),

@@ -1,12 +1,12 @@
-import 'package:arab_socials/src/apis/approved_events.dart';
-import 'package:arab_socials/src/controllers/navigation_controller.dart';
-import 'package:arab_socials/src/models/home_model1.dart';
-import 'package:arab_socials/src/services/auth_services.dart';
-import 'package:arab_socials/src/view/events/promote_event.dart';
-import 'package:arab_socials/src/view/events/register_event.dart';
-import 'package:arab_socials/src/view/homepage/notification_screen.dart';
-import 'package:arab_socials/src/widgets/custom_container.dart';
-import 'package:arab_socials/src/widgets/custombuttons.dart';
+import 'package:arabsocials/src/apis/approved_events.dart';
+import 'package:arabsocials/src/controllers/navigation_controller.dart';
+import 'package:arabsocials/src/models/home_model1.dart';
+import 'package:arabsocials/src/services/auth_services.dart';
+import 'package:arabsocials/src/view/events/promote_event.dart';
+import 'package:arabsocials/src/view/events/register_event.dart';
+import 'package:arabsocials/src/view/homepage/notification_screen.dart';
+import 'package:arabsocials/src/widgets/custom_container.dart';
+import 'package:arabsocials/src/widgets/custombuttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -26,6 +26,8 @@ class _HomescreenState extends State<Homescreen> {
   bool isLoading = true;
   List<dynamic> savedEvents = [];
   List<dynamic> favoriteUsers = [];
+
+  static const String _baseImageUrl = 'http://35.222.126.155:8000';
 
   @override
   void initState() {
@@ -74,6 +76,16 @@ class _HomescreenState extends State<Homescreen> {
         ),
       ],
     );
+  }
+
+  ImageProvider _resolveImagePath(String? rawPath) {
+    if (rawPath == null || rawPath.isEmpty) {
+      return const AssetImage("assets/logo/member_group.png"); // Local fallback
+    }
+    if (!rawPath.startsWith('http')) {
+      return NetworkImage('$_baseImageUrl$rawPath');
+    }
+    return NetworkImage(rawPath);
   }
 
   String _monthAbbreviation(int month) {
@@ -564,7 +576,7 @@ class _HomescreenState extends State<Homescreen> {
                                       children: [
                                         ClipOval(
                                           child: Image.network(
-                                            user['profile_picture'] ?? 'assets/logo/logoimage1.png',
+                                            user['image'] ?? 'assets/logo/logoimage1.png',
                                             width: 58.w,
                                             height: 58.h,
                                             fit: BoxFit.cover,

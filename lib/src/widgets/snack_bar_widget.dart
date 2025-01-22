@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 // Success Snackbar
 void showSuccessSnackbar(String message) {
   Get.snackbar(
+    colorText: Colors.white,
     "Success",
     message,
     backgroundColor: Colors.green,
@@ -23,6 +24,7 @@ void showSuccessSnackbar(String message) {
 // Error Snackbar
 void showErrorSnackbar(String message) {
   Get.snackbar(
+    colorText: Colors.white,
     "Error",
     message,
     backgroundColor: Colors.red,

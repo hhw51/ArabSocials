@@ -62,6 +62,9 @@ class CustomTextField extends StatelessWidget {
     );
   }
 }
+
+
+
 class CustomDropdown extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
@@ -80,13 +83,16 @@ class CustomDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Determine if the current value exists in the items list
+    String? currentValue = items.contains(controller.text) ? controller.text : null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 350,
+          width: double.infinity,
           child: DropdownButtonFormField<String>(
-            value: controller.text.isEmpty ? null : controller.text,
+            value: currentValue,
             decoration: InputDecoration(
               floatingLabelBehavior: FloatingLabelBehavior.auto,
               labelStyle: TextStyle(
@@ -157,9 +163,13 @@ class CustomDropdown extends StatelessWidget {
             onChanged: (String? value) {
               if (value != null) {
                 controller.text = value;
+                if (onChanged != null) {
+                  onChanged!(value);
+                }
               }
             },
             dropdownColor: const Color.fromARGB(255, 250, 244, 228),
+            menuMaxHeight: 250,
           ),
         ),
         SizedBox(height: 10.h),
@@ -167,6 +177,7 @@ class CustomDropdown extends StatelessWidget {
     );
   }
 }
+
 
 class CustomMultiSelectDropdown extends StatelessWidget {
   final TextEditingController controller;
@@ -189,55 +200,59 @@ class CustomMultiSelectDropdown extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        GestureDetector(
-          onTap: () async {
-            List<String>? selectedItems = await showDialog(
-              context: context,
-              builder: (context) => MultiSelectDialog(
-                items: items,
-                selectedItems:
-                    controller.text.isEmpty ? [] : controller.text.split(', '),
-              ),
-            );
+        ValueListenableBuilder<TextEditingValue>(
+          valueListenable: controller,
+          builder: (context, value, child) {
+            return GestureDetector(
+              onTap: () async {
+                List<String>? selectedItems = await showDialog(
+                  context: context,
+                  builder: (context) => MultiSelectDialog(
+                    items: items,
+                    selectedItems: controller.text.isEmpty
+                        ? []
+                        : controller.text.split(', '),
+                  ),
+                );
 
-            if (selectedItems != null) {
-              // Update the controller text
-              // controller.text = selectedItems.join(', ');
-              onSelect(selectedItems);
-            }
-          },
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            decoration: BoxDecoration(
-              color: const Color.fromARGB(255, 250, 244, 228),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Colors.grey,
-                width: 1.0,
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    controller.text.isEmpty ? hintText : controller.text,
-                    style: TextStyle(
-                      color: controller.text.isEmpty
-                          ? Colors.grey[900]
-                          : Colors.black,
-                      fontSize: 14,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+                if (selectedItems != null) {
+                  onSelect(selectedItems);
+                }
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 250, 244, 228),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.grey,
+                    width: 1.0,
                   ),
                 ),
-                Icon(
-                  Icons.keyboard_arrow_down_sharp,
-                  color: const Color.fromARGB(255, 35, 94, 77),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        controller.text.isEmpty ? hintText : controller.text,
+                        style: TextStyle(
+                          color: controller.text.isEmpty
+                              ? Colors.grey[900]
+                              : Colors.black,
+                          fontSize: 14,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Icon(
+                      Icons.keyboard_arrow_down_sharp,
+                      color: const Color.fromARGB(255, 35, 94, 77),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
         SizedBox(height: 10.h),
       ],
@@ -260,12 +275,12 @@ class MultiSelectDialog extends StatefulWidget {
 }
 
 class _MultiSelectDialogState extends State<MultiSelectDialog> {
-  late List<String> _selectedItems;
+  late List<String> _tempselectedItems;
 
   @override
   void initState() {
     super.initState();
-    _selectedItems = List.from(widget.selectedItems);
+    _tempselectedItems = List.from(widget.selectedItems);
   }
 
   @override
@@ -277,13 +292,13 @@ class _MultiSelectDialogState extends State<MultiSelectDialog> {
           children: widget.items.map((item) {
             return CheckboxListTile(
               title: Text(item),
-              value: _selectedItems.contains(item),
+              value: _tempselectedItems.contains(item),
               onChanged: (bool? value) {
                 setState(() {
                   if (value == true) {
-                    _selectedItems.add(item);
+                    _tempselectedItems.add(item);
                   } else {
-                    _selectedItems.remove(item);
+                    _tempselectedItems.remove(item);
                   }
                 });
               },
@@ -297,7 +312,7 @@ class _MultiSelectDialogState extends State<MultiSelectDialog> {
           child: Text('Cancel'),
         ),
         TextButton(
-          onPressed: () => Navigator.pop(context, _selectedItems),
+          onPressed: () => Navigator.pop(context, _tempselectedItems),
           child: Text('OK'),
         ),
       ],

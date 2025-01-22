@@ -1,14 +1,21 @@
-import 'package:arab_socials/src/controllers/registerEventController.dart';
-import 'package:arab_socials/src/view/auth/splash_steps/splash.dart';
+import 'package:arabsocials/src/controllers/navigation_controller.dart';
+import 'package:arabsocials/src/controllers/registerEventController.dart';
+import 'package:arabsocials/src/view/auth/splash_steps/splash.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 
-void main() {
+void main() async {
   Get.put(RegisterEventController());
-  runApp(const MyApp());
+  Get.put(NavigationController());
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+
+  );
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
