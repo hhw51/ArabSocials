@@ -26,53 +26,63 @@ class _HomescreenState extends State<Homescreen> {
   final NavigationController navigationController = Get.put(NavigationController());
   final AuthService authService = AuthService();
   final ApprovedEvents approvedEventsService = ApprovedEvents();
+  
   bool isLoading = true;
   List<dynamic> savedEvents = [];
   List<dynamic> favoriteUsers = [];
    List<dynamic> featuredEvents = [];
 
   static const String _baseImageUrl = 'http://35.222.126.155:8000';
+ final String baseUrl = 'http://35.222.126.155:8000';
 
+  Set<int> _bookmarkedEventIds = {};
+  Set<int> _processingEventIds = {}; // Tracks events currently being processed
+  bool _showingSavedEvents = false; // Indicates if showing saved events
+
+  // Map to cache attendees per eventId
+  Map<int, List<dynamic>> _attendeesMap = {};
   @override
   void initState() {
     super.initState();
     fetchInitialData();
-    fetchApprovedEvents();
      fetchFeaturedEvents();
   }
+  
 
-  Widget _buildGoingSection() {
+   Widget _buildGoingSection(List<dynamic> attendees) {
+    if (attendees.isEmpty) {
+      return SizedBox(); // Show nothing for 0 attendees
+    }
+
+    int displayCount = attendees.length <= 3 ? attendees.length : 3;
+    int extraCount = attendees.length > 3 ? attendees.length - 3 : 0;
+
     return Row(
       children: [
         Container(
           height: 24.h,
-          width: 56.w,
+          width: displayCount * 24.w +
+              (displayCount - 1) *
+                  6.w, // Adjust width based on number of images
           child: Stack(
-            children: [
-              CircleAvatar(
-                radius: 10.r,
-                backgroundImage: AssetImage('assets/logo/image1.png'),
-              ),
-              Positioned(
-                left: 15.w,
+            children: List.generate(displayCount, (i) {
+              return Positioned(
+                left: i * 18.w, // Overlap images slightly
                 child: CircleAvatar(
                   radius: 10.r,
-                  backgroundImage: AssetImage('assets/logo/image2.png'),
+                  backgroundImage: attendees[i]['image'] != null &&
+                          attendees[i]['image'].isNotEmpty
+                      ? NetworkImage('$baseUrl${attendees[i]['image']}')
+                      : AssetImage('assets/logo/member_group.png')
+                          as ImageProvider,
                 ),
-              ),
-              Positioned(
-                left: 30.w,
-                child: CircleAvatar(
-                  radius: 10.r,
-                  backgroundImage: AssetImage('assets/logo/image3.png'),
-                ),
-              ),
-            ],
+              );
+            }),
           ),
         ),
         SizedBox(width: 4.w),
         Text(
-          "+25 Going",
+          attendees.length > 3 ? '+$extraCount Going' : 'Going',
           style: TextStyle(
             fontSize: 12.sp,
             color: const Color.fromARGB(255, 35, 94, 77),
@@ -82,6 +92,7 @@ class _HomescreenState extends State<Homescreen> {
       ],
     );
   }
+
 
    String _resolveImagePath(String? rawPath) {
     if (rawPath == null || rawPath.isEmpty) {
@@ -129,35 +140,11 @@ class _HomescreenState extends State<Homescreen> {
 
   Future<void> fetchInitialData() async {
     await Future.wait([
-      fetchSavedEvents(),
       fetchFavoriteUsers(),
     ]);
   }
 
-  Future<void> fetchSavedEvents() async {
-    try {
-      setState(() {
-        isLoading = true;
-      });
-
-      final events = await authService.getSavedEvents();
-      setState(() {
-        savedEvents = events.map((event) => {
-          ...event,
-          'bookmarked': event['bookmarked'] ?? false, // Default to false
-          
-        }).toList();
-           print("Favouriets are fetching 🎶🎶🎶🎶🎶$savedEvents");
-
-        isLoading = false;
-      });
-    } catch (error) {
-      setState(() {
-        isLoading = false;
-      });
-      print('Error fetching saved events: $error');
-    }
-  }
+  
 
   Future<void> fetchFavoriteUsers() async {
     try {
