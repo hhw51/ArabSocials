@@ -4,7 +4,7 @@ import 'package:arabsocials/src/view/auth/sign_in/pages/sign_in_page.dart';
 import 'package:arabsocials/src/widgets/abouMe_popup.dart';
 import 'package:arabsocials/src/widgets/custom_profiletext.dart';
 import 'package:arabsocials/src/widgets/custombuttons.dart';
-import 'package:arabsocials/src/widgets/edit_profile_popup.dart';
+import 'package:arabsocials/src/widgets/edit_profile_steps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';

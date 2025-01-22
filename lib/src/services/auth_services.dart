@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:arabsocials/src/widgets/snack_bar_widget.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   static const String _baseUrl = 'http://35.222.126.155:8000';
@@ -26,73 +28,85 @@ class AuthService {
   static const Map<String, String> headers = {
     'Content-Type': 'application/json',
   };
+Future<Map<String, dynamic>?> login({
+  required String email,
+  required String password,
+}) async {
+  print('🔍 [login] Method called with email: $email');
+  final Map<String, dynamic> body = {
+    'email': email,
+    'password': password,
+  };
 
-  // Login Method
-  Future<Map<String, dynamic>> login({
-    required String email,
-    required String password,
-  }) async {
-    print('🔍 [login] Method called with email: $email');
-    final Map<String, dynamic> body = {
-      'email': email,
-      'password': password,
-    };
+  try {
+    print('🔗 [login] Connecting to $_loginUrl');
+    print('🔗 [login] Request Body: ${jsonEncode(body)}');
 
-    try {
-      print('🔗 [login] Connecting to $_loginUrl');
-      print('🔗 [login] Request Body: ${jsonEncode(body)}');
+    final response = await http
+        .post(
+          Uri.parse(_loginUrl),
+          headers: headers,
+          body: jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 60));
 
-      final response = await http
-          .post(
-        Uri.parse(_loginUrl),
-        headers: headers,
-        body: jsonEncode(body),
-      )
-          .timeout(const Duration(seconds: 60));
+    print('📬 [login] Response Status: ${response.statusCode}');
+    print('📬 [login] Response Body: ${response.body}');
 
-      print('📬 [login] Response Status: ${response.statusCode}');
-      print('📬 [login] Response Body: ${response.body}');
+    if (response.statusCode == 200) {
+      print("✅ [login] Login successful: ${response.body}");
 
-      if (response.statusCode == 200) {
-        print("✅ [login] Login successful: ${response.body}");
+      final responseData = jsonDecode(response.body);
+      if (responseData['token'] != null) {
+        await _secureStorage.write(
+          key: 'token',
+          value: responseData['token'],
+        );
+        print('🔐 [login] Token saved to secure storage: ${responseData['token']}');
+      }
 
-        final responseData = jsonDecode(response.body);
-        if (responseData['token'] != null) {
-          await _secureStorage.write(
-              key: 'token', value: responseData['token']);
-          print(
-              '🔐 [login] Token saved to secure storage: ${responseData['token']}');
-        }
+      if (responseData['user'] != null && responseData['user']['id'] != null) {
+        await _secureStorage.write(
+          key: 'id',
+          value: responseData['user']['id'].toString(),
+        );
+        print('🔐 [login] User ID saved to secure storage: ${responseData['user']['id']}');
+      } else {
+        print('❌ [login] user_id not found in the response.');
+        showErrorSnackbar('User ID not found in the response.');
+        return null;
+      }
 
-        if (responseData['user'] != null &&
-            responseData['user']['id'] != null) {
-          await _secureStorage.write(
-              key: 'id', value: responseData['user']['id'].toString());
-          print(
-              '🔐 [login] User ID saved to secure storage: ${responseData['user']['id']}');
-        } else {
-          print('❌ [login] user_id not found in the response.');
-          throw Exception('❌ user_id not found in the response.');
-        }
-
-        return responseData;
+      return responseData;
+    } else {
+      final responseData = jsonDecode(response.body);
+      if (responseData['error'] == 'user_not_found') {
+        showErrorSnackbar('User not found. Please check your credentials.');
+      } else if (responseData['error'] == 'invalid_credentials') {
+        showErrorSnackbar('Invalid credentials. Please try again.');
       } else {
         print('❌ [login] Error: ${response.statusCode} - ${response.body}');
-        throw Exception('❌ Error: ${response.statusCode} - ${response.body}');
+        showErrorSnackbar("User with this email does not exist");
       }
-    } on SocketException catch (e) {
-      print('🌐 [login] No Internet connection: $e');
-      throw Exception('🌐 No Internet connection');
-    } on TimeoutException catch (e) {
-      print('⏳ [login] Request timed out: $e');
-      throw Exception('⏳ Request timed out');
-    } catch (e) {
-      print('⚠️ [login] Unexpected error: $e');
-      throw Exception('⚠️ Unexpected error: $e');
-    } finally {
-      print('🔍 [login] Method execution completed.');
+
+      return null;
     }
+  } on SocketException catch (e) {
+    print('🌐 [login] No Internet connection: $e');
+    showErrorSnackbar('No internet connection. Please check your connection.');
+    return null;
+  } on TimeoutException catch (e) {
+    print('⏳ [login] Request timed out: $e');
+    showErrorSnackbar('Request timed out. Please try again later.');
+    return null;
+  } catch (e) {
+    print('⚠️ [login] Unexpected error: $e');
+    showErrorSnackbar('An unexpected error occurred. Please try again.');
+    return null;
+  } finally {
+    print('🔍 [login] Method execution completed.');
   }
+}
 
   Future<int?> getUserId() async {
     try {
@@ -365,10 +379,17 @@ class AuthService {
       throw Exception('Unexpected error: $e');
     } finally {
       print('🔍 [updateProfile] Method execution completed.');
-    }
+    }}
+
+
+  // final SharedPreferences sharedPreferences;
+
+  void setToken(String tocken)async {
+      final SharedPreferences sharedPreferences=await SharedPreferences.getInstance();
+
+    sharedPreferences.setString('token', tocken);
   }
 
-  // Get User Info Method
   Future<Map<String, dynamic>> getUserInfo({required String token}) async {
     print('🔍 [getUserInfo] Method called.');
     try {

@@ -1,4 +1,6 @@
+import 'dart:developer';
 import 'package:arabsocials/src/services/auth_services.dart';
+import 'package:arabsocials/src/view/auth/splash_steps/stepscreen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../widgets/bottom_nav.dart';
@@ -17,22 +19,40 @@ class SignUpController extends GetxController {
         email: email,
         password: password,
       );
-      print("Login successful: $response");
+         _authService.setToken(response?['token']);
+
+      // _authService.setToken(tocken)
       showSuccessSnackbar('Logged in successfully!');
       Get.offAll(() => BottomNav());
     } catch (e) {
       print('Login error: $e');
-      showErrorSnackbar(e.toString());
+      // showErrorSnackbar(e.toString());
     } finally {
       isLoading(false);
     }
   }
+ 
+Future<void> setLoginState()async{
+      String? token=          await _authService.getToken();
+log('token $token');
+      // Future.delayed(Duration(seconds: 3),(){
+ if(token!=null){
+          Get.offAll(() => BottomNav());
+
+      }else{
+        Get.to(() => Stepscreen());
+
+      }
+      // });
+     
+
+}
 
   void showSuccessSnackbar(String message) {
     Get.snackbar(
       "Success",
       message,
-      snackPosition: SnackPosition.BOTTOM,
+      snackPosition: SnackPosition.TOP,
       backgroundColor: Colors.green,
       colorText: Colors.white,
     );
@@ -42,7 +62,7 @@ class SignUpController extends GetxController {
     Get.snackbar(
       "Error",
       message,
-      snackPosition: SnackPosition.BOTTOM,
+      snackPosition: SnackPosition.TOP,
       backgroundColor: Colors.red,
       colorText: Colors.white,
     );
@@ -73,8 +93,8 @@ class SignUpController extends GetxController {
         authToken.value = response['token'];
 
         // Save token to secure storage
-        await _authService.getToken();
-
+         _authService.setToken(response['token']);
+// splash sy aggay jaa he nhi rhii
         return {
           'data': response,
           'user': response['user'],
@@ -134,4 +154,3 @@ class SignUpController extends GetxController {
     }
   }
 }
-

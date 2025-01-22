@@ -3,10 +3,15 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class CustomTextFormField extends StatelessWidget {
   final String hintText;
-
+  //  final Widget? suffixIcon;
+  // final Function? ontap;
+// final Function? onchanged;
   const CustomTextFormField({
     Key? key,
     required this.hintText,
+    // required this.onchanged,
+    // required this.ontap,
+    // this.suffixIcon
   }) : super(key: key);             ////////////////////////SEARCH FIELDS IN SCREEN///////////////////////////
 
   @override

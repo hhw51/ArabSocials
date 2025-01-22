@@ -13,7 +13,7 @@ import '../../apis/get_saved_events.dart';
 import '../../apis/save_remove_events.dart';
 import '../../controllers/registerEventController.dart';
 import '../../widgets/popup_event.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // Import the controller
+import 'package:flutter_secure_storage/flutter_secure_storage.dart'; 
 
 class Eventscreen extends StatefulWidget {
   Eventscreen({super.key});
@@ -24,14 +24,14 @@ class Eventscreen extends StatefulWidget {
 
 class _EventscreenState extends State<Eventscreen> {
   final NavigationController navigationController =
-  Get.put(NavigationController());
+      Get.put(NavigationController());
   final ApprovedEvents approvedEventsService = ApprovedEvents();
-  final EventService _eventService = EventService(); // Initialize EventService
+  final EventService _eventService = EventService(); 
   final GetSavedEvents _getSavedEvents = GetSavedEvents();
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   final RegisterEventController eventController =
-  Get.put(RegisterEventController()); // Initialize RegisterEventController
+      Get.put(RegisterEventController()); 
 
   bool isLoading = true;
   List<dynamic> events = [];
@@ -56,7 +56,7 @@ class _EventscreenState extends State<Eventscreen> {
   Future<void> _loadBookmarkedEventIds() async {
     try {
       final bookmarkedIdsString =
-      await _secureStorage.read(key: 'bookmarkedEventIds');
+          await _secureStorage.read(key: 'bookmarkedEventIds');
       if (bookmarkedIdsString != null && bookmarkedIdsString.isNotEmpty) {
         setState(() {
           _bookmarkedEventIds =
@@ -298,16 +298,20 @@ class _EventscreenState extends State<Eventscreen> {
       children: [
         Container(
           height: 24.h,
-          width: displayCount * 24.w + (displayCount - 1) * 6.w, // Adjust width based on number of images
+          width: displayCount * 24.w +
+              (displayCount - 1) *
+                  6.w, // Adjust width based on number of images
           child: Stack(
             children: List.generate(displayCount, (i) {
               return Positioned(
                 left: i * 18.w, // Overlap images slightly
                 child: CircleAvatar(
                   radius: 10.r,
-                  backgroundImage: attendees[i]['image'] != null && attendees[i]['image'].isNotEmpty
+                  backgroundImage: attendees[i]['image'] != null &&
+                          attendees[i]['image'].isNotEmpty
                       ? NetworkImage('$baseUrl${attendees[i]['image']}')
-                      : AssetImage('assets/logo/member_group.png') as ImageProvider,
+                      : AssetImage('assets/logo/member_group.png')
+                          as ImageProvider,
                 ),
               );
             }),
@@ -386,7 +390,7 @@ class _EventscreenState extends State<Eventscreen> {
                       scrollDirection: Axis.horizontal,
                       child: Padding(
                         padding:
-                        EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                            EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                         child: Row(
                           children: [
                             Custombutton(
@@ -451,8 +455,8 @@ class _EventscreenState extends State<Eventscreen> {
                                   if (snapshot.connectionState ==
                                       ConnectionState.waiting) {
                                     return Padding(
-                                      padding:
-                                      const EdgeInsets.symmetric(vertical: 10),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 10),
                                       child: Container(
                                         height: 233.h,
                                         child: Center(
@@ -461,8 +465,8 @@ class _EventscreenState extends State<Eventscreen> {
                                     );
                                   } else if (snapshot.hasError) {
                                     return Padding(
-                                      padding:
-                                      const EdgeInsets.symmetric(vertical: 10),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 10),
                                       child: Container(
                                         height: 233.h,
                                         child: Center(
@@ -486,7 +490,7 @@ class _EventscreenState extends State<Eventscreen> {
                                           decoration: BoxDecoration(
                                             color: Colors.white,
                                             borderRadius:
-                                            BorderRadius.circular(16.r),
+                                                BorderRadius.circular(16.r),
                                             boxShadow: [
                                               BoxShadow(
                                                 color: Colors.black
@@ -498,36 +502,37 @@ class _EventscreenState extends State<Eventscreen> {
                                           ),
                                           child: Padding(
                                             padding: EdgeInsets.symmetric(
-                                                horizontal: 12,
-                                                vertical: 8),
+                                                horizontal: 12, vertical: 8),
                                             child: Column(
                                               crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Stack(
                                                   children: [
                                                     ClipRRect(
                                                       borderRadius:
-                                                      BorderRadius.circular(
-                                                          12),
+                                                          BorderRadius.circular(
+                                                              12),
                                                       child: Image.network(
-                                                        event['flyer'] != null &&
-                                                            event['flyer'] !=
-                                                                ''
+                                                        event['flyer'] !=
+                                                                    null &&
+                                                                event['flyer'] !=
+                                                                    ''
                                                             ? '$baseUrl${event['flyer']}'
                                                             : 'assets/logo/homegrid.png',
                                                         fit: BoxFit.cover,
                                                         height: 131.h,
                                                         width: double.infinity,
                                                         errorBuilder: (context,
-                                                            error,
-                                                            stackTrace) =>
+                                                                error,
+                                                                stackTrace) =>
                                                             Image.asset(
-                                                              'assets/logo/homegrid.png',
-                                                              fit: BoxFit.cover,
-                                                              height: 131.h,
-                                                              width: double.infinity,
-                                                            ),
+                                                          'assets/logo/homegrid.png',
+                                                          fit: BoxFit.cover,
+                                                          height: 131.h,
+                                                          width:
+                                                              double.infinity,
+                                                        ),
                                                       ),
                                                     ),
                                                     // Date Container
@@ -538,53 +543,53 @@ class _EventscreenState extends State<Eventscreen> {
                                                         height: 36.h,
                                                         width: 36.w,
                                                         decoration:
-                                                        BoxDecoration(
+                                                            BoxDecoration(
                                                           color: Colors.white,
                                                           borderRadius:
-                                                          BorderRadius
-                                                              .circular(
-                                                              6.r),
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      6.r),
                                                         ),
                                                         child: Column(
                                                           mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .center,
+                                                              MainAxisAlignment
+                                                                  .center,
                                                           children: [
                                                             Text(
                                                               event['day']
-                                                                  ?.toString() ??
+                                                                      ?.toString() ??
                                                                   '',
                                                               style: GoogleFonts
                                                                   .playfairDisplaySc(
                                                                 fontSize: 14.sp,
-                                                                color:
-                                                                Colors.green,
+                                                                color: Colors
+                                                                    .green,
                                                                 fontWeight:
-                                                                FontWeight
-                                                                    .w700,
+                                                                    FontWeight
+                                                                        .w700,
                                                               ),
                                                               maxLines: 1,
                                                               overflow:
-                                                              TextOverflow
-                                                                  .ellipsis,
+                                                                  TextOverflow
+                                                                      .ellipsis,
                                                             ),
                                                             Text(
                                                               event['month']
-                                                                  ?.toString() ??
+                                                                      ?.toString() ??
                                                                   '',
                                                               style: GoogleFonts
                                                                   .playfairDisplaySc(
                                                                 fontSize: 8.sp,
-                                                                color:
-                                                                Colors.green,
+                                                                color: Colors
+                                                                    .green,
                                                                 fontWeight:
-                                                                FontWeight
-                                                                    .w700,
+                                                                    FontWeight
+                                                                        .w700,
                                                               ),
                                                               maxLines: 1,
                                                               overflow:
-                                                              TextOverflow
-                                                                  .ellipsis,
+                                                                  TextOverflow
+                                                                      .ellipsis,
                                                             ),
                                                           ],
                                                         ),
@@ -596,51 +601,53 @@ class _EventscreenState extends State<Eventscreen> {
                                                       right: 12.w,
                                                       child: GestureDetector(
                                                         onTap: () {
-                                                          _toggleBookmark(eventId);
+                                                          _toggleBookmark(
+                                                              eventId);
                                                         },
                                                         child: Container(
                                                           height: 36.h,
                                                           width: 36.w,
                                                           decoration:
-                                                          BoxDecoration(
-                                                            color:
-                                                            Colors.white,
+                                                              BoxDecoration(
+                                                            color: Colors.white,
                                                             borderRadius:
-                                                            BorderRadius
-                                                                .circular(
-                                                                6.r),
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        6.r),
                                                           ),
-                                                          child: _processingEventIds
-                                                              .contains(
-                                                              eventId)
-                                                              ? Center(
-                                                            child:
-                                                            SizedBox(
-                                                              width: 18.w,
-                                                              height: 18.h,
-                                                              child:
-                                                              CircularProgressIndicator(
-                                                                strokeWidth:
-                                                                2.0,
-                                                                valueColor:
-                                                                AlwaysStoppedAnimation<
-                                                                    Color>(
-                                                                  Colors
-                                                                      .green,
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          )
-                                                              : Icon(
-                                                            event['bookmarked']
-                                                                ? Icons
-                                                                .bookmark
-                                                                : Icons
-                                                                .bookmark_outline,
-                                                            color: Colors
-                                                                .green,
-                                                            size: 18.sp,
-                                                          ),
+                                                          child:
+                                                              _processingEventIds
+                                                                      .contains(
+                                                                          eventId)
+                                                                  ? Center(
+                                                                      child:
+                                                                          SizedBox(
+                                                                        width:
+                                                                            18.w,
+                                                                        height:
+                                                                            18.h,
+                                                                        child:
+                                                                            CircularProgressIndicator(
+                                                                          strokeWidth:
+                                                                              2.0,
+                                                                          valueColor:
+                                                                              AlwaysStoppedAnimation<Color>(
+                                                                            Colors.green,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    )
+                                                                  : Icon(
+                                                                      event['bookmarked']
+                                                                          ? Icons
+                                                                              .bookmark
+                                                                          : Icons
+                                                                              .bookmark_outline,
+                                                                      color: Colors
+                                                                          .green,
+                                                                      size:
+                                                                          18.sp,
+                                                                    ),
                                                         ),
                                                       ),
                                                     ),
@@ -655,7 +662,7 @@ class _EventscreenState extends State<Eventscreen> {
                                                       Expanded(
                                                         child: Text(
                                                           event['title']
-                                                              ?.toString() ??
+                                                                  ?.toString() ??
                                                               '',
                                                           maxLines: 1,
                                                           overflow: TextOverflow
@@ -665,8 +672,7 @@ class _EventscreenState extends State<Eventscreen> {
                                                             fontSize: 12.sp,
                                                             color: Colors.black,
                                                             fontWeight:
-                                                            FontWeight
-                                                                .w700,
+                                                                FontWeight.w700,
                                                           ),
                                                         ),
                                                       ),
@@ -683,18 +689,14 @@ class _EventscreenState extends State<Eventscreen> {
                                                           height: 20.h,
                                                           width: 20.w,
                                                           decoration:
-                                                          BoxDecoration(
-                                                            color:
-                                                            const Color
-                                                                .fromARGB(
-                                                                255,
-                                                                35,
-                                                                94,
-                                                                77),
+                                                              BoxDecoration(
+                                                            color: const Color
+                                                                .fromARGB(255,
+                                                                35, 94, 77),
                                                             borderRadius:
-                                                            BorderRadius
-                                                                .circular(
-                                                                6),
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        6),
                                                           ),
                                                           child: Icon(
                                                             Icons.more_vert,
@@ -711,9 +713,8 @@ class _EventscreenState extends State<Eventscreen> {
                                                 SizedBox(height: 2.h),
                                                 // Location
                                                 Padding(
-                                                  padding:
-                                                  const EdgeInsets.symmetric(
-                                                      vertical: 4),
+                                                  padding: const EdgeInsets
+                                                      .symmetric(vertical: 4),
                                                   child: Row(
                                                     children: [
                                                       Icon(
@@ -725,15 +726,14 @@ class _EventscreenState extends State<Eventscreen> {
                                                       Expanded(
                                                         child: Text(
                                                           event['location']
-                                                              ?.toString() ??
+                                                                  ?.toString() ??
                                                               '',
                                                           style: TextStyle(
                                                             fontSize: 12.sp,
                                                             color: Colors.grey,
                                                           ),
                                                           maxLines: 1,
-                                                          overflow:
-                                                          TextOverflow
+                                                          overflow: TextOverflow
                                                               .ellipsis,
                                                         ),
                                                       ),
@@ -803,7 +803,7 @@ class _EventscreenState extends State<Eventscreen> {
     } else {
       try {
         final attendees =
-        await eventController.getRegisteredUsersByEventId(eventId);
+            await eventController.getRegisteredUsersByEventId(eventId);
         setState(() {
           _attendeesMap[eventId] = attendees!;
         });

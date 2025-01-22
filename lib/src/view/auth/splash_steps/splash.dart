@@ -1,4 +1,5 @@
-import 'package:arabsocials/src/view/auth/splash_steps/stepscreen.dart';
+
+import 'package:arabsocials/src/controllers/userlogin_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart'; 
 import 'package:get/get.dart';
@@ -16,14 +17,16 @@ class _SplashscreenState extends State<Splashscreen> with SingleTickerProviderSt
   late Animation<double> _opacityAnimation;
   late Animation<double> _scaleAnimation;
  void splash(){
-  Future.delayed(Duration(seconds: 3),(){
-Get.to(() => Stepscreen());
+  Future.delayed(Duration(seconds: 3),()async{
+// Get.to(() => Stepscreen());
+// await Get.find<SignUpController>().setLoginState();
+Get.put(SignUpController());
+await Get.find<SignUpController>().setLoginState();
   });
  }
   @override
   void initState() {
     super.initState();
-
     // Initialize the AnimationController
     _animationController = AnimationController(
       vsync: this,

@@ -277,6 +277,7 @@ class _BusinessscreenState extends State<Businessscreen> {
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 12.w),
                   child: const CustomTextFormField(
+                    
                     hintText: "Search businesses by name or category",
                   ),
                 ),

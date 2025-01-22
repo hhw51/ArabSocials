@@ -17,16 +17,16 @@ import '../../apis/same-profession.dart';
 import '../../apis/same_location.dart';
 import '../../apis/add_remove_favorite.dart';// Ensure this import exists
 
-class Memberscreen extends StatefulWidget {
+class HomeFavourite extends StatefulWidget {
   bool? isfavourite;
 
-  Memberscreen({super.key,required this.isfavourite});
+  HomeFavourite({super.key,required this.isfavourite});
 
   @override
-  State<Memberscreen> createState() => _MemberscreenState();
+  State<HomeFavourite> createState() => _HomeFavouriteState();
 }
 
-class _MemberscreenState extends State<Memberscreen> {
+class _HomeFavouriteState extends State<HomeFavourite> {
   final NavigationController navigationController = Get.put(NavigationController());
   final FavoritesService _favoritesService = FavoritesService();
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();

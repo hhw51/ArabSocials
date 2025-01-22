@@ -4,7 +4,9 @@ import 'package:arabsocials/src/models/home_model1.dart';
 import 'package:arabsocials/src/services/auth_services.dart';
 import 'package:arabsocials/src/view/events/promote_event.dart';
 import 'package:arabsocials/src/view/events/register_event.dart';
+import 'package:arabsocials/src/view/homepage/home_fav.dart';
 import 'package:arabsocials/src/view/homepage/notification_screen.dart';
+import 'package:arabsocials/src/view/profile/ProfileDetailsScreen.dart';
 import 'package:arabsocials/src/widgets/custom_container.dart';
 import 'package:arabsocials/src/widgets/custombuttons.dart';
 import 'package:flutter/material.dart';
@@ -78,15 +80,16 @@ class _HomescreenState extends State<Homescreen> {
     );
   }
 
-  ImageProvider _resolveImagePath(String? rawPath) {
+   String _resolveImagePath(String? rawPath) {
     if (rawPath == null || rawPath.isEmpty) {
-      return const AssetImage("assets/logo/member_group.png"); // Local fallback
+      return "assets/logo/member_group.png"; // local fallback
     }
     if (!rawPath.startsWith('http')) {
-      return NetworkImage('$_baseImageUrl$rawPath');
+      return '$_baseImageUrl$rawPath';
     }
-    return NetworkImage(rawPath);
+    return rawPath;
   }
+
 
   String _monthAbbreviation(int month) {
     const months = [
@@ -139,7 +142,10 @@ class _HomescreenState extends State<Homescreen> {
         savedEvents = events.map((event) => {
           ...event,
           'bookmarked': event['bookmarked'] ?? false, // Default to false
+          
         }).toList();
+           print("Favouriets are fetching 🎶🎶🎶🎶🎶$savedEvents");
+
         isLoading = false;
       });
     } catch (error) {
@@ -155,6 +161,7 @@ class _HomescreenState extends State<Homescreen> {
       final users = await authService.getFavoriteUsers();
       setState(() {
         favoriteUsers = users;
+          print("Favouriets are fetching 🤢🤢🤢🤢🤢$favoriteUsers");
       });
     } catch (error) {
       print('Error fetching favorite users: $error');
@@ -238,21 +245,21 @@ class _HomescreenState extends State<Homescreen> {
                         },
                       ),
                     ),
-                    InkWell(
-                      onTap: () {
-                        navigationController.navigateToChild(RegisterEvent());
-                      },
-                      child: SizedBox(
-                        height: 237.h,
-                        child: isLoading
-                            ? const Center(child: CircularProgressIndicator())
-                            : ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                padding: EdgeInsets.symmetric(horizontal: 12.w),
-                                itemCount: savedEvents.length,
-                                itemBuilder: (context, index) {
-                                  final event = savedEvents[index];
-                                  return Padding(
+                    SizedBox(
+                      height: 237.h,
+                      child: isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              padding: EdgeInsets.symmetric(horizontal: 12.w),
+                              itemCount: savedEvents.length,
+                              itemBuilder: (context, index) {
+                                final event = savedEvents[index];
+                                return InkWell(
+                                  onTap: () {
+                                    navigationController.navigateToChild(RegisterEvent());
+                                  },
+                                  child: Padding(
                                     padding: EdgeInsets.only(right: 10.w),
                                     child: Container(
                                       width: 218.w,
@@ -387,10 +394,10 @@ class _HomescreenState extends State<Homescreen> {
                                         ),
                                       ),
                                     ),
-                                  );
-                                },
-                              ),
-                      ),
+                                  ),
+                                );
+                              },
+                            ),
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -557,7 +564,7 @@ class _HomescreenState extends State<Homescreen> {
                             title: "PEOPLE IM CONNECTED TO",
                             actionText: "See all",
                             onTap: () {
-                              print("See all tapped!");
+                              navigationController.navigateToChild(HomeFavourite(isfavourite: true,));
                             },
                           ),
                           Padding(
@@ -569,45 +576,80 @@ class _HomescreenState extends State<Homescreen> {
                                 itemCount: favoriteUsers.length,
                                 itemBuilder: (context, index) {
                                   final user = favoriteUsers[index];
-                                  return Padding(
-                                    padding: EdgeInsets.only(right: 12.w),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                        ClipOval(
-                                          child: Image.network(
-                                            user['image'] ?? 'assets/logo/logoimage1.png',
-                                            width: 58.w,
-                                            height: 58.h,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (context, error, stackTrace) =>
-                                                Image.asset(
-                                              'assets/logo/logoimage1.png',
+                                  // log( _baseImageUrl+ user['image']??'');
+                                  return InkWell(
+                                     onTap: () {
+                            navigationController.navigateToChild(
+                              ProfileDetailsScreen(
+                                title: "Member Profile",
+                                name: user["name"]!,
+                                professionOrCategory: user["profession"]??"",
+                                location: user["location"]??"",
+                                imagePath: user["image"]!=null ?_baseImageUrl+user["image"]??"":'',
+                                about: "This is some info about ${user["name"]}",
+                                interestsOrCategories: [
+                                  "Music",
+                                  "Art",
+                                  "Technology"
+                                ],
+                                personalDetails: {
+                                  "Phone": "4788743654478",
+                                  "Email": user["email"]??"",
+                                  "Location": user["location"]??"",
+                                  "Gender": "Female",
+                                  "D.O.B": "03-11-2005",
+                                  "Profession": user["profession"]??"",
+                                  "Nationality": "USA",
+                                  "Marital Status": "Single",
+                                },
+                              ),
+                            );
+                          },
+                                    child: Padding(
+                                      padding: EdgeInsets.only(right: 12.w),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          ClipOval(
+                                            child:user['image']!=null? Image.network(
+                                          _baseImageUrl+user['image'] ?? '',
                                               width: 58.w,
                                               height: 58.h,
                                               fit: BoxFit.cover,
+                                              errorBuilder: (context, error, stackTrace) =>
+                                                  Image.asset(
+                                                'assets/logo/logoimage1.png',
+                                                width: 58.w,
+                                                height: 58.h,
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ):Image.asset(
+                                                'assets/logo/logoimage1.png',
+                                                width: 58.w,
+                                                height: 58.h,
+                                                fit: BoxFit.cover,
+                                              ),
+                                          ),
+                                          Text(
+                                            user['name'] ?? '',
+                                            style: GoogleFonts.playfairDisplaySc(
+                                              fontSize: 10.sp,
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.green,
                                             ),
+                                            textAlign: TextAlign.center,
                                           ),
-                                        ),
-                                        Text(
-                                          user['name'] ?? '',
-                                          style: GoogleFonts.playfairDisplaySc(
-                                            fontSize: 10.sp,
-                                            fontWeight: FontWeight.w700,
-                                            color: Colors.green,
+                                          Text(
+                                            user['profession'] ?? '',
+                                            style: TextStyle(
+                                              fontSize: 8.sp,
+                                              fontWeight: FontWeight.w400,
+                                              color: Colors.grey[700],
+                                            ),
+                                            textAlign: TextAlign.center,
                                           ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                        Text(
-                                          user['profession'] ?? '',
-                                          style: TextStyle(
-                                            fontSize: 8.sp,
-                                            fontWeight: FontWeight.w400,
-                                            color: Colors.grey[700],
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   );
                                 },

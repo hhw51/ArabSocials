@@ -2,6 +2,7 @@
 import 'package:arabsocials/src/controllers/password_visible.dart';
 import 'package:arabsocials/src/controllers/userlogin_controller.dart';
 import 'package:arabsocials/src/view/auth/sign_up/pages/sign_up_page.dart';
+import 'package:arabsocials/src/widgets/snack_bar_widget.dart';
 import 'package:arabsocials/src/widgets/textfieled_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -23,6 +24,8 @@ class _SigninscreenState extends State<Signinscreen> {
   final TextEditingController passwordController = TextEditingController();
    final PasswordVisibilityController visibilityController =
       Get.put(PasswordVisibilityController());
+        bool isRememberMe = false;
+
 
   Future<User?> _signInWithGoogle() async {
     try {
@@ -108,7 +111,7 @@ class _SigninscreenState extends State<Signinscreen> {
                             visibilityController.toggleVisibility('password'),
                       ),
                     )),
-                    Row(
+                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Row(
@@ -116,11 +119,16 @@ class _SigninscreenState extends State<Signinscreen> {
                             Transform.scale(
                               scale: 0.8,
                               child: Switch(
-                                value: true,
-                                onChanged: (value) {},
+                                value: isRememberMe,
+                                onChanged: (value) {
+                                  setState(() {
+                                    isRememberMe = value;
+                                  });
+                                },
                                 activeColor: Colors.white,
                                 activeTrackColor:
-                                const Color.fromARGB(255, 35, 94, 77),
+                                    const Color.fromARGB(255, 35, 94, 77),
+                                    inactiveTrackColor: Colors.grey[500],
                               ),
                             ),
                             Text(
@@ -150,15 +158,24 @@ class _SigninscreenState extends State<Signinscreen> {
                     SizedBox(height: 20.h),
           
                     /// **SIGN IN BUTTON** (Calls `login`)
-                    ElevatedButton(
+                   ElevatedButton(
                       onPressed: () {
                         final email = emailController.text.trim();
                         final password = passwordController.text.trim();
-          
+
                         if (email.isEmpty || password.isEmpty) {
-                          Get.snackbar('Error', 'Please fill in all fields');
+                          showErrorSnackbar('Please fill in all fields');
                           return;
                         }
+
+                        // Handle "Remember Me" logic
+                        if (isRememberMe) {
+                          // Save user login info to local storage
+                          print('Remember me is enabled.');
+                        } else {
+                          print('Remember me is disabled.');
+                        }
+
                         _signUpController.login(email, password);
                       },
                       style: ElevatedButton.styleFrom(
@@ -177,7 +194,6 @@ class _SigninscreenState extends State<Signinscreen> {
                         ),
                       ),
                     ),
-          
                     SizedBox(height: 20.h),
                     Row(
                       children: [

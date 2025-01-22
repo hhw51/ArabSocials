@@ -9,6 +9,7 @@ void showSuccessSnackbar(String message) {
     backgroundColor: Colors.green,
     snackPosition: SnackPosition.TOP,
     duration: const Duration(seconds: 2),
+    colorText: Colors.white,
     mainButton: TextButton(
       onPressed: () {
         Get.closeAllSnackbars();
@@ -28,6 +29,7 @@ void showErrorSnackbar(String message) {
     backgroundColor: Colors.red,
     snackPosition: SnackPosition.TOP,
     duration: const Duration(seconds: 2),
+    colorText: Colors.white,
     mainButton: TextButton(
       onPressed: () {
         Get.closeAllSnackbars();
