@@ -25,11 +25,13 @@ class ApprovedEvents {
     final controller = Get.find<RegisterEventController>();
     try {
       print('Connecting to $_approvedEventsUrl');
+      final token = await getToken();
 
       final response = await http
           .get(
         Uri.parse(_approvedEventsUrl),
         headers: {
+          'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
       )

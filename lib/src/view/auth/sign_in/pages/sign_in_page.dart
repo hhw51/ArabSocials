@@ -1,4 +1,3 @@
-
 import 'package:arabsocials/src/controllers/password_visible.dart';
 import 'package:arabsocials/src/controllers/userlogin_controller.dart';
 import 'package:arabsocials/src/view/auth/sign_up/pages/sign_up_page.dart';
@@ -7,8 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+
 
 class Signinscreen extends StatefulWidget {
   const Signinscreen({super.key});
@@ -23,30 +21,6 @@ class _SigninscreenState extends State<Signinscreen> {
   final TextEditingController passwordController = TextEditingController();
    final PasswordVisibilityController visibilityController =
       Get.put(PasswordVisibilityController());
-
-  Future<User?> _signInWithGoogle() async {
-    try {
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) {
-        return null;
-      }
-
-      final GoogleSignInAuthentication googleAuth =
-      await googleUser.authentication;
-
-      final OAuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      final UserCredential userCredential =
-      await FirebaseAuth.instance.signInWithCredential(credential);
-      return userCredential.user;
-    } catch (e) {
-      print("Error during Google sign-in: $e");
-      return null;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -209,17 +183,8 @@ class _SigninscreenState extends State<Signinscreen> {
                     SizedBox(height: 20.h),
           
                     ElevatedButton.icon(
-                      onPressed: () async {
-                        User? user = await _signInWithGoogle();
-                        if (user != null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Welcome ${user.displayName}')),
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Google sign-in failed')),
-                          );
-                        }
+                      onPressed: () {
+                        _signUpController.signInWithGoogle();
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color.fromARGB(255, 255, 255, 255),

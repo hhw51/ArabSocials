@@ -1,22 +1,22 @@
-import 'package:arabsocials/src/controllers/navigation_controller.dart';
+// member_tiles.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class MemberTile extends StatefulWidget {
+class MemberTile extends StatelessWidget {
   final String imagePath;
   final String name;
   final String profession;
   final String location;
   final bool isCircular;
-  final VoidCallback? onTap;
-  final VoidCallback? onFavoriteTap;
   final bool isFavorite;
   final bool isProcessing;
+  final VoidCallback? onTap;
+  final VoidCallback? onFavoriteTap;
 
   const MemberTile({
-    super.key,
+    Key? key,
     required this.imagePath,
     required this.name,
     required this.profession,
@@ -24,17 +24,9 @@ class MemberTile extends StatefulWidget {
     required this.isCircular,
     this.onTap,
     this.onFavoriteTap,
-    required this.isFavorite,
-    this.isProcessing = false
-  });
-
-  @override
-  State<MemberTile> createState() => _MemberTileState();
-}
-
-class _MemberTileState extends State<MemberTile> {
-  bool isFavorite = false;
-  final NavigationController navigationController = Get.put(NavigationController());
+    this.isFavorite = false,
+    this.isProcessing = false,
+  }) : super(key: key);
 
   /// Decide whether to load via network or asset
   Widget _buildImage(String path) {
@@ -61,12 +53,12 @@ class _MemberTileState extends State<MemberTile> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             // --- Image Container (circular or rounded) ---
-            widget.isCircular
+            isCircular
                 ? ClipOval(
               child: SizedBox(
                 height: 72.h,
                 width: 72.w,
-                child: _buildImage(widget.imagePath),
+                child: _buildImage(imagePath),
               ),
             )
                 : Container(
@@ -76,7 +68,7 @@ class _MemberTileState extends State<MemberTile> {
                 borderRadius: BorderRadius.circular(20.w),
               ),
               clipBehavior: Clip.antiAlias,
-              child: _buildImage(widget.imagePath),
+              child: _buildImage(imagePath),
             ),
 
             // --- Name, Profession, Location ---
@@ -88,7 +80,7 @@ class _MemberTileState extends State<MemberTile> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.name,
+                      name,
                       style: GoogleFonts.playfairDisplaySc(
                         fontSize: 16.sp,
                         fontWeight: FontWeight.w700,
@@ -105,7 +97,7 @@ class _MemberTileState extends State<MemberTile> {
                         SizedBox(width: 4.w),
                         Expanded(
                           child: Text(
-                            widget.profession,
+                            profession,
                             style: TextStyle(color: Colors.grey, fontSize: 8.sp),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -120,7 +112,7 @@ class _MemberTileState extends State<MemberTile> {
                         ),
                         SizedBox(width: 4.w),
                         Text(
-                          widget.location,
+                          location,
                           style: TextStyle(color: Colors.grey, fontSize: 8.sp),
                         ),
                       ],
@@ -138,19 +130,14 @@ class _MemberTileState extends State<MemberTile> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        isFavorite = !isFavorite;
-                      });
-                      widget.onFavoriteTap?.call();
-                    },
+                    onTap: isProcessing ? null : onFavoriteTap,
                     child: Icon(
-                      widget.isFavorite ? Icons.favorite : Icons.favorite_border,
+                      isFavorite ? Icons.favorite : Icons.favorite_border,
                       color: const Color.fromARGB(255, 35, 94, 77),
                     ),
                   ),
                   InkWell(
-                    onTap: widget.onTap,
+                    onTap: onTap,
                     child: const Row(
                       children: [
                         Text(

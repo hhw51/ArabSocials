@@ -96,15 +96,11 @@ void _showAttendeesPopup(
                 leading: CircleAvatar(
                   backgroundImage: attendee['image'] != null
                       ? NetworkImage('http://35.222.126.155:8000${attendee['image']}')
-                      : const AssetImage('assets/logo/default_avatar.png') as ImageProvider,
+                      : const AssetImage('assets/logo/member_group.png') as ImageProvider,
                 ),
                 title: Text(
                   attendee['name'] ?? 'Unknown',
                   style: const TextStyle(color: Colors.black),
-                ),
-                subtitle: Text(
-                  attendee['email'] ?? '',
-                  style: const TextStyle(color: Colors.grey),
                 ),
               );
             },

@@ -16,6 +16,7 @@ class User {
   final String? nationality;
   final String? dob;
   final String? gender;
+  final bool is_favorite;
 
   User({
     required this.id,
@@ -33,6 +34,7 @@ class User {
     this.nationality,
     this.dob,
     this.gender,
+    this.is_favorite = false,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -57,6 +59,7 @@ class User {
         nationality: json['nationality']?? "",
         dob: json['dob']?? "",
         gender: json['gender']?? "",
+        is_favorite: json['is_favorite'] ?? false,
       );
     } catch (e) {
       print('Error parsing User JSON: $e');

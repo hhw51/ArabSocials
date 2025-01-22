@@ -1,10 +1,15 @@
 import 'package:arabsocials/src/services/auth_services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../widgets/bottom_nav.dart';
 
 class SignUpController extends GetxController {
   final AuthService _authService = AuthService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   var isLoading = false.obs;
   final Rx<Map<String, dynamic>> userData = Rx<Map<String, dynamic>>({});
@@ -47,6 +52,75 @@ class SignUpController extends GetxController {
       colorText: Colors.white,
     );
   }
+
+  Future<void> signInWithGoogle() async {
+    try {
+      // Show loading indicator
+      Get.dialog(
+        const Center(child: CircularProgressIndicator()),
+        barrierDismissible: false,
+      );
+
+      // Initialize GoogleSignIn
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+
+      // Clear any previous sign-in
+      await googleSignIn.signOut();
+
+      // Trigger the authentication flow
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+
+      if (googleUser == null) {
+        Get.back();
+        Get.snackbar('Info', 'Sign in was cancelled');
+        return;
+      }
+
+      print('Google Sign In successful for user: ${googleUser.email}');
+
+      // Obtain the auth details from the request
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      print('Got Google auth tokens');
+
+      // Create a new credential
+      final OAuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // Sign in to Firebase
+      final UserCredential userCredential =
+      await FirebaseAuth.instance.signInWithCredential(credential);
+
+      print('Firebase sign in successful for user: ${userCredential.user?.email}');
+
+      // Dismiss loading indicator
+      Get.back();
+
+      // Navigate to home screen
+      Get.offAll(() => const BottomNav());
+      Get.snackbar(
+          'Success',
+          'Logged in successfully as ${userCredential.user?.email}'
+      );
+
+    } on FirebaseAuthException catch (e) {
+      print('FirebaseAuthException: ${e.message}');
+      Get.back();
+      Get.snackbar('Auth Error', e.message ?? 'Firebase authentication failed');
+
+    } on PlatformException catch (e) {
+      print('PlatformException: ${e.message}');
+      Get.back();
+      Get.snackbar('Platform Error', e.message ?? 'Platform error occurred');
+
+    } catch (e) {
+      print('Unexpected error: $e');
+      Get.back();
+      Get.snackbar('Error', 'Error: $e');
+    }
+  }
+
 
   Future<Map<String, dynamic>> signUp(
       String name,
