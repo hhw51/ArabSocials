@@ -7,6 +7,7 @@ import 'package:arabsocials/src/services/auth_services.dart';
 import 'package:arabsocials/src/view/events/promote_event.dart';
 import 'package:arabsocials/src/view/events/register_event.dart';
 import 'package:arabsocials/src/view/homepage/notification_screen.dart';
+import 'package:arabsocials/src/view/members/memberscreen.dart';
 import 'package:arabsocials/src/view/profile/ProfileDetailsScreen.dart';
 import 'package:arabsocials/src/widgets/custom_container.dart';
 import 'package:arabsocials/src/widgets/custombuttons.dart';
@@ -636,13 +637,15 @@ class _HomescreenState extends State<Homescreen> {
                               ),
                             ),
                           ),
-                          SectionHeader(
-                            title: "PEOPLE IM CONNECTED TO",
-                            actionText: "See all",
-                            onTap: () {
-                              navigationController.currentIndex(2);
-                            },
-                          ),
+                         SectionHeader(
+  title: "PEOPLE IM CONNECTED TO",
+  actionText: "See all",
+  onTap: () {
+    navigationController.currentIndex(
+      2,
+    );
+  },
+),
                           Padding(
                             padding: const EdgeInsets.only(bottom: 10),
                             child: SizedBox(

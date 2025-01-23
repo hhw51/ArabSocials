@@ -43,7 +43,7 @@ class SignUpController extends GetxController {
     Get.snackbar(
       "Success",
       message,
-      snackPosition: SnackPosition.BOTTOM,
+      snackPosition: SnackPosition.TOP,
       backgroundColor: Colors.green,
       colorText: Colors.white,
     );
@@ -53,7 +53,7 @@ class SignUpController extends GetxController {
     Get.snackbar(
       "Error",
       message,
-      snackPosition: SnackPosition.BOTTOM,
+      snackPosition: SnackPosition.TOP,
       backgroundColor: Colors.red,
       colorText: Colors.white,
     );

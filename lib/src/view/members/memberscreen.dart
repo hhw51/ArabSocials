@@ -16,8 +16,9 @@ import '../../apis/same_location.dart';
 import '../../apis/add_remove_favorite.dart'; // Ensure this import exists
 
 class Memberscreen extends StatefulWidget {
-  Memberscreen({Key? key}) : super(key: key);
+ final bool showFavoriteOnly;
 
+  Memberscreen({Key? key, this.showFavoriteOnly = false}) : super(key: key);
   @override
   State<Memberscreen> createState() => _MemberscreenState();
 }
@@ -110,10 +111,16 @@ class _MemberscreenState extends State<Memberscreen> {
     super.initState();
     _fetchOtherUsers();
     _loadFavoriteUserIds();
-
-    // Listen to changes in the search field with debounce
-    _searchController.addListener(_onSearchChanged);
+ if (widget.showFavoriteOnly) {
+    _isFavoriteToggled = true; // Set favorite filter to true
+    _fetchFavoriteUsers(); // Fetch favorite users only
+  } else {
+    _fetchOtherUsers(); // Fetch all users
   }
+
+  // Listen to changes in the search field with debounce
+  _searchController.addListener(_onSearchChanged);
+}
 
   @override
   void dispose() {
@@ -634,43 +641,44 @@ class _MemberscreenState extends State<Memberscreen> {
                             ),
                           );
                         },
-                        child: MemberTile(
-                          imagePath: member["imagePath"]!,
-                          name: member["name"]!,
-                          profession: member["profession"]!,
-                          location: member["location"]!,
-                          isCircular: true,
-                          isFavorite: isFavorite, // Use 'is_favorite' from API
-                          isProcessing: isProcessing,
-                          onFavoriteTap: () => _onFavoriteIconTap(userId),
-                          onTap: () {
-                            navigationController.navigateToChild(
-                              ProfileDetailsScreen(
-                                title: "Member Profile",
-                                name: member["name"]!,
-                                professionOrCategory: member["profession"]!,
-                                location: member["location"]!,
-                                imagePath: member["imagePath"]!,
-                                about: "This is some info about ${member["name"]}",
-                                interestsOrCategories: [
-                                  "Music",
-                                  "Art",
-                                  "Technology"
-                                ],
-                                personalDetails: {
-                                  "Phone": member['phone'],
-                                  "Email": member["email"],
-                                  "Location": member["location"],
-                                  "Gender": member['gender'],
-                                  "D.O.B": member['dob'],
-                                  "Profession": member["profession"],
-                                  "Nationality": member['nationality'],
-                                  "Marital Status": member['marital_status']!,
-                                },
-                              ),
-                            );
-                          },
-                        ),
+                        child:MemberTile(
+  imagePath: member["imagePath"]!,
+  name: member["name"]!,
+  profession: member["profession"]!,
+  location: member["location"]!,
+  isCircular: true,
+  isFavorite: member["is_favorite"] == true, // Ensure the icon reflects favorite status
+  isProcessing: _processingUserIds.contains(userId),
+  onFavoriteTap: () => _onFavoriteIconTap(userId), // Handle favorite toggle
+  onTap: () {
+    navigationController.navigateToChild(
+      ProfileDetailsScreen(
+        title: "Member Profile",
+        name: member["name"]!,
+        professionOrCategory: member["profession"]!,
+        location: member["location"]!,
+        imagePath: member["imagePath"]!,
+        about: "This is some info about ${member["name"]}",
+        interestsOrCategories: [
+          "Music",
+          "Art",
+          "Technology"
+        ],
+        personalDetails: {
+          "Phone": member['phone'],
+          "Email": member["email"],
+          "Location": member["location"],
+          "Gender": member['gender'],
+          "D.O.B": member['dob'],
+          "Profession": member["profession"],
+          "Nationality": member['nationality'],
+          "Marital Status": member['marital_status']!,
+        },
+      ),
+    );
+  },
+),
+
                       );
                     },
                   ),
