@@ -95,6 +95,7 @@ class _SigninscreenState extends State<Signinscreen> {
                                 activeColor: Colors.white,
                                 activeTrackColor:
                                 const Color.fromARGB(255, 35, 94, 77),
+                                inactiveTrackColor: Colors.grey[500],
                               ),
                             ),
                             Text(

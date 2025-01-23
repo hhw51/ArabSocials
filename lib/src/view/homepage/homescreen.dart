@@ -1,10 +1,14 @@
 import 'package:arabsocials/src/apis/approved_events.dart';
+import 'package:arabsocials/src/apis/get_featured_business.dart';
+import 'package:arabsocials/src/apis/get_featured_events.dart';
 import 'package:arabsocials/src/controllers/navigation_controller.dart';
-import 'package:arabsocials/src/models/home_model1.dart';
+import 'package:arabsocials/src/controllers/registerEventController.dart';
 import 'package:arabsocials/src/services/auth_services.dart';
 import 'package:arabsocials/src/view/events/promote_event.dart';
 import 'package:arabsocials/src/view/events/register_event.dart';
+import 'package:arabsocials/src/view/homepage/home_fav.dart';
 import 'package:arabsocials/src/view/homepage/notification_screen.dart';
+import 'package:arabsocials/src/view/profile/ProfileDetailsScreen.dart';
 import 'package:arabsocials/src/widgets/custom_container.dart';
 import 'package:arabsocials/src/widgets/custombuttons.dart';
 import 'package:flutter/material.dart';
@@ -23,51 +27,67 @@ class _HomescreenState extends State<Homescreen> {
   final NavigationController navigationController = Get.put(NavigationController());
   final AuthService authService = AuthService();
   final ApprovedEvents approvedEventsService = ApprovedEvents();
+  final RegisterEventController eventController =
+  Get.put(RegisterEventController());
+
   bool isLoading = true;
   List<dynamic> savedEvents = [];
   List<dynamic> favoriteUsers = [];
+  List<dynamic> featuredEvents = [];
+  List<dynamic> featuredBusinesses = [];
+  bool isBusinessesLoading = true;
 
   static const String _baseImageUrl = 'http://35.222.126.155:8000';
+  final String baseUrl = 'http://35.222.126.155:8000';
 
+  Set<int> _bookmarkedEventIds = {};
+  Set<int> _processingEventIds = {}; // Tracks events currently being processed
+  bool _showingSavedEvents = false; // Indicates if showing saved events
+
+  // Map to cache attendees per eventId
+  Map<int, List<dynamic>> _attendeesMap = {};
   @override
   void initState() {
     super.initState();
     fetchInitialData();
-    fetchApprovedEvents();
+    fetchFeaturedEvents();
+    fetchFeaturedBusinesses();
   }
 
-  Widget _buildGoingSection() {
+
+  Widget _buildGoingSection(List<dynamic> attendees) {
+    if (attendees.isEmpty) {
+      return SizedBox(); // Show nothing for 0 attendees
+    }
+
+    int displayCount = attendees.length <= 3 ? attendees.length : 3;
+    int extraCount = attendees.length > 3 ? attendees.length - 3 : 0;
+
     return Row(
       children: [
         Container(
           height: 24.h,
-          width: 56.w,
+          width: displayCount * 24.w +
+              (displayCount - 1) * 6.w, // Adjust width based on number of images
           child: Stack(
-            children: [
-              CircleAvatar(
-                radius: 10.r,
-                backgroundImage: AssetImage('assets/logo/image1.png'),
-              ),
-              Positioned(
-                left: 15.w,
+            children: List.generate(displayCount, (i) {
+              return Positioned(
+                left: i * 18.w, // Overlap images slightly
                 child: CircleAvatar(
                   radius: 10.r,
-                  backgroundImage: AssetImage('assets/logo/image2.png'),
+                  backgroundImage: attendees[i]['image'] != null &&
+                      attendees[i]['image'].isNotEmpty
+                      ? NetworkImage('$baseUrl${attendees[i]['image']}')
+                      : AssetImage('assets/logo/member_group.png')
+                  as ImageProvider,
                 ),
-              ),
-              Positioned(
-                left: 30.w,
-                child: CircleAvatar(
-                  radius: 10.r,
-                  backgroundImage: AssetImage('assets/logo/image3.png'),
-                ),
-              ),
-            ],
+              );
+            }),
           ),
         ),
         SizedBox(width: 4.w),
         Text(
-          "+25 Going",
+          attendees.length > 3 ? '+$extraCount Going' : 'Going',
           style: TextStyle(
             fontSize: 12.sp,
             color: const Color.fromARGB(255, 35, 94, 77),
@@ -78,15 +98,17 @@ class _HomescreenState extends State<Homescreen> {
     );
   }
 
-  ImageProvider _resolveImagePath(String? rawPath) {
+
+  String _resolveImagePath(String? rawPath) {
     if (rawPath == null || rawPath.isEmpty) {
-      return const AssetImage("assets/logo/member_group.png"); // Local fallback
+      return "assets/logo/member_group.png";
     }
     if (!rawPath.startsWith('http')) {
-      return NetworkImage('$_baseImageUrl$rawPath');
+      return '$_baseImageUrl$rawPath';
     }
-    return NetworkImage(rawPath);
+    return rawPath;
   }
+
 
   String _monthAbbreviation(int month) {
     const months = [
@@ -108,7 +130,7 @@ class _HomescreenState extends State<Homescreen> {
             ...event as Map<String, dynamic>,
             'day': day,
             'month': month,
-            'bookmarked': event['bookmarked'] ?? false, // Default to false
+            'bookmarked': event['bookmarked'] ?? false,
           };
         }).toList();
         isLoading = false;
@@ -123,43 +145,54 @@ class _HomescreenState extends State<Homescreen> {
 
   Future<void> fetchInitialData() async {
     await Future.wait([
-      fetchSavedEvents(),
       fetchFavoriteUsers(),
     ]);
   }
 
-  Future<void> fetchSavedEvents() async {
-    try {
-      setState(() {
-        isLoading = true;
-      });
 
-      final events = await authService.getSavedEvents();
-      setState(() {
-        savedEvents = events.map((event) => {
-          ...event,
-          'bookmarked': event['bookmarked'] ?? false, // Default to false
-        }).toList();
-        isLoading = false;
-      });
-    } catch (error) {
-      setState(() {
-        isLoading = false;
-      });
-      print('Error fetching saved events: $error');
-    }
-  }
 
   Future<void> fetchFavoriteUsers() async {
     try {
       final users = await authService.getFavoriteUsers();
       setState(() {
         favoriteUsers = users;
+        print("Favouriets are fetching 🤢🤢🤢🤢🤢$favoriteUsers");
       });
     } catch (error) {
       print('Error fetching favorite users: $error');
     }
   }
+  void fetchFeaturedEvents() async {
+    try {
+      final events = await GetFeaturedEvents().getFeaturedEvents();
+      setState(() {
+        featuredEvents = events;
+        print("Featured Events are fetching 🌹🌹🌹🌹🌹$featuredEvents");
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      print('Error fetching featured events: $e');
+    }
+  }
+  void fetchFeaturedBusinesses() async {
+    try {
+      final businesses = await GetFeaturedBusinesses().getFeaturedBusinesses();
+      setState(() {
+        featuredBusinesses = businesses;
+        print("The featured business peoples are coming🙌🙌🙌🙌🙌🙌🙌$featuredBusinesses");
+        isBusinessesLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isBusinessesLoading = false;
+      });
+      print('Error fetching featured businesses: $e');
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -238,159 +271,220 @@ class _HomescreenState extends State<Homescreen> {
                         },
                       ),
                     ),
-                    InkWell(
-                      onTap: () {
-                        navigationController.navigateToChild(RegisterEvent());
-                      },
-                      child: SizedBox(
+                    SizedBox(
                         height: 237.h,
                         child: isLoading
                             ? const Center(child: CircularProgressIndicator())
                             : ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                padding: EdgeInsets.symmetric(horizontal: 12.w),
-                                itemCount: savedEvents.length,
-                                itemBuilder: (context, index) {
-                                  final event = savedEvents[index];
-                                  return Padding(
-                                    padding: EdgeInsets.only(right: 10.w),
-                                    child: Container(
-                                      width: 218.w,
-                                      height: 237.h,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(16.r),
-                                        color: const Color.fromARGB(255, 247, 247, 247),
-                                      ),
-                                      child: Padding(
-                                        padding: EdgeInsets.all(8.w),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Stack(
-                                              children: [
-                                                ClipRRect(
-                                                  borderRadius: BorderRadius.circular(16.r),
-                                                  child: Image.network(
-                                                    event['flyer'] != null
-                                                        ? 'http://35.222.126.155:8000${event['flyer']}'
-                                                        : 'assets/logo/default.png',
-                                                    fit: BoxFit.cover,
-                                                    height: 131.h,
-                                                    width: double.infinity,
-                                                    errorBuilder: (context, error, stackTrace) =>
-                                                        Image.asset(
-                                                      'assets/logo/default.png',
-                                                      fit: BoxFit.cover,
-                                                      height: 131.h,
-                                                      width: double.infinity,
-                                                    ),
-                                                  ),
-                                                ),
-                                                Positioned(
-                                                  top: 8.h,
-                                                  left: 8.w,
-                                                  child: Container(
-                                                    height: 36.h,
-                                                    width: 36.w,
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.white,
-                                                      borderRadius: BorderRadius.circular(6.r),
-                                                    ),
-                                                    child: Column(
-                                                      mainAxisAlignment: MainAxisAlignment.center,
-                                                      children: [
-                                                        Text(
-                                                          event['day']?.toString() ?? '',
-                                                          style: GoogleFonts.playfairDisplaySc(
-                                                            fontSize: 14.sp,
-                                                            color: Colors.green,
-                                                            fontWeight: FontWeight.w700,
+                            scrollDirection: Axis.horizontal,
+                            padding: EdgeInsets.symmetric(horizontal: 12.w),
+                            itemCount: featuredEvents.length,
+                            itemBuilder: (context, index) {
+                              final event = featuredEvents[index];
+                              final eventId = event['id'] as int;
+                              return FutureBuilder<List<dynamic>>(
+                                  future: _fetchAttendees(eventId),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 10),
+                                        child: Container(
+                                          height: 233.h,
+                                          child: Center(
+                                              child: CircularProgressIndicator()),
+                                        ),
+                                      );
+                                    } else if (snapshot.hasError) {
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 10),
+                                        child: Container(
+                                          height: 233.h,
+                                          child: Center(
+                                              child: Text(
+                                                  'Failed to load event data')),
+                                        ),
+                                      );
+                                    } else {
+                                      final attendees = snapshot.data ?? [];
+                                      return InkWell(
+                                        onTap: () {
+                                          navigationController.navigateToChild(
+                                            RegisterEvent(eventId: eventId),
+                                          );
+                                        },
+                                        child: Padding(
+                                          padding: EdgeInsets.only(right: 10.w),
+                                          child: Container(
+                                            width: 218.w,
+                                            height: 237.h,
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(16.r),
+                                              color: const Color.fromARGB(255, 247, 247, 247),
+                                            ),
+                                            child: Padding(
+                                              padding: EdgeInsets.all(8.w),
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Stack(
+                                                    children: [
+                                                      ClipRRect(
+                                                        borderRadius: BorderRadius.circular(16.r),
+                                                        child: Image.network(
+                                                          event['flyer'] != null
+                                                              ? 'http://35.222.126.155:8000${event['flyer']}'
+                                                              : 'assets/logo/default.png',
+                                                          fit: BoxFit.cover,
+                                                          height: 131.h,
+                                                          width: double.infinity,
+                                                          errorBuilder: (context, error, stackTrace) =>
+                                                              Image.asset(
+                                                                'assets/logo/default.png',
+                                                                fit: BoxFit.cover,
+                                                                height: 131.h,
+                                                                width: double.infinity,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                      Positioned(
+                                                        top: 8.h,
+                                                        left: 8.w,
+                                                        child: Container(
+                                                          height: 36.h,
+                                                          width: 36.w,
+                                                          decoration:
+                                                          BoxDecoration(
+                                                            color: Colors.white,
+                                                            borderRadius:
+                                                            BorderRadius
+                                                                .circular(
+                                                                6.r),
+                                                          ),
+                                                          child: Column(
+                                                            mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                            children: [
+                                                              Text(
+                                                                event['day']
+                                                                    ?.toString() ??
+                                                                    '',
+                                                                style: GoogleFonts
+                                                                    .playfairDisplaySc(
+                                                                  fontSize: 14.sp,
+                                                                  color: Colors
+                                                                      .green,
+                                                                  fontWeight:
+                                                                  FontWeight
+                                                                      .w700,
+                                                                ),
+                                                                maxLines: 1,
+                                                                overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                              ),
+                                                              Text(
+                                                                event['month']
+                                                                    ?.toString() ??
+                                                                    '',
+                                                                style: GoogleFonts
+                                                                    .playfairDisplaySc(
+                                                                  fontSize: 8.sp,
+                                                                  color: Colors
+                                                                      .green,
+                                                                  fontWeight:
+                                                                  FontWeight
+                                                                      .w700,
+                                                                ),
+                                                                maxLines: 1,
+                                                                overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                              ),
+                                                            ],
                                                           ),
                                                         ),
-                                                        Text(
-                                                          event['month']?.toString() ?? '',
-                                                          style: GoogleFonts.playfairDisplaySc(
-                                                            fontSize: 8.sp,
-                                                            color: Colors.green,
-                                                            fontWeight: FontWeight.w700,
+                                                      ),
+                                                      Positioned(
+                                                        top: 10.h,
+                                                        right: 12.w,
+                                                        child: GestureDetector(
+                                                          onTap: () {
+                                                            setState(() {
+                                                              event['bookmarked'] =
+                                                              !(event['bookmarked'] ?? false); // Toggle bookmarked
+                                                            });
+                                                          },
+                                                          child: Container(
+                                                            height: 36.h,
+                                                            width: 36.w,
+                                                            decoration: BoxDecoration(
+                                                              color: Colors.white,
+                                                              borderRadius: BorderRadius.circular(6.r),
+                                                            ),
+                                                            child: Icon(
+                                                              event['bookmarked'] ?? false
+                                                                  ? Icons.bookmark
+                                                                  : Icons.bookmark_outline,
+                                                              color: Colors.green,
+                                                              size: 18.sp,
+                                                            ),
                                                           ),
                                                         ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                                Positioned(
-                                                  top: 10.h,
-                                                  right: 12.w,
-                                                  child: GestureDetector(
-                                                    onTap: () {
-                                                      setState(() {
-                                                        event['bookmarked'] =
-                                                            !(event['bookmarked'] ?? false); // Toggle bookmarked
-                                                      });
-                                                    },
-                                                    child: Container(
-                                                      height: 36.h,
-                                                      width: 36.w,
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.white,
-                                                        borderRadius: BorderRadius.circular(6.r),
                                                       ),
-                                                      child: Icon(
-                                                        event['bookmarked'] ?? false
-                                                            ? Icons.bookmark
-                                                            : Icons.bookmark_outline,
-                                                        color: Colors.green,
-                                                        size: 18.sp,
-                                                      ),
-                                                    ),
+                                                    ],
                                                   ),
-                                                ),
-                                              ],
-                                            ),
-                                            SizedBox(height: 8.h),
-                                            Text(
-                                              event['title'] ?? 'No Title',
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: GoogleFonts.playfairDisplaySc(
-                                                fontSize: 12.sp,
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                            SizedBox(height: 8.h),
-                                            _buildGoingSection(),
-                                            SizedBox(height: 8.h),
-                                            Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.location_on,
-                                                  size: 16.sp,
-                                                  color: Colors.grey,
-                                                ),
-                                                SizedBox(width: 4.w),
-                                                Expanded(
-                                                  child: Text(
-                                                    event['location'] ?? 'Unknown Location',
-                                                    style: TextStyle(
-                                                      fontSize: 12.sp,
-                                                      color: Colors.grey,
-                                                    ),
+                                                  SizedBox(height: 8.h),
+                                                  Text(
+                                                    event['title']
+                                                        ?.toString() ??
+                                                        '',
                                                     maxLines: 1,
                                                     overflow: TextOverflow.ellipsis,
+                                                    style: GoogleFonts.playfairDisplaySc(
+                                                      fontSize: 12.sp,
+                                                      color: Colors.black,
+                                                      fontWeight: FontWeight.w700,
+                                                    ),
                                                   ),
-                                                ),
-                                              ],
+                                                  _buildGoingSection(attendees),
+                                                  SizedBox(height: 2.h),
+                                                  Row(
+                                                    children: [
+                                                      Icon(
+                                                        Icons.location_on,
+                                                        size: 16.sp,
+                                                        color: Colors.grey,
+                                                      ),
+                                                      SizedBox(width: 4.w),
+                                                      Expanded(
+                                                        child: Text(
+                                                          event['location']
+                                                              ?.toString() ??
+                                                              '',
+                                                          style: TextStyle(
+                                                            fontSize: 12.sp,
+                                                            color: Colors.grey,
+                                                          ),
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow.ellipsis,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
                                             ),
-                                          ],
+                                          ),
                                         ),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                      ),
+                                      );
+                                    }
+                                  }
+                              );
+                            })
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -424,7 +518,7 @@ class _HomescreenState extends State<Homescreen> {
                                         SizedBox(height: 8.h),
                                         ElevatedButton(
                                           onPressed: () {
-                                             navigationController.navigateToChild(PromoteEvent());
+                                            navigationController.navigateToChild(PromoteEvent());
                                           },
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: const Color.fromARGB(255, 35, 94, 77),
@@ -454,39 +548,29 @@ class _HomescreenState extends State<Homescreen> {
                               ),
                             ),
                           ),
-                         SectionHeader(
-                             title: "FEATURED BUSINESS",
-                             actionText: "See all",
-                             onTap: () {
-                               print("See all tapped!");
-                             },
-                           ),
+                          SectionHeader(
+                            title: "FEATURED BUSINESS",
+                            actionText: "See all",
+                            onTap: () {
+                              print("See all tapped!");
+                            },
+                          ),
                           SizedBox(
                             height: 80.h,
-                            child: ListView.builder(
+                            child: isBusinessesLoading
+                                ? const Center(child: CircularProgressIndicator())
+                                : ListView.builder(
                               scrollDirection: Axis.horizontal,
-                              itemCount: homescreenlogoList.length * 2,
+                              itemCount: featuredBusinesses.length,
                               itemBuilder: (context, index) {
-                                final logoModel = homescreenlogoList[
-                                    index % homescreenlogoList.length];
-                                final logoPaths = [
-                                  logoModel.logoimage,
-                                  logoModel.logoimage1,
-                                  logoModel.logoimage2,
-                                  logoModel.logoimage3,
-                                ];
-                                return Row(
-                                  children: logoPaths.map((imagePath) {
-                                    if (imagePath != null) {
-                                      return CustomLogoContainer(imagePath: imagePath);
-                                    } else {
-                                      return const SizedBox.shrink();
-                                    }
-                                  }).toList(),
-                                );
+                                final business = featuredBusinesses[index];
+                                return CustomLogoContainer(imagePath: business['logo'] != null
+                                    ? '$business${business['logo']}'
+                                    :  "assets/logo/member_group.png",);
                               },
                             ),
                           ),
+
                           Padding(
                             padding: const EdgeInsets.only(top: 12),
                             child: Container(
@@ -498,16 +582,16 @@ class _HomescreenState extends State<Homescreen> {
                               ),
                               child: Padding(
                                 padding:
-                                    const EdgeInsets.symmetric(horizontal: 15),
+                                const EdgeInsets.symmetric(horizontal: 15),
                                 child: Row(
                                   children: [
                                     // Text and Promote button
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                        CrossAxisAlignment.start,
                                         mainAxisAlignment:
-                                            MainAxisAlignment.center,
+                                        MainAxisAlignment.center,
                                         children: [
                                           Text(
                                             "Invite your friends",
@@ -525,7 +609,7 @@ class _HomescreenState extends State<Homescreen> {
                                               backgroundColor:const Color.fromARGB(255, 35, 94, 77),
                                               shape: RoundedRectangleBorder(
                                                 borderRadius:
-                                                    BorderRadius.circular(8.r),
+                                                BorderRadius.circular(8.r),
                                               ),
                                               padding: EdgeInsets.symmetric(horizontal: 12.w,vertical: 8.h),
                                             ),
@@ -557,7 +641,7 @@ class _HomescreenState extends State<Homescreen> {
                             title: "PEOPLE IM CONNECTED TO",
                             actionText: "See all",
                             onTap: () {
-                              print("See all tapped!");
+                              navigationController.navigateToChild(HomeFavourite(isfavourite: true,));
                             },
                           ),
                           Padding(
@@ -569,45 +653,80 @@ class _HomescreenState extends State<Homescreen> {
                                 itemCount: favoriteUsers.length,
                                 itemBuilder: (context, index) {
                                   final user = favoriteUsers[index];
-                                  return Padding(
-                                    padding: EdgeInsets.only(right: 12.w),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                        ClipOval(
-                                          child: Image.network(
-                                            user['image'] ?? 'assets/logo/logoimage1.png',
-                                            width: 58.w,
-                                            height: 58.h,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (context, error, stackTrace) =>
-                                                Image.asset(
-                                              'assets/logo/logoimage1.png',
+                                  // log( _baseImageUrl+ user['image']??'');
+                                  return InkWell(
+                                    onTap: () {
+                                      navigationController.navigateToChild(
+                                        ProfileDetailsScreen(
+                                          title: "Member Profile",
+                                          name: user["name"]!,
+                                          professionOrCategory: user["profession"]??"",
+                                          location: user["location"]??"",
+                                          imagePath: user["image"]!=null ?_baseImageUrl+user["image"]??"":'',
+                                          about: "This is some info about ${user["name"]}",
+                                          interestsOrCategories: [
+                                            "Music",
+                                            "Art",
+                                            "Technology"
+                                          ],
+                                          personalDetails: {
+                                            "Phone": "4788743654478",
+                                            "Email": user["email"]??"",
+                                            "Location": user["location"]??"",
+                                            "Gender": "Female",
+                                            "D.O.B": "03-11-2005",
+                                            "Profession": user["profession"]??"",
+                                            "Nationality": "USA",
+                                            "Marital Status": "Single",
+                                          },
+                                        ),
+                                      );
+                                    },
+                                    child: Padding(
+                                      padding: EdgeInsets.only(right: 12.w),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          ClipOval(
+                                            child:user['image']!=null? Image.network(
+                                              _baseImageUrl+user['image'] ?? '',
+                                              width: 58.w,
+                                              height: 58.h,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (context, error, stackTrace) =>
+                                                  Image.asset(
+                                                    "assets/logo/member_group.png",
+                                                    width: 58.w,
+                                                    height: 58.h,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                            ):Image.asset(
+                                              "assets/logo/member_group.png",
                                               width: 58.w,
                                               height: 58.h,
                                               fit: BoxFit.cover,
                                             ),
                                           ),
-                                        ),
-                                        Text(
-                                          user['name'] ?? '',
-                                          style: GoogleFonts.playfairDisplaySc(
-                                            fontSize: 10.sp,
-                                            fontWeight: FontWeight.w700,
-                                            color: Colors.green,
+                                          Text(
+                                            user['name'] ?? '',
+                                            style: GoogleFonts.playfairDisplaySc(
+                                              fontSize: 10.sp,
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.green,
+                                            ),
+                                            textAlign: TextAlign.center,
                                           ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                        Text(
-                                          user['profession'] ?? '',
-                                          style: TextStyle(
-                                            fontSize: 8.sp,
-                                            fontWeight: FontWeight.w400,
-                                            color: Colors.grey[700],
+                                          Text(
+                                            user['profession'] ?? '',
+                                            style: TextStyle(
+                                              fontSize: 8.sp,
+                                              fontWeight: FontWeight.w400,
+                                              color: Colors.grey[700],
+                                            ),
+                                            textAlign: TextAlign.center,
                                           ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   );
                                 },
@@ -625,5 +744,24 @@ class _HomescreenState extends State<Homescreen> {
         ),
       ),
     );
+  }
+
+  /// Fetch attendees for a specific event and cache them
+  Future<List<dynamic>> _fetchAttendees(int eventId) async {
+    if (_attendeesMap.containsKey(eventId)) {
+      return _attendeesMap[eventId]!;
+    } else {
+      try {
+        final attendees =
+        await eventController.getRegisteredUsersByEventId(eventId);
+        setState(() {
+          _attendeesMap[eventId] = attendees!;
+        });
+        return attendees!;
+      } catch (e) {
+        print('Error fetching attendees for event $eventId: $e');
+        return [];
+      }
+    }
   }
 }

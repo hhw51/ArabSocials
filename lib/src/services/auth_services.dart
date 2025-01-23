@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   static const String _baseUrl = 'http://35.222.126.155:8000';
@@ -92,6 +93,12 @@ class AuthService {
     } finally {
       print('🔍 [login] Method execution completed.');
     }
+  }
+
+  late final SharedPreferences sharedPreferences;
+  void setToken(String tocken)async {
+    final SharedPreferences sharedPreferences=await SharedPreferences.getInstance();
+    sharedPreferences.setString('token', tocken);
   }
 
   Future<int?> getUserId() async {

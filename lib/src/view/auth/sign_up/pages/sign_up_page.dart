@@ -247,7 +247,9 @@ class SignUpScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 20.h),
                   ElevatedButton.icon(
-                    onPressed: () {},
+                    onPressed: () {
+                      _signUpController.signInWithGoogle();
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
                       shape: RoundedRectangleBorder(
