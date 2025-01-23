@@ -231,7 +231,7 @@ class ProfilescreenState extends State<Profilescreen> with ShowEditProfileDialog
               padding: EdgeInsets.only(right: 17.0),
               child: InkWell(
                 onTap: () {
-                  Get.to(const Signinscreen());
+                  Get.to(() => Signinscreen());
                 },
                 child: const ImageIcon(
                   AssetImage("assets/icons/profilelogout.png"),
