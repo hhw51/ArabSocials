@@ -1,7 +1,8 @@
 import 'package:arabsocials/src/apis/approved_events.dart';
+import 'package:arabsocials/src/apis/get_featured_business.dart';
 import 'package:arabsocials/src/apis/get_featured_events.dart';
 import 'package:arabsocials/src/controllers/navigation_controller.dart';
-import 'package:arabsocials/src/models/home_model1.dart';
+import 'package:arabsocials/src/controllers/registerEventController.dart';
 import 'package:arabsocials/src/services/auth_services.dart';
 import 'package:arabsocials/src/view/events/promote_event.dart';
 import 'package:arabsocials/src/view/events/register_event.dart';
@@ -26,14 +27,18 @@ class _HomescreenState extends State<Homescreen> {
   final NavigationController navigationController = Get.put(NavigationController());
   final AuthService authService = AuthService();
   final ApprovedEvents approvedEventsService = ApprovedEvents();
+   final RegisterEventController eventController =
+      Get.put(RegisterEventController()); 
   
   bool isLoading = true;
   List<dynamic> savedEvents = [];
   List<dynamic> favoriteUsers = [];
    List<dynamic> featuredEvents = [];
+   List<dynamic> featuredBusinesses = [];
+  bool isBusinessesLoading = true;
 
   static const String _baseImageUrl = 'http://35.222.126.155:8000';
- final String baseUrl = 'http://35.222.126.155:8000';
+  final String baseUrl = 'http://35.222.126.155:8000';
 
   Set<int> _bookmarkedEventIds = {};
   Set<int> _processingEventIds = {}; // Tracks events currently being processed
@@ -46,6 +51,7 @@ class _HomescreenState extends State<Homescreen> {
     super.initState();
     fetchInitialData();
      fetchFeaturedEvents();
+     fetchFeaturedBusinesses();
   }
   
 
@@ -62,8 +68,7 @@ class _HomescreenState extends State<Homescreen> {
         Container(
           height: 24.h,
           width: displayCount * 24.w +
-              (displayCount - 1) *
-                  6.w, // Adjust width based on number of images
+              (displayCount - 1) * 6.w, // Adjust width based on number of images
           child: Stack(
             children: List.generate(displayCount, (i) {
               return Positioned(
@@ -96,7 +101,7 @@ class _HomescreenState extends State<Homescreen> {
 
    String _resolveImagePath(String? rawPath) {
     if (rawPath == null || rawPath.isEmpty) {
-      return "assets/logo/member_group.png"; // local fallback
+      return "assets/logo/member_group.png"; 
     }
     if (!rawPath.startsWith('http')) {
       return '$_baseImageUrl$rawPath';
@@ -125,7 +130,7 @@ class _HomescreenState extends State<Homescreen> {
             ...event as Map<String, dynamic>,
             'day': day,
             'month': month,
-            'bookmarked': event['bookmarked'] ?? false, // Default to false
+            'bookmarked': event['bookmarked'] ?? false, 
           };
         }).toList();
         isLoading = false;
@@ -172,6 +177,22 @@ class _HomescreenState extends State<Homescreen> {
       print('Error fetching featured events: $e');
     }
   }
+  void fetchFeaturedBusinesses() async {
+  try {
+    final businesses = await GetFeaturedBusinesses().getFeaturedBusinesses();
+    setState(() {
+      featuredBusinesses = businesses;
+      print("The featured business peoples are coming🙌🙌🙌🙌🙌🙌🙌$featuredBusinesses");
+      isBusinessesLoading = false;
+    });
+  } catch (e) {
+    setState(() {
+      isBusinessesLoading = false;
+    });
+    print('Error fetching featured businesses: $e');
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -260,10 +281,40 @@ class _HomescreenState extends State<Homescreen> {
               itemCount: featuredEvents.length,
               itemBuilder: (context, index) {
                 final event = featuredEvents[index];
-                return InkWell(
-                  onTap: () {
-                    navigationController.navigateToChild(RegisterEvent());
-                  },
+                 final eventId = event['id'] as int;
+                 return FutureBuilder<List<dynamic>>(
+                                future: _fetchAttendees(eventId),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 10),
+                                      child: Container(
+                                        height: 233.h,
+                                        child: Center(
+                                            child: CircularProgressIndicator()),
+                                      ),
+                                    );
+                                  } else if (snapshot.hasError) {
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 10),
+                                      child: Container(
+                                        height: 233.h,
+                                        child: Center(
+                                            child: Text(
+                                                'Failed to load event data')),
+                                      ),
+                                    );
+                                  } else {
+                                    final attendees = snapshot.data ?? [];
+                                    return InkWell(
+                                      onTap: () {
+                                        navigationController.navigateToChild(
+                                          RegisterEvent(eventId: eventId),
+                                        );
+                                      },
                   child: Padding(
                     padding: EdgeInsets.only(right: 10.w),
                     child: Container(
@@ -299,38 +350,64 @@ class _HomescreenState extends State<Homescreen> {
                                   ),
                                 ),
                                 Positioned(
-                                  top: 8.h,
-                                  left: 8.w,
-                                  child: Container(
-                                    height: 36.h,
-                                    width: 36.w,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(6.r),
-                                    ),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          event['day']?.toString() ?? '',
-                                          style: GoogleFonts.playfairDisplaySc(
-                                            fontSize: 14.sp,
-                                            color: Colors.green,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                        Text(
-                                          event['month']?.toString() ?? '',
-                                          style: GoogleFonts.playfairDisplaySc(
-                                            fontSize: 8.sp,
-                                            color: Colors.green,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
+                                                      top: 8.h,
+                                                      left: 8.w,
+                                                      child: Container(
+                                                        height: 36.h,
+                                                        width: 36.w,
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color: Colors.white,
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      6.r),
+                                                        ),
+                                                        child: Column(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .center,
+                                                          children: [
+                                                            Text(
+                                                              event['day']
+                                                                      ?.toString() ??
+                                                                  '',
+                                                              style: GoogleFonts
+                                                                  .playfairDisplaySc(
+                                                                fontSize: 14.sp,
+                                                                color: Colors
+                                                                    .green,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w700,
+                                                              ),
+                                                              maxLines: 1,
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                            ),
+                                                            Text(
+                                                              event['month']
+                                                                      ?.toString() ??
+                                                                  '',
+                                                              style: GoogleFonts
+                                                                  .playfairDisplaySc(
+                                                                fontSize: 8.sp,
+                                                                color: Colors
+                                                                    .green,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w700,
+                                                              ),
+                                                              maxLines: 1,
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
                                 Positioned(
                                   top: 10.h,
                                   right: 12.w,
@@ -362,8 +439,10 @@ class _HomescreenState extends State<Homescreen> {
                             ),
                             SizedBox(height: 8.h),
                             Text(
-                              event['title'] ?? 'No Title',
-                              maxLines: 1,
+                              event['title']
+                                                                  ?.toString() ??
+                                                              '',
+                                                          maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.playfairDisplaySc(
                                 fontSize: 12.sp,
@@ -371,7 +450,8 @@ class _HomescreenState extends State<Homescreen> {
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            SizedBox(height: 8.h),
+                            _buildGoingSection(attendees),
+                                                SizedBox(height: 2.h),
                             Row(
                               children: [
                                 Icon(
@@ -382,7 +462,9 @@ class _HomescreenState extends State<Homescreen> {
                                 SizedBox(width: 4.w),
                                 Expanded(
                                   child: Text(
-                                    event['location'] ?? 'Unknown Location',
+                                    event['location']
+                                                                  ?.toString() ??
+                                                              '',
                                     style: TextStyle(
                                       fontSize: 12.sp,
                                       color: Colors.grey,
@@ -399,8 +481,10 @@ class _HomescreenState extends State<Homescreen> {
                                     ),
                                   ),
                                 );
-                              },
-                            ),
+                              }
+              }
+              );
+  })
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -471,32 +555,22 @@ class _HomescreenState extends State<Homescreen> {
                                print("See all tapped!");
                              },
                            ),
-                          SizedBox(
-                            height: 80.h,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: homescreenlogoList.length * 2,
-                              itemBuilder: (context, index) {
-                                final logoModel = homescreenlogoList[
-                                    index % homescreenlogoList.length];
-                                final logoPaths = [
-                                  logoModel.logoimage,
-                                  logoModel.logoimage1,
-                                  logoModel.logoimage2,
-                                  logoModel.logoimage3,
-                                ];
-                                return Row(
-                                  children: logoPaths.map((imagePath) {
-                                    if (imagePath != null) {
-                                      return CustomLogoContainer(imagePath: imagePath);
-                                    } else {
-                                      return const SizedBox.shrink();
-                                    }
-                                  }).toList(),
-                                );
-                              },
-                            ),
-                          ),
+                         SizedBox(
+  height: 80.h,
+  child: isBusinessesLoading
+      ? const Center(child: CircularProgressIndicator())
+      : ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: featuredBusinesses.length,
+          itemBuilder: (context, index) {
+            final business = featuredBusinesses[index];
+            return CustomLogoContainer(imagePath: business['logo'] != null
+                ? '$business${business['logo']}'
+                :  "assets/logo/member_group.png",);
+          },
+        ),
+),
+
                           Padding(
                             padding: const EdgeInsets.only(top: 12),
                             child: Container(
@@ -670,5 +744,24 @@ class _HomescreenState extends State<Homescreen> {
         ),
       ),
     );
+  }
+  
+  /// Fetch attendees for a specific event and cache them
+  Future<List<dynamic>> _fetchAttendees(int eventId) async {
+    if (_attendeesMap.containsKey(eventId)) {
+      return _attendeesMap[eventId]!;
+    } else {
+      try {
+        final attendees =
+            await eventController.getRegisteredUsersByEventId(eventId);
+        setState(() {
+          _attendeesMap[eventId] = attendees!;
+        });
+        return attendees!;
+      } catch (e) {
+        print('Error fetching attendees for event $eventId: $e');
+        return [];
+      }
+    }
   }
 }

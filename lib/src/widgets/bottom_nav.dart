@@ -62,8 +62,6 @@ final now = DateTime.now();
           }else{
           navigationController.showChildScreen.value=false;
           navigationController.update();
-            // navigationController.showChildScreen.value
-          // 
           }
          return false;
         },

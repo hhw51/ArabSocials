@@ -14,7 +14,7 @@ class SignUpController extends GetxController {
 
   Future<void> login(String email, String password) async {
     isLoading(true);
-    try {
+    try { 
       final response = await _authService.login(
         email: email,
         password: password,

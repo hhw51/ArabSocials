@@ -2,26 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class CustomLogoContainer extends StatelessWidget {
-  final String imagePath; 
+  final String imagePath;
 
-  const CustomLogoContainer({Key? key, required this.imagePath})
-      : super(key: key);
+  const CustomLogoContainer({required this.imagePath, Key? key}) : super(key: key);
 
-  @override                                 //////////////////////////////FEATURED BUSINESS LISTVIEW IN HOMESCREEN//////////////////////////
+  @override                    //////////////////////////////FEATURED BUSINESS LISTVIEW IN HOMESCREEN//////////////////////////
   Widget build(BuildContext context) {
-    return Container(
-      width: 72.w,
-      height: 72.h,
-      margin: EdgeInsets.only(right: 8.w), 
-      decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 247, 247, 247),
-        borderRadius: BorderRadius.circular(20.r),
-      ),
+    return Padding(
+      padding: EdgeInsets.only(right: 8.w),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(12.r),
-        child: Image.asset(
+        borderRadius: BorderRadius.circular(8.r),
+        child: Image.network(
           imagePath,
-          fit: BoxFit.contain,
+          height: 80.h,
+          width: 80.w,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => Image.asset(
+             "assets/logo/member_group.png",
+            height: 80.h,
+            width: 80.w,
+            fit: BoxFit.cover,
+          ),
         ),
       ),
     );

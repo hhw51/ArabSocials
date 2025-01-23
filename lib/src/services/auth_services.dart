@@ -316,7 +316,7 @@ Future<Map<String, dynamic>?> login({
       final String? token = await _secureStorage.read(key: 'token');
       if (token == null) {
         print('❌ [updateProfile] No token found. Please log in again.');
-        throw Exception('No token found. Please log in again.');
+        throw Exception('No token found. Please log in again.'); 
       }
       print('🔐 [updateProfile] Retrieved token: $token');
 
