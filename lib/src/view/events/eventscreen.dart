@@ -415,45 +415,10 @@ class _EventscreenState extends State<Eventscreen> {
                             text: "Date",
                             image: "assets/icons/calculator.png",
                           ),
-                          const CustomContainer(
-                            text: "Type",
-                            icon: Icons.filter_alt_outlined,
-                          ),
                         ],
                       ),
                     ),
                     // Custom Buttons Row
-                    const SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Padding(
-                        padding:
-                        EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                        child: Row(
-                          children: [
-                            Custombutton(
-                              text: "Sports",
-                              icon: Icons.sports_basketball,
-                              color: Color.fromARGB(255, 240, 99, 90),
-                            ),
-                            Custombutton(
-                              text: "Music",
-                              image: "assets/icons/musicicon.png",
-                              color: Color.fromARGB(255, 245, 151, 98),
-                            ),
-                            Custombutton(
-                              text: "Food",
-                              image: "assets/icons/foodicon.png",
-                              color: Color.fromARGB(255, 41, 214, 151),
-                            ),
-                            Custombutton(
-                              text: "Drawing",
-                              image: "assets/icons/painticon.png",
-                              color: Color.fromARGB(255, 70, 205, 251),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
                     // Section Title
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 22.w),

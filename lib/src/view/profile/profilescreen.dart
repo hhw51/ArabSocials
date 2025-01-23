@@ -210,6 +210,12 @@ class ProfilescreenState extends State<Profilescreen> with ShowEditProfileDialog
     return NetworkImage(rawPath);
   }
 
+  Future<void> _logout() async { // Add this method
+    await _secureStorage.delete(key: 'email');
+    await _secureStorage.delete(key: 'password');
+    Get.offAll(() => Signinscreen());
+  }
+
   @override
   Widget build(BuildContext context) {
     final NavigationController navigationController = Get.put(NavigationController());
@@ -230,9 +236,7 @@ class ProfilescreenState extends State<Profilescreen> with ShowEditProfileDialog
             Padding(
               padding: EdgeInsets.only(right: 17.0),
               child: InkWell(
-                onTap: () {
-                  Get.to(() => Signinscreen());
-                },
+                onTap: _logout, // Update this line
                 child: const ImageIcon(
                   AssetImage("assets/icons/profilelogout.png"),
                   size: 23,
@@ -255,281 +259,281 @@ class ProfilescreenState extends State<Profilescreen> with ShowEditProfileDialog
           ],
         ),
         body: Obx(() {
-      if (isLoading.value) {
-        return const Center(child: CircularProgressIndicator());
-      }
+          if (isLoading.value) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-      return SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 5),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 16.h),
-              Text(
-                "PROFILE",
-                style: GoogleFonts.playfairDisplaySc(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black,
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(top: 20),
-                child: Center(
-                  child: Column(
-                    children: [
-                      Obx(() => Container(
-                        height: 96.h,
-                        width: 96.w,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle, // Makes the container circular
-                          image: DecorationImage(
-                            image: _resolveImagePath(profileImagePath.value),
-                            fit: BoxFit.cover, // Ensures the image covers the entire circle
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              spreadRadius: 2,
-                              blurRadius: 5,
-                              offset: const Offset(0, 3), // changes position of shadow
+          return SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 5),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 16.h),
+                  Text(
+                    "PROFILE",
+                    style: GoogleFonts.playfairDisplaySc(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(top: 20),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          Obx(() => Container(
+                            height: 96.h,
+                            width: 96.w,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle, // Makes the container circular
+                              image: DecorationImage(
+                                image: _resolveImagePath(profileImagePath.value),
+                                fit: BoxFit.cover, // Ensures the image covers the entire circle
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  spreadRadius: 2,
+                                  blurRadius: 5,
+                                  offset: const Offset(0, 3), // changes position of shadow
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      )),
-                      SizedBox(height: 4.h),
-                      Obx(() => Text(
-                        name.value,
+                          )),
+                          SizedBox(height: 4.h),
+                          Obx(() => Text(
+                            name.value,
+                            style: GoogleFonts.playfairDisplaySc(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w700,
+                              color: const Color.fromARGB(255, 35, 94, 77),
+                            ),
+                          )),
+                          Obx(() => Text(
+                            profession.value,
+                            style: TextStyle(
+                              fontSize: 10.sp,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.grey[400],
+                            ),
+                          )),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 18.h),
+                  // ABOUT ME Section
+                  Row(
+                    children: [
+                      Text(
+                        "ABOUT ME",
                         style: GoogleFonts.playfairDisplaySc(
-                          fontSize: 16.sp,
+                          fontSize: 14.sp,
                           fontWeight: FontWeight.w700,
                           color: const Color.fromARGB(255, 35, 94, 77),
                         ),
-                      )),
-                      Obx(() => Text(
-                        profession.value,
-                        style: TextStyle(
-                          fontSize: 10.sp,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey[400],
+                      ),
+                      SizedBox(width: 10.w),
+                      GestureDetector(
+                        onTap: () => _showParagraphDialog(context),
+                        child: Icon(Icons.edit, color: const Color.fromARGB(255, 35, 94, 77), size: 24),
+                      ),
+                      Spacer(),
+                      Transform.scale(
+                        scale: 0.7,
+                        child: Switch(
+                          value: !interestsSwitch.value,
+                          onChanged: null,
+                          activeColor: Colors.grey,
+                          activeTrackColor: Colors.grey[300],
+                          inactiveThumbColor: Colors.grey,
+                          inactiveTrackColor: Colors.grey[300],
                         ),
-                      )),
+                      ),
                     ],
                   ),
-                ),
-              ),
-              SizedBox(height: 18.h),
-              // ABOUT ME Section
-              Row(
-                children: [
-                  Text(
-                    "ABOUT ME",
-                    style: GoogleFonts.playfairDisplaySc(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w700,
-                      color: const Color.fromARGB(255, 35, 94, 77),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 15),
+                    child: Obx(() => Text(
+                      aboutMe.value,
+                      style: TextStyle(fontSize: 14.sp, color: Colors.black),
+                    )),
+                  ),
+                  SizedBox(height: 10.h),
+                  // INTERESTS Section
+                  Row(
+                    children: [
+                      Text(
+                        "INTERESTS",
+                        style: GoogleFonts.playfairDisplaySc(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w700,
+                          color: const Color.fromARGB(255, 35, 94, 77),
+                        ),
+                      ),
+                      const Spacer(),
+                      Transform.scale(
+                        scale: 0.7,
+                        child: Switch(
+                          value: !interestsSwitch.value,
+                          onChanged: null,
+                          activeColor: Colors.grey,
+                          activeTrackColor: Colors.grey[300],
+                          inactiveThumbColor: Colors.grey,
+                          inactiveTrackColor: Colors.grey[300],
+                        ),
+                      ),
+                    ],
+                  ),
+                  Obx(
+                        () => SizedBox(
+                      height: 25.h,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: myInterest.length,
+                        itemBuilder: (context, index) {
+                          return CustomIntrestsContainer(
+                            text: Interest.fromApi(value: myInterest[index]).name,
+                            color: Interest.fromApi(value: myInterest[index]).color,
+                          );
+                        },
+                      ),
                     ),
                   ),
-                  SizedBox(width: 10.w),
-                  GestureDetector(
-                    onTap: () => _showParagraphDialog(context),
-                    child: Icon(Icons.edit, color: const Color.fromARGB(255, 35, 94, 77), size: 24),
-                  ),
-                  Spacer(),
-                  Transform.scale(
-                    scale: 0.7,
-                    child: Switch(
-                      value: !interestsSwitch.value,
-                      onChanged: null,
-                      activeColor: Colors.grey,
-                      activeTrackColor: Colors.grey[300],
-                      inactiveThumbColor: Colors.grey,
-                      inactiveTrackColor: Colors.grey[300],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Text(
+                      "PERSONAL DETAILS",
+                      style: GoogleFonts.playfairDisplaySc(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w700,
+                        color: const Color.fromARGB(255, 35, 94, 77),
+                      ),
                     ),
                   ),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 15),
-                child: Obx(() => Text(
-                  aboutMe.value,
-                  style: TextStyle(fontSize: 14.sp, color: Colors.black),
-                )),
-              ),
-              SizedBox(height: 10.h),
-              // INTERESTS Section
-              Row(
-                children: [
-                  Text(
-                    "INTERESTS",
-                    style: GoogleFonts.playfairDisplaySc(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w700,
-                      color: const Color.fromARGB(255, 35, 94, 77),
-                    ),
-                  ),
-                  const Spacer(),
-                  Transform.scale(
-                    scale: 0.7,
-                    child: Switch(
-                      value: !interestsSwitch.value,
-                      onChanged: null,
-                      activeColor: Colors.grey,
-                      activeTrackColor: Colors.grey[300],
-                      inactiveThumbColor: Colors.grey,
-                      inactiveTrackColor: Colors.grey[300],
-                    ),
-                  ),
-                ],
-              ),
-              Obx(
-                    () => SizedBox(
-                  height: 25.h,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: myInterest.length,
-                    itemBuilder: (context, index) {
-                      return CustomIntrestsContainer(
-                        text: Interest.fromApi(value: myInterest[index]).name,
-                        color: Interest.fromApi(value: myInterest[index]).color,
+                  SizedBox(height: 8.h),
+                  // Phone Toggle
+                  Obx(() => CustomData(
+                    title: "Phone",
+                    subtitle: phone.value,
+                    showSwitch: true,
+                    switchValue: phoneSwitch.value,
+                    onSwitchChanged: (val) {
+                      final oldValue = phoneSwitch.value;
+                      phoneSwitch.value = val;
+                      _handleToggleChange(
+                        fieldName: 'phone',
+                        currentValue: !val, // Invert for API
+                        switchController: phoneSwitch,
                       );
                     },
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                child: Text(
-                  "PERSONAL DETAILS",
-                  style: GoogleFonts.playfairDisplaySc(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w700,
-                    color: const Color.fromARGB(255, 35, 94, 77),
-                  ),
-                ),
-              ),
-              SizedBox(height: 8.h),
-              // Phone Toggle
-              Obx(() => CustomData(
-                title: "Phone",
-                subtitle: phone.value,
-                showSwitch: true,
-                switchValue: phoneSwitch.value,
-                onSwitchChanged: (val) {
-                  final oldValue = phoneSwitch.value;
-                  phoneSwitch.value = val;
-                  _handleToggleChange(
-                    fieldName: 'phone',
-                    currentValue: !val, // Invert for API
-                    switchController: phoneSwitch,
-                  );
-                },
-              )),
-              // Email Toggle
-              Obx(() => CustomData(
-                title: "Email",
-                subtitle: email.value,
-                showSwitch: true,
-                switchValue: emailSwitch.value,
-                onSwitchChanged: (val) {
-                  final oldValue = emailSwitch.value;
-                  emailSwitch.value = val;
-                  _handleToggleChange(
-                    fieldName: 'email',
-                    currentValue: !val, // Invert for API
-                    switchController: emailSwitch,
-                  );
-                },
-              )),
-              // Location Toggle
-              Obx(() => CustomData(title: "Location",subtitle: location.value,showSwitch: true,switchValue: false,onSwitchChanged: (value) {})),
+                  )),
+                  // Email Toggle
+                  Obx(() => CustomData(
+                    title: "Email",
+                    subtitle: email.value,
+                    showSwitch: true,
+                    switchValue: emailSwitch.value,
+                    onSwitchChanged: (val) {
+                      final oldValue = emailSwitch.value;
+                      emailSwitch.value = val;
+                      _handleToggleChange(
+                        fieldName: 'email',
+                        currentValue: !val, // Invert for API
+                        switchController: emailSwitch,
+                      );
+                    },
+                  )),
+                  // Location Toggle
+                  Obx(() => CustomData(title: "Location",subtitle: location.value,showSwitch: true,switchValue: false,onSwitchChanged: (value) {})),
 
-              // Gender Toggle
-              Obx(() => CustomData(
-                title: "Gender",
-                subtitle: gender.value,
-                showSwitch: true,
-                switchValue: genderSwitch.value,
-                onSwitchChanged: (val) {
-                  final oldValue = genderSwitch.value;
-                  genderSwitch.value = val;
-                  _handleToggleChange(
-                    fieldName: 'gender',
-                    currentValue: !val, // Invert for API
-                    switchController: genderSwitch,
-                  );
-                },
-              )),
-              // DOB Toggle
-              Obx(() => CustomData(
-                title: "DOB",
-                subtitle: dob.value,
-                showSwitch: true,
-                switchValue: dobSwitch.value,
-                onSwitchChanged: (val) {
-                  final oldValue = dobSwitch.value;
-                  dobSwitch.value = val;
-                  _handleToggleChange(
-                    fieldName: 'dob',
-                    currentValue: !val, // Invert for API
-                    switchController: dobSwitch,
-                  );
-                },
-              )),
-              // Profession Toggle
-              Obx(() => CustomData(
-                title: "Profession",
-                subtitle: profession.value,
-                showSwitch: true,
-                switchValue: professionSwitch.value,
-                onSwitchChanged: (val) {
-                  final oldValue = professionSwitch.value;
-                  professionSwitch.value = val;
-                  _handleToggleChange(
-                    fieldName: 'profession',
-                    currentValue: !val, // Invert for API
-                    switchController: professionSwitch,
-                  );
-                },
-              )),
-              // Nationality Toggle
-              Obx(() => CustomData(
-                title: "Nationality",
-                subtitle: nationality.value,
-                showSwitch: true,
-                switchValue: nationalitySwitch.value,
-                onSwitchChanged: (val) {
-                  final oldValue = nationalitySwitch.value;
-                  nationalitySwitch.value = val;
-                  _handleToggleChange(
-                    fieldName: 'nationality',
-                    currentValue: !val, // Invert for API
-                    switchController: nationalitySwitch,
-                  );
-                },
-              )),
-              // Marital Status Toggle
-              Obx(() => CustomData(
-                title: "Marital Status",
-                subtitle: maritalStatus.value,
-                showSwitch: true,
-                switchValue: maritalStatusSwitch.value,
-                onSwitchChanged: (val) {
-                  final oldValue = maritalStatusSwitch.value;
-                  maritalStatusSwitch.value = val;
-                  _handleToggleChange(
-                    fieldName: 'marital_status',
-                    currentValue: !val, // Invert for API
-                    switchController: maritalStatusSwitch,
-                  );
-                },
-              )),
-            ],
-          ),
-        ),
-      );
-    })
+                  // Gender Toggle
+                  Obx(() => CustomData(
+                    title: "Gender",
+                    subtitle: gender.value,
+                    showSwitch: true,
+                    switchValue: genderSwitch.value,
+                    onSwitchChanged: (val) {
+                      final oldValue = genderSwitch.value;
+                      genderSwitch.value = val;
+                      _handleToggleChange(
+                        fieldName: 'gender',
+                        currentValue: !val, // Invert for API
+                        switchController: genderSwitch,
+                      );
+                    },
+                  )),
+                  // DOB Toggle
+                  Obx(() => CustomData(
+                    title: "DOB",
+                    subtitle: dob.value,
+                    showSwitch: true,
+                    switchValue: dobSwitch.value,
+                    onSwitchChanged: (val) {
+                      final oldValue = dobSwitch.value;
+                      dobSwitch.value = val;
+                      _handleToggleChange(
+                        fieldName: 'dob',
+                        currentValue: !val, // Invert for API
+                        switchController: dobSwitch,
+                      );
+                    },
+                  )),
+                  // Profession Toggle
+                  Obx(() => CustomData(
+                    title: "Profession",
+                    subtitle: profession.value,
+                    showSwitch: true,
+                    switchValue: professionSwitch.value,
+                    onSwitchChanged: (val) {
+                      final oldValue = professionSwitch.value;
+                      professionSwitch.value = val;
+                      _handleToggleChange(
+                        fieldName: 'profession',
+                        currentValue: !val, // Invert for API
+                        switchController: professionSwitch,
+                      );
+                    },
+                  )),
+                  // Nationality Toggle
+                  Obx(() => CustomData(
+                    title: "Nationality",
+                    subtitle: nationality.value,
+                    showSwitch: true,
+                    switchValue: nationalitySwitch.value,
+                    onSwitchChanged: (val) {
+                      final oldValue = nationalitySwitch.value;
+                      nationalitySwitch.value = val;
+                      _handleToggleChange(
+                        fieldName: 'nationality',
+                        currentValue: !val, // Invert for API
+                        switchController: nationalitySwitch,
+                      );
+                    },
+                  )),
+                  // Marital Status Toggle
+                  Obx(() => CustomData(
+                    title: "Marital Status",
+                    subtitle: maritalStatus.value,
+                    showSwitch: true,
+                    switchValue: maritalStatusSwitch.value,
+                    onSwitchChanged: (val) {
+                      final oldValue = maritalStatusSwitch.value;
+                      maritalStatusSwitch.value = val;
+                      _handleToggleChange(
+                        fieldName: 'marital_status',
+                        currentValue: !val, // Invert for API
+                        switchController: maritalStatusSwitch,
+                      );
+                    },
+                  )),
+                ],
+              ),
+            ),
+          );
+        })
     );
   }
 }

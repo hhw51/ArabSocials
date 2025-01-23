@@ -6,7 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../../forget_password/forget_password.dart'; // Add this line
+ 
 
 class Signinscreen extends StatefulWidget {
   const Signinscreen({super.key});
@@ -19,8 +22,36 @@ class _SigninscreenState extends State<Signinscreen> {
   final SignUpController _signUpController = Get.put(SignUpController());
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-   final PasswordVisibilityController visibilityController =
+  final PasswordVisibilityController visibilityController =
       Get.put(PasswordVisibilityController());
+  bool _isRememberMe = true; // Add this line
+  final FlutterSecureStorage _secureStorage = FlutterSecureStorage(); // Add this line
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCredentials(); // Add this line
+  }
+
+  Future<void> _loadCredentials() async { // Add this method
+    String? email = await _secureStorage.read(key: 'email');
+    String? password = await _secureStorage.read(key: 'password');
+    if (email != null && password != null) {
+      emailController.text = email;
+      passwordController.text = password;
+      _signUpController.login(email, password);
+    }
+  }
+
+  Future<void> _saveCredentials(String email, String password) async { // Add this method
+    await _secureStorage.write(key: 'email', value: email);
+    await _secureStorage.write(key: 'password', value: password);
+  }
+
+  Future<void> _deleteCredentials() async { // Add this method
+    await _secureStorage.delete(key: 'email');
+    await _secureStorage.delete(key: 'password');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -90,12 +121,16 @@ class _SigninscreenState extends State<Signinscreen> {
                             Transform.scale(
                               scale: 0.8,
                               child: Switch(
-                                value: true,
-                                onChanged: (value) {},
+                                value: _isRememberMe, // Update this line
+                                onChanged: (value) {
+                                  setState(() {
+                                    _isRememberMe = value;
+                                  });
+                                },
                                 activeColor: Colors.white,
                                 activeTrackColor:
                                 const Color.fromARGB(255, 35, 94, 77),
-                                inactiveTrackColor: Colors.grey[500],
+                                inactiveTrackColor: Colors.grey[500], // Update this line
                               ),
                             ),
                             Text(
@@ -109,7 +144,7 @@ class _SigninscreenState extends State<Signinscreen> {
                         ),
                         TextButton(
                           onPressed: () {
-                            // Forgot Password Action
+                            Get.offAll(() => ForgetPasswordScreen());
                           },
                           child: Text(
                             "Forgot Password?",
@@ -126,7 +161,7 @@ class _SigninscreenState extends State<Signinscreen> {
           
                     /// **SIGN IN BUTTON** (Calls `login`)
                     ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         final email = emailController.text.trim();
                         final password = passwordController.text.trim();
           
@@ -134,6 +169,13 @@ class _SigninscreenState extends State<Signinscreen> {
                           Get.snackbar('Error', 'Please fill in all fields');
                           return;
                         }
+
+                        if (_isRememberMe) {
+                          await _saveCredentials(email, password); // Add this line
+                        } else {
+                          await _deleteCredentials(); // Add this line
+                        }
+          
                         _signUpController.login(email, password);
                       },
                       style: ElevatedButton.styleFrom(
