@@ -155,10 +155,12 @@ class _HomescreenState extends State<Homescreen> {
   Future<void> fetchFavoriteUsers() async {
     try {
       final users = await authService.getFavoriteUsers();
-      setState(() {
-        favoriteUsers = users;
-        print("Favouriets are fetching 🤢🤢🤢🤢🤢$favoriteUsers");
-      });
+      if (mounted) {
+        setState(() {
+          favoriteUsers = users;
+          print("Favouriets are fetching 🤢🤢🤢🤢🤢$favoriteUsers");
+        });
+      }
     } catch (error) {
       print('Error fetching favorite users: $error');
     }
@@ -166,30 +168,38 @@ class _HomescreenState extends State<Homescreen> {
   void fetchFeaturedEvents() async {
     try {
       final events = await GetFeaturedEvents().getFeaturedEvents();
-      setState(() {
-        featuredEvents = events;
-        print("Featured Events are fetching 🌹🌹🌹🌹🌹$featuredEvents");
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          featuredEvents = events;
+          print("Featured Events are fetching 🌹🌹🌹🌹🌹$featuredEvents");
+          isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
       print('Error fetching featured events: $e');
     }
   }
   void fetchFeaturedBusinesses() async {
     try {
       final businesses = await GetFeaturedBusinesses().getFeaturedBusinesses();
-      setState(() {
-        featuredBusinesses = businesses;
-        print("The featured business peoples are coming🙌🙌🙌🙌🙌🙌🙌$featuredBusinesses");
-        isBusinessesLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          featuredBusinesses = businesses;
+          print("The featured business peoples are coming🙌🙌🙌🙌🙌🙌🙌$featuredBusinesses");
+          isBusinessesLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        isBusinessesLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          isBusinessesLoading = false;
+        });
+      }
       print('Error fetching featured businesses: $e');
     }
   }
@@ -754,12 +764,17 @@ class _HomescreenState extends State<Homescreen> {
       return _attendeesMap[eventId]!;
     } else {
       try {
-        final attendees =
-        await eventController.getRegisteredUsersByEventId(eventId);
-        setState(() {
-          _attendeesMap[eventId] = attendees!;
-        });
-        return attendees!;
+        final attendees = await eventController.getRegisteredUsersByEventId(eventId);
+        if (attendees != null) {
+          if (mounted) {
+            setState(() {
+              _attendeesMap[eventId] = attendees;
+            });
+          }
+          return attendees;
+        } else {
+          return [];
+        }
       } catch (e) {
         print('Error fetching attendees for event $eventId: $e');
         return [];

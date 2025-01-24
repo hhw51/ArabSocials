@@ -390,6 +390,19 @@ class _MemberscreenState extends State<Memberscreen> {
       return;
     }
 
+    // If Location filter is already toggled and there are selected states, reset filter
+    if (_isLocationToggled && _selectedStates.isNotEmpty) {
+      setState(() {
+        _isLocationToggled = false;
+        _selectedStates = [];
+        // Reset other filters
+        _isProfessionToggled = false;
+        _isFavoriteToggled = false;
+      });
+      await _fetchOtherUsers();
+      return;
+    }
+
     // Show the dialog and wait for user selection
     final selected = await showDialog<List<String>>(
       context: context,
