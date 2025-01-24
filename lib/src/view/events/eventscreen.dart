@@ -325,7 +325,6 @@ class _EventscreenState extends State<Eventscreen> {
     }
   }
 
-  /// Builds the "Going" section with attendee avatars.
   Widget _buildGoingSection(List<dynamic> attendees) {
     if (attendees.isEmpty) {
       return SizedBox(); // Show nothing for 0 attendees
