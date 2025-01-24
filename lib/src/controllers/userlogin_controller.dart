@@ -1,9 +1,13 @@
+import 'dart:developer';
+
 import 'package:arabsocials/src/services/auth_services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../apis/google_signin.dart';
+import '../view/auth/splash_steps/stepscreen.dart';
 import '../widgets/bottom_nav.dart';
 
 class SignUpController extends GetxController {
@@ -22,12 +26,14 @@ class SignUpController extends GetxController {
         email: email,
         password: password,
       );
-      print("Login successful: $response");
+      _authService.getToken();
+
+      // _authService.setToken(tocken)
       showSuccessSnackbar('Logged in successfully!');
       Get.offAll(() => BottomNav());
     } catch (e) {
       print('Login error: $e');
-      showErrorSnackbar(e.toString());
+      // showErrorSnackbar(e.toString());
     } finally {
       isLoading(false);
     }
@@ -90,9 +96,26 @@ class SignUpController extends GetxController {
 
       // Sign in to Firebase
       final UserCredential userCredential =
-      await FirebaseAuth.instance.signInWithCredential(credential);
+      await _auth.signInWithCredential(credential);
 
       print('Firebase sign in successful for user: ${userCredential.user?.email}');
+
+      // Send the user email and UID to your API
+      final String email = userCredential.user?.email ?? '';
+      final String uid = userCredential.user?.uid ?? '';
+
+      try {
+        final response = await GoogleSigninService().googleSignIn(uid, email);
+        print('API response: $response');
+
+        // Optionally handle additional actions based on the response
+      } catch (e) {
+        print('Error sending data to API: $e');
+        Get.snackbar('API Error', 'Failed to communicate with the server');
+        // Depending on your app logic, you might choose to sign out the user here
+        // await _firebaseAuth.signOut();
+        // return;
+      }
 
       // Dismiss loading indicator
       Get.back();
@@ -119,6 +142,22 @@ class SignUpController extends GetxController {
       Get.back();
       Get.snackbar('Error', 'Error: $e');
     }
+  }
+
+  Future<void> setLoginState()async{
+    String? token=          await _authService.getToken();
+    log('token $token');
+    // Future.delayed(Duration(seconds: 3),(){
+    if(token!=null){
+      Get.offAll(() => BottomNav());
+
+    }else{
+      Get.to(() => Stepscreen());
+
+    }
+    // });
+
+
   }
 
 

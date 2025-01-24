@@ -27,6 +27,32 @@ class EventModel {
   });
 }
 
+class UserEvent {
+  final int id;
+  final String title;
+  final String description;
+  final String eventDate;
+  final String location;
+
+  UserEvent({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.eventDate,
+    required this.location,
+  });
+
+  factory UserEvent.fromJson(Map<String, dynamic> json) {
+    return UserEvent(
+      id: json['id'],
+      title: json['title'],
+      description: json['description'],
+      eventDate: json['event_date'],
+      location: json['location'],
+    );
+  }
+}
+
 List<EventModel> eventModelList = [
   EventModel(
     title: "International Band International Mu...",

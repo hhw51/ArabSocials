@@ -1,4 +1,5 @@
 import 'package:arabsocials/src/controllers/navigation_controller.dart';
+import 'package:arabsocials/src/controllers/notification_controller.dart'; // Add this line
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -12,10 +13,17 @@ class Notificationscreen extends StatefulWidget {
 }
 
 class _NotificationscreenState extends State<Notificationscreen> {
+  final NotificationController notificationController = Get.put(NotificationController()); // Add this line
+
+  @override
+  void initState() {
+    super.initState();
+    notificationController.fetchNotifications(); // Fetch notifications on screen load
+  }
+
   @override
   Widget build(BuildContext context) {
-    final NavigationController navigationController =
-        Get.put(NavigationController());
+    final NavigationController navigationController = Get.put(NavigationController());
     return SafeArea(
       child: Scaffold(
         backgroundColor: const Color.fromARGB(255, 250, 244, 228),
@@ -78,53 +86,77 @@ class _NotificationscreenState extends State<Notificationscreen> {
                 ),
               ),
               Expanded(
-                child: ListView.builder(
-                  itemCount: 1, 
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 24.r,
-                            backgroundColor: const Color.fromARGB(255, 200, 230, 201),
-                            backgroundImage: AssetImage("assets/logo/image1.png"),
-                          ),
-                          SizedBox(width: 12.w),
-                          Expanded(
-                            child: InkWell(
-                              onTap: () {
-                                navigationController.updateIndex(4);
-                              },
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Please complete your profile",
-                                    style: TextStyle(
-                                      fontSize: 14.sp,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.black,
+                child: Obx(() {
+                  if (notificationController.isLoading.value) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (notificationController.notifications.isEmpty) {
+                    return Center(child: Text('No notifications available'));
+                  }
+
+                  return ListView.builder(
+                    itemCount: notificationController.notifications.length,
+                    itemBuilder: (context, index) {
+                      final notification = notificationController.notifications[index];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 24.r,
+                              backgroundColor: const Color.fromARGB(255, 200, 230, 201),
+                              backgroundImage: notification.senderImage != null
+                                  ? NetworkImage(notification.senderImage!)
+                                  : AssetImage("assets/logo/image1.png") as ImageProvider,
+                            ),
+                            SizedBox(width: 12.w),
+                            Expanded(
+                              child: InkWell(
+                                onTap: () {
+                                  navigationController.updateIndex(4);
+                                },
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      notification.title ?? "",
+                                      style: TextStyle(
+                                        fontSize: 14.sp,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black,
+                                      ),
                                     ),
-                                  ),
-                                  SizedBox(height: 4.h),
-                                  Text(
-                                    "5 minutes ago",
-                                    style: TextStyle(
-                                      fontSize: 12.sp,
-                                      fontWeight: FontWeight.w400,
-                                      color: Colors.grey[600],
+                                    if (notification.eventTitle != null) ...[
+                                      SizedBox(height: 4.h),
+                                      Text(
+                                        notification.eventTitle!,
+                                        style: TextStyle(
+                                          fontSize: 12.sp,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.grey[800],
+                                        ),
+                                      ),
+                                    ],
+                                    SizedBox(height: 4.h),
+                                    Text(
+                                      notification.timestamp ?? "",
+                                      style: TextStyle(
+                                        fontSize: 12.sp,
+                                        fontWeight: FontWeight.w400,
+                                        color: Colors.grey[600],
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                }),
               ),
             ],
           ),

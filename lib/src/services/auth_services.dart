@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   static const String _baseUrl = 'http://35.222.126.155:8000';
@@ -16,10 +17,10 @@ class AuthService {
 
   // Business API Endpoints
   static const String _getOtherBusinessUsersUrl = '$_baseUrl/users/get-other-business-users/';
-  static const String _getBusinessUsersWithSameLocationUrl = '$_baseUrl/users/get-business-users-with-same-location/';
   static const String _getFavoriteBusinessUsersUrl = '$_baseUrl/users/get-favorite-bussiness-users/';
   static const String _getSavedEventsUrl = '$_baseUrl/events/get_saved_events/';
   static const String _getFavoriteUsersUrl = '$_baseUrl/users/get-favorite-users/';
+  static const String _getBusinessUsersByLocationsUrl = '$_baseUrl/users/get-business-users-by-locations/'; // Add this line
 
   static final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
@@ -92,6 +93,12 @@ class AuthService {
     } finally {
       print('🔍 [login] Method execution completed.');
     }
+  }
+
+  late final SharedPreferences sharedPreferences;
+  void setToken(String tocken)async {
+    final SharedPreferences sharedPreferences=await SharedPreferences.getInstance();
+    sharedPreferences.setString('token', tocken);
   }
 
   Future<int?> getUserId() async {
@@ -466,10 +473,55 @@ class AuthService {
   }
 
   // Fetch business users with the same location
-  Future<List<dynamic>> getBusinessUsersWithSameLocation() async {
+  Future<List<dynamic>> getBusinessUsersWithSameLocation(List<String> locations) async {
     print('🔍 [getBusinessUsersWithSameLocation] Method called.');
-    return _fetchDataFromApi(_getBusinessUsersWithSameLocationUrl,
-        'getBusinessUsersWithSameLocation');
+    try {
+      final token = await getToken();
+      if (token == null) {
+        print('❌ [getBusinessUsersWithSameLocation] No token found.');
+        throw Exception('No token found.');
+      }
+
+      print('🔗 [getBusinessUsersWithSameLocation] Connecting to $_getBusinessUsersByLocationsUrl with token.');
+
+      // Prepare headers
+      Map<String, String> headers = {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      };
+
+      // Prepare the JSON body
+      Map<String, dynamic> body = {
+        'locations': locations,
+      };
+
+      // Make the POST request
+      final response = await http
+          .post(
+        Uri.parse(_getBusinessUsersByLocationsUrl),
+        headers: headers,
+        body: jsonEncode(body),
+      )
+          .timeout(const Duration(seconds: 60));
+
+      print('📬 [getBusinessUsersWithSameLocation] Response Status: ${response.statusCode}');
+      print('📬 [getBusinessUsersWithSameLocation] Response Body: ${response.body}');
+
+      // Handle the response
+      if (response.statusCode == 200) {
+        print("✅ [getBusinessUsersWithSameLocation] Business API Response received.");
+        final List<dynamic> data = jsonDecode(response.body);
+        return data;
+      } else {
+        print('❌ [getBusinessUsersWithSameLocation] Error: ${response.statusCode} - ${response.body}');
+        throw Exception("Error: ${response.statusCode} - ${response.body}");
+      }
+    } catch (e) {
+      print("⚠️ [getBusinessUsersWithSameLocation] Error: $e");
+      rethrow;
+    } finally {
+      print('🔍 [getBusinessUsersWithSameLocation] Method execution completed.');
+    }
   }
 
   // Fetch favorite business users

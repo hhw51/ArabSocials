@@ -43,6 +43,63 @@ class _BusinessscreenState extends State<Businessscreen> {
 
   static const String _baseImageUrl = 'http://35.222.126.155:8000';
 
+  // List of U.S. states
+  final List<String> _usStates = [
+    "Alabama",
+    "Alaska",
+    "Arizona",
+    "Arkansas",
+    "California",
+    "Colorado",
+    "Connecticut",
+    "Delaware",
+    "Florida",
+    "Georgia",
+    "Hawaii",
+    "Idaho",
+    "Illinois",
+    "Indiana",
+    "Iowa",
+    "Kansas",
+    "Kentucky",
+    "Louisiana",
+    "Maine",
+    "Maryland",
+    "Massachusetts",
+    "Michigan",
+    "Minnesota",
+    "Mississippi",
+    "Missouri",
+    "Montana",
+    "Nebraska",
+    "Nevada",
+    "New Hampshire",
+    "New Jersey",
+    "New Mexico",
+    "New York",
+    "North Carolina",
+    "North Dakota",
+    "Ohio",
+    "Oklahoma",
+    "Oregon",
+    "Pennsylvania",
+    "Rhode Island",
+    "South Carolina",
+    "South Dakota",
+    "Tennessee",
+    "Texas",
+    "Utah",
+    "Vermont",
+    "Virginia",
+    "Washington",
+    "West Virginia",
+    "Wisconsin",
+    "Wyoming",
+  ];
+
+  // Store selected states
+  List<String> _selectedStates = [];
+
   @override
   void initState() {
     super.initState();
@@ -133,10 +190,10 @@ class _BusinessscreenState extends State<Businessscreen> {
   }
 
   /// Fetches businesses with the same location from the backend.
-  Future<void> _fetchSameLocationBusinesses() async {
+  Future<void> _fetchSameLocationBusinesses(List<String> locations) async {
     setState(() => _isLoading = true);
     try {
-      final locationData = await _authService.getBusinessUsersWithSameLocation();
+      final locationData = await _authService.getBusinessUsersWithSameLocation(locations);
       _allBusinesses = locationData.map<Map<String, dynamic>>((business) {
         return {
           "id": business["id"].toString(),
@@ -251,17 +308,103 @@ class _BusinessscreenState extends State<Businessscreen> {
     }
   }
 
-  /// Toggles between showing all businesses and same-location businesses.
-  void _onLocationTap() {
-    if (_isFavoriteToggled) {
-      setState(() => _isFavoriteToggled = false);
+  /// Opens a dialog for selecting locations with checkboxes
+  void _onLocationTap() async {
+    // If Location filter is already toggled and no selected states, reset filter
+    if (_isLocationToggled && _selectedStates.isEmpty) {
+      setState(() {
+        _isLocationToggled = false;
+        _selectedStates = [];
+        // Reset other filters
+        _isFavoriteToggled = false;
+      });
+      await _fetchAllBusinesses();
+      return;
     }
-    if (_isLocationToggled) {
-      setState(() => _isLocationToggled = false);
-      _fetchAllBusinesses();
-    } else {
-      setState(() => _isLocationToggled = true);
-      _fetchSameLocationBusinesses();
+
+    // If Location filter is already toggled and there are selected states, reset filter
+    if (_isLocationToggled && _selectedStates.isNotEmpty) {
+      setState(() {
+        _isLocationToggled = false;
+        _selectedStates = [];
+        // Reset other filters
+        _isFavoriteToggled = false;
+      });
+      await _fetchAllBusinesses();
+      return;
+    }
+
+    // Show the dialog and wait for user selection
+    final selected = await showDialog<List<String>>(
+      context: context,
+      builder: (context) {
+        // Temporary list to hold selections
+        List<String> tempSelected = List.from(_selectedStates);
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Select Locations'),
+              content: SingleChildScrollView(
+                child: ListBody(
+                  children: _usStates.map((state) {
+                    return CheckboxListTile(
+                      title: Text(state),
+                      value: tempSelected.contains(state),
+                      onChanged: (bool? value) {
+                        setState(() {
+                          if (value == true) {
+                            tempSelected.add(state);
+                          } else {
+                            tempSelected.remove(state);
+                          }
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Cancel
+                  },
+                  child: Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(tempSelected); // Return selected
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    // If the user pressed OK and made a selection
+    if (selected != null) {
+      if (selected.isNotEmpty) {
+        // Apply the location filter
+        setState(() {
+          _isLocationToggled = true;
+          _selectedStates = selected;
+          // Reset other filters
+          _isFavoriteToggled = false;
+        });
+        await _fetchSameLocationBusinesses(selected);
+      } else {
+        // If no states were selected, remove the location filter
+        setState(() {
+          _isLocationToggled = false;
+          _selectedStates = [];
+          // Reset other filters
+          _isFavoriteToggled = false;
+        });
+        await _fetchAllBusinesses();
+      }
     }
   }
 

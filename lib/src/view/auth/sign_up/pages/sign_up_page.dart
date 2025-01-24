@@ -124,41 +124,7 @@ class SignUpScreen extends StatelessWidget {
                               .toggleVisibility('confirmPassword'),
                         ),
                       )),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Obx(
-                        () => Row(
-                          children: [
-                            Transform.scale(
-                              scale: 0.8,
-                              child: Switch(
-                                value: rememberMe.value,
-                                onChanged: (value) => rememberMe.value = value,
-                              ),
-                            ),
-                            Text(
-                              "Remember Me",
-                              style: TextStyle(
-                                  fontSize: 14.sp, color: Colors.black,fontWeight: FontWeight.w400),
-                            ),
-                          ],
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () {},
-                        child: Text(
-                          "Forgot Password?",
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            color: Colors.black,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 10.h),
+                  SizedBox(height: 5.h),
                   Obx(() {
                     return _signUpController.isLoading.value
                         ? const Center(child: CircularProgressIndicator())
@@ -217,7 +183,7 @@ class SignUpScreen extends StatelessWidget {
                   }),
 
 
-                  SizedBox(height: 20.h),
+                  SizedBox(height: 10.h),
                   Row(
                     children: [
                       Expanded(
@@ -245,9 +211,11 @@ class SignUpScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: 20.h),
+                  SizedBox(height: 10.h),
                   ElevatedButton.icon(
-                    onPressed: () {},
+                    onPressed: () {
+                      _signUpController.signInWithGoogle();
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
                       shape: RoundedRectangleBorder(
@@ -269,7 +237,7 @@ class SignUpScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  SizedBox(height: 10.h),
+                  SizedBox(height: 5.h),
                   ElevatedButton.icon(
                     onPressed: () {},
                     style: ElevatedButton.styleFrom(

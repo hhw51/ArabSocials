@@ -16,6 +16,7 @@ import '../../apis/get_saved_events.dart';
 import '../../apis/save_remove_events.dart';
 import '../../controllers/registerEventController.dart';
 import '../../widgets/popup_event.dart';
+import '../../apis/get_events_by_location.dart'; // Add this line
 
 class Eventscreen extends StatefulWidget {
   Eventscreen({super.key});
@@ -30,6 +31,7 @@ class _EventscreenState extends State<Eventscreen> {
   final ApprovedEvents approvedEventsService = ApprovedEvents();
   final EventService _eventService = EventService(); // Initialize EventService
   final GetSavedEvents _getSavedEvents = GetSavedEvents();
+  final GetEventsByLocation _getEventsByLocation = GetEventsByLocation(); // Add this line
 
   final RegisterEventController eventController =
   Get.put(RegisterEventController()); // Initialize RegisterEventController
@@ -54,6 +56,64 @@ class _EventscreenState extends State<Eventscreen> {
   Map<int, List<dynamic>> _attendeesMap = {};
 
   static const String baseUrl = 'http://35.222.126.155:8000';
+
+  // List of U.S. states
+  final List<String> _usStates = [
+    "Alabama",
+    "Alaska",
+    "Arizona",
+    "Arkansas",
+    "California",
+    "Colorado",
+    "Connecticut",
+    "Delaware",
+    "Florida",
+    "Georgia",
+    "Hawaii",
+    "Idaho",
+    "Illinois",
+    "Indiana",
+    "Iowa",
+    "Kansas",
+    "Kentucky",
+    "Louisiana",
+    "Maine",
+    "Maryland",
+    "Massachusetts",
+    "Michigan",
+    "Minnesota",
+    "Mississippi",
+    "Missouri",
+    "Montana",
+    "Nebraska",
+    "Nevada",
+    "New Hampshire",
+    "New Jersey",
+    "New Mexico",
+    "New York",
+    "North Carolina",
+    "North Dakota",
+    "Ohio",
+    "Oklahoma",
+    "Oregon",
+    "Pennsylvania",
+    "Rhode Island",
+    "South Carolina",
+    "South Dakota",
+    "Tennessee",
+    "Texas",
+    "Utah",
+    "Vermont",
+    "Virginia",
+    "Washington",
+    "West Virginia",
+    "Wisconsin",
+    "Wyoming",
+  ];
+
+  // Store selected states
+  List<String> _selectedStates = [];
+  bool _isLocationToggled = false; // Add this line
 
   @override
   void initState() {
@@ -367,6 +427,131 @@ class _EventscreenState extends State<Eventscreen> {
     );
   }
 
+  /// Opens a dialog for selecting locations with checkboxes
+  void _onLocationTap() async {
+    // If Location filter is already toggled and no selected states, reset filter
+    if (_isLocationToggled && _selectedStates.isEmpty) {
+      setState(() {
+        _isLocationToggled = false;
+        _selectedStates = [];
+      });
+      await fetchApprovedEvents();
+      return;
+    }
+
+    // If Location filter is already toggled and there are selected states, reset filter
+    if (_isLocationToggled && _selectedStates.isNotEmpty) {
+      setState(() {
+        _isLocationToggled = false;
+        _selectedStates = [];
+      });
+      await fetchApprovedEvents();
+      return;
+    }
+
+    // Show the dialog and wait for user selection
+    final selected = await showDialog<List<String>>(
+      context: context,
+      builder: (context) {
+        // Temporary list to hold selections
+        List<String> tempSelected = List.from(_selectedStates);
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Select Locations'),
+              content: SingleChildScrollView(
+                child: ListBody(
+                  children: _usStates.map((state) {
+                    return CheckboxListTile(
+                      title: Text(state),
+                      value: tempSelected.contains(state),
+                      onChanged: (bool? value) {
+                        setState(() {
+                          if (value == true) {
+                            tempSelected.add(state);
+                          } else {
+                            tempSelected.remove(state);
+                          }
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Cancel
+                  },
+                  child: Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(tempSelected); // Return selected
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    // If the user pressed OK and made a selection
+    if (selected != null) {
+      if (selected.isNotEmpty) {
+        // Apply the location filter
+        setState(() {
+          _isLocationToggled = true;
+          _selectedStates = selected;
+        });
+        await _fetchEventsByLocation(selected);
+      } else {
+        // If no states were selected, remove the location filter
+        setState(() {
+          _isLocationToggled = false;
+          _selectedStates = [];
+        });
+        await fetchApprovedEvents();
+      }
+    }
+  }
+
+  /// Fetches events based on selected locations.
+  Future<void> _fetchEventsByLocation(List<String> locations) async {
+    setState(() => isLoading = true);
+    try {
+      final locationData = await _getEventsByLocation.getEventsByLocations(locations);
+      _allEvents = locationData.map<Map<String, dynamic>>((event) {
+        final eventDate = DateTime.parse(event.eventDate);
+        final day = eventDate.day;
+        final month = _monthAbbreviation(eventDate.month);
+        return {
+          "id": event.id,
+          "title": event.title,
+          "description": event.description,
+          "event_date": event.eventDate,
+          "location": event.location,
+          "day": day,
+          "month": month,
+          "bookmarked": false, // Default to false, update as needed
+        };
+      }).toList();
+      _applySearchFilter(); // Apply any existing search query
+    } catch (e) {
+      print("Error fetching events by location: $e");
+      // Clear lists on error
+      setState(() {
+        _allEvents = [];
+        _filteredEvents = [];
+      });
+    } finally {
+      setState(() => isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -407,53 +592,21 @@ class _EventscreenState extends State<Eventscreen> {
                               _toggleSavedEventsView();
                             },
                           ),
-                          const CustomContainer(
+                          CustomContainer(
                             text: "Location",
                             icon: Icons.location_on_outlined,
+                            onTap: () {
+                              _onLocationTap();
+                            },
                           ),
                           const CustomContainer(
                             text: "Date",
                             image: "assets/icons/calculator.png",
                           ),
-                          const CustomContainer(
-                            text: "Type",
-                            icon: Icons.filter_alt_outlined,
-                          ),
                         ],
                       ),
                     ),
                     // Custom Buttons Row
-                    const SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Padding(
-                        padding:
-                        EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                        child: Row(
-                          children: [
-                            Custombutton(
-                              text: "Sports",
-                              icon: Icons.sports_basketball,
-                              color: Color.fromARGB(255, 240, 99, 90),
-                            ),
-                            Custombutton(
-                              text: "Music",
-                              image: "assets/icons/musicicon.png",
-                              color: Color.fromARGB(255, 245, 151, 98),
-                            ),
-                            Custombutton(
-                              text: "Food",
-                              image: "assets/icons/foodicon.png",
-                              color: Color.fromARGB(255, 41, 214, 151),
-                            ),
-                            Custombutton(
-                              text: "Drawing",
-                              image: "assets/icons/painticon.png",
-                              color: Color.fromARGB(255, 70, 205, 251),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
                     // Section Title
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 22.w),
