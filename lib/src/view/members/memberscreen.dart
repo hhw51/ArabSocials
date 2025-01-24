@@ -565,20 +565,20 @@ class _MemberscreenState extends State<Memberscreen> {
                     ],
                   ),
                 ),
-                SizedBox(height: 16.h),
+                // SizedBox(height: 16.h),
 
-                /// Title
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24.w),
-                  child: Text(
-                    "EXPLORE MEMBERS",
-                    style: GoogleFonts.playfairDisplaySc(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
+                // /// Title
+                // Padding(
+                //   padding: EdgeInsets.symmetric(horizontal: 24.w),
+                //   child: Text(
+                //     "EXPLORE MEMBERS",
+                //     style: GoogleFonts.playfairDisplaySc(
+                //       fontSize: 16.sp,
+                //       fontWeight: FontWeight.w700,
+                //       color: Colors.black,
+                //     ),
+                //   ),
+                // ),
                 SizedBox(height: 12.h),
 
                 /// Search

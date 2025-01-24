@@ -418,18 +418,18 @@ class _EventscreenState extends State<Eventscreen> {
                         ],
                       ),
                     ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 22.w),
-                      child: Text(
-                        "EXPLORE EVENTS",
-                        style: GoogleFonts.playfairDisplaySc(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 12.h),
+                    // Padding(
+                    //   padding: EdgeInsets.symmetric(horizontal: 22.w),
+                    //   child: Text(
+                    //     "EXPLORE EVENTS",
+                    //     style: GoogleFonts.playfairDisplaySc(
+                    //       fontSize: 16.sp,
+                    //       fontWeight: FontWeight.w700,
+                    //       color: Colors.black,
+                    //     ),
+                    //   ),
+                    // ),
+                     SizedBox(height: 12.h),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 6),
                       child: CustomTextFormField(
@@ -804,7 +804,6 @@ class _EventscreenState extends State<Eventscreen> {
             ),
             if (isLoading)
               Container(
-                color: Colors.black.withOpacity(0.1), // Optional: Dim the background
                 child: Center(
                   child: CircularProgressIndicator(),
                 ),

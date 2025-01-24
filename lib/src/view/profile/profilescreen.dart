@@ -221,14 +221,17 @@ class ProfilescreenState extends State<Profilescreen> with ShowEditProfileDialog
           foregroundColor: const Color.fromARGB(255, 250, 244, 228),
           surfaceTintColor: const Color.fromARGB(255, 250, 244, 228),
           elevation: 0,
-          leading: InkWell(
-            onTap: () => navigationController.navigateBack(),
-            child: const Icon(Icons.arrow_back,
-                color: Color.fromARGB(255, 35, 94, 77), size: 24),
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 18, bottom: 22),
+            child: InkWell(
+              onTap: () => navigationController.navigateBack(),
+              child: const Icon(Icons.arrow_back,
+                  color: Color.fromARGB(255, 35, 94, 77), size: 24),
+            ),
           ),
           actions: [
             Padding(
-              padding: EdgeInsets.only(right: 17.0),
+              padding: EdgeInsets.only(right: 17.0, bottom: 22),
               child: InkWell(
                 onTap: () {
                   Get.to(() => Signinscreen());
@@ -241,7 +244,7 @@ class ProfilescreenState extends State<Profilescreen> with ShowEditProfileDialog
               ),
             ),
             Padding(
-              padding: EdgeInsets.only(right: 16.0),
+              padding: EdgeInsets.only(right: 16.0, bottom: 22),
               child: CustomContainer(
                 text: "Edit Profile",
                 image: "assets/icons/editprofile.png",

@@ -320,19 +320,19 @@ class _BusinessscreenState extends State<Businessscreen> {
                     ],
                   ),
                 ),
-                SizedBox(height: 16.h),
+                // SizedBox(height: 16.h),
                 /// Title
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24.w),
-                  child: Text(
-                    "Explore Businesses",
-                    style: GoogleFonts.playfairDisplaySc(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
+                // Padding(
+                //   padding: EdgeInsets.symmetric(horizontal: 24.w),
+                //   child: Text(
+                //     "Explore Businesses",
+                //     style: GoogleFonts.playfairDisplaySc(
+                //       fontSize: 16.sp,
+                //       fontWeight: FontWeight.w700,
+                //       color: Colors.black,
+                //     ),
+                //   ),
+                // ),
                 SizedBox(height: 12.h),
                 /// Search
                 Padding(

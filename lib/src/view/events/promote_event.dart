@@ -58,25 +58,21 @@ class _PromoteEventState extends State<PromoteEvent> {
       showErrorSnackbar("Please upload an image."); // Replaced Get.snackbar
       return;
     }
+ // Validate that all required fields are filled (excluding optional fields)
+  if (titleController.text.isEmpty ||
+      eventtypeController.text.isEmpty ||
+      locationController.text.isEmpty ||
+      descriptionController.text.isEmpty ||
+      dateController.text.isEmpty ||
+      starttimeController.text.isEmpty ||
+      endtimeController.text.isEmpty) {
+    showErrorSnackbar("Please fill in all required fields."); // Replaced Get.snackbar
+    return;
+  }
 
-    // Validate that all required fields are filled
-    if (titleController.text.isEmpty ||
-        eventtypeController.text.isEmpty ||
-        locationController.text.isEmpty ||
-        descriptionController.text.isEmpty ||
-        ticketController.text.isEmpty ||
-        codeController.text.isEmpty ||
-        dateController.text.isEmpty ||
-        starttimeController.text.isEmpty ||
-        endtimeController.text.isEmpty) {
-      showErrorSnackbar("Please fill in all fields."); // Replaced Get.snackbar
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
+  setState(() {
+    _isLoading = true;
+  });
     try {
       // Parse the event date
       final DateTime parsedDate = DateTime.parse(dateController.text);
@@ -384,7 +380,6 @@ class _PromoteEventState extends State<PromoteEvent> {
                         hintText: "Select End Time",
                       ),
                       SizedBox(height: 20.h),
-                      // Additional spacing to ensure content is above the Create button
                       SizedBox(height: 20.h),
                     ],
                   ),
