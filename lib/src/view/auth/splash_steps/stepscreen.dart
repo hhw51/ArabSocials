@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // Add this line
 
 class Stepscreen extends StatelessWidget {
   const Stepscreen({super.key});
@@ -11,6 +12,11 @@ class Stepscreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final StepsController controller = Get.put(StepsController());
+    final FlutterSecureStorage storage = FlutterSecureStorage(); // Add this line
+
+    Future<void> _markStepsAsShown() async { // Add this method
+      await storage.write(key: 'steps_shown', value: 'true');
+    }
 
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 35, 94, 77),
@@ -89,7 +95,8 @@ class Stepscreen extends StatelessWidget {
                               ),
                               minimumSize: Size(double.infinity, 55.h),
                             ),
-                            onPressed: () {
+                            onPressed: () async {
+                              await _markStepsAsShown(); // Add this line
                               Get.to(() => const Signinscreen());
                             },
                             child: Text(

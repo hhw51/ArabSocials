@@ -7,6 +7,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../apis/register_event.dart';
 import '../../controllers/registerEventController.dart';
+import '../../apis/get_other_users.dart'; // Add this line
+import '../../apis/send_event_invites.dart'; // Add this line
 
 class RegisterEvent extends StatefulWidget {
   final int? eventId; // Make event optional
@@ -20,12 +22,16 @@ class RegisterEvent extends StatefulWidget {
 class _RegisterEventState extends State<RegisterEvent> {
   bool isRegistered = false;
   bool isProcessing = false;
-  final String baseUrl = 'http://35.222.126.155:8000';// Flag to indicate if processing is ongoing
+  final String baseUrl =
+      'http://35.222.126.155:8000'; // Flag to indicate if processing is ongoing
 
-  final RegisterEventController eventController = Get.put(RegisterEventController());
+  final RegisterEventController eventController =
+      Get.put(RegisterEventController());
 
   // Map to cache attendees per eventId
   Map<int, List<dynamic>> _attendeesMap = {};
+
+  final Set<int> _selectedUserIds = {}; // Add this line
 
   @override
   void initState() {
@@ -38,9 +44,11 @@ class _RegisterEventState extends State<RegisterEvent> {
     final eventController = Get.find<RegisterEventController>();
     if (widget.eventId != null) {
       setState(() {
-        isRegistered = eventController.registeredEventIds.contains(widget.eventId);
+        isRegistered =
+            eventController.registeredEventIds.contains(widget.eventId);
       });
-      print('Initial registration status for Event ID ${widget.eventId}: $isRegistered');
+      print(
+          'Initial registration status for Event ID ${widget.eventId}: $isRegistered');
     }
   }
 
@@ -119,7 +127,8 @@ class _RegisterEventState extends State<RegisterEvent> {
       return _attendeesMap[eventId]!;
     } else {
       try {
-        final attendees = await eventController.getRegisteredUsersByEventId(eventId);
+        final attendees =
+            await eventController.getRegisteredUsersByEventId(eventId);
         setState(() {
           _attendeesMap[eventId] = attendees!;
         });
@@ -144,16 +153,20 @@ class _RegisterEventState extends State<RegisterEvent> {
       children: [
         Container(
           height: 24.h,
-          width: displayCount * 24.w + (displayCount - 1) * 6.w, // Adjust width based on number of images
+          width: displayCount * 24.w +
+              (displayCount - 1) *
+                  6.w, // Adjust width based on number of images
           child: Stack(
             children: List.generate(displayCount, (i) {
               return Positioned(
                 left: i * 18.w, // Overlap images slightly
                 child: CircleAvatar(
                   radius: 13.r,
-                  backgroundImage: attendees[i]['image'] != null && attendees[i]['image'].isNotEmpty
+                  backgroundImage: attendees[i]['image'] != null &&
+                          attendees[i]['image'].isNotEmpty
                       ? NetworkImage('$baseUrl${attendees[i]['image']}')
-                      : AssetImage('assets/logo/member_group.png') as ImageProvider,
+                      : AssetImage('assets/logo/member_group.png')
+                          as ImageProvider,
                 ),
               );
             }),
@@ -170,6 +183,114 @@ class _RegisterEventState extends State<RegisterEvent> {
         ),
       ],
     );
+  }
+
+  void _showInviteDialog() async {
+    // Add this method
+    try {
+      final users = await GetOtherUsers().getOtherUsers();
+
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return StatefulBuilder(
+            builder: (context, setState) {
+              return AlertDialog(
+                title: Text('Invite Users'),
+                content: Container(
+                  width: double.maxFinite,
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: users.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      final user = users[index];
+                      final imageUrl =
+                          user.image != null && user.image!.isNotEmpty
+                              ? user.image!.startsWith('http')
+                                  ? user.image
+                                  : 'http://35.222.126.155:8000${user.image}'
+                              : 'assets/logo/member_group.png';
+                      final isSelected =
+                          _selectedUserIds.contains(user.id); // Add this line
+
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundImage: imageUrl!.startsWith('http')
+                              ? NetworkImage(imageUrl)
+                              : AssetImage(imageUrl) as ImageProvider,
+                        ),
+                        title: Text(user.name ?? 'Unknown'),
+                        trailing: isSelected
+                            ? Icon(Icons.check, color: Colors.green)
+                            : null, // Add this line
+                        tileColor: isSelected
+                            ? Colors.grey[300]
+                            : null, // Add this line
+                        onTap: () {
+                          setState(() {
+                            if (isSelected) {
+                              _selectedUserIds.remove(user.id);
+                            } else {
+                              _selectedUserIds.add(user.id);
+                            }
+                          });
+                        },
+                      );
+                    },
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('Close'),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      if (_selectedUserIds.isNotEmpty &&
+                          widget.eventId != null) {
+                        try {
+                          final response =
+                              await EventInviteService().sendEventInvites(
+                            userIds: _selectedUserIds.toList(),
+                            eventId: widget.eventId!,
+                          );
+                          print('Invite Response: $response');
+                          Get.snackbar(
+                            'Success',
+                            'Invites sent successfully!',
+                            backgroundColor: Colors.green,
+                            colorText: Colors.white,
+                            snackPosition: SnackPosition.BOTTOM,
+                          );
+                        } catch (e) {
+                          print('Error sending invites: $e');
+                          Get.snackbar(
+                            'Error',
+                            'Failed to send invites: $e',
+                            backgroundColor: Colors.red,
+                            colorText: Colors.white,
+                            snackPosition: SnackPosition.BOTTOM,
+                          );
+                        }
+                      }
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('OK'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      );
+    } catch (e) {
+      print('Error fetching users: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load users: $e')),
+      );
+    }
   }
 
   @override
@@ -199,34 +320,39 @@ class _RegisterEventState extends State<RegisterEvent> {
                     bottomLeft: Radius.circular(24.r),
                     bottomRight: Radius.circular(24.r),
                   ),
-                  child: event != null && event['flyer'] != null && event['flyer'] != ''
+                  child: event != null &&
+                          event['flyer'] != null &&
+                          event['flyer'] != ''
                       ? Image.network(
-                    '$baseUrl${event['flyer']}',
-                    fit: BoxFit.cover,
-                    height: 261.h,
-                    width: double.infinity,
-                    errorBuilder: (context, error, stackTrace) => Image.asset(
-                      "assets/logo/homegrid.png",
-                      fit: BoxFit.cover,
-                      height: 261.h,
-                      width: double.infinity,
-                    ),
-                  )
+                          '$baseUrl${event['flyer']}',
+                          fit: BoxFit.cover,
+                          height: 261.h,
+                          width: double.infinity,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Image.asset(
+                            "assets/logo/homegrid.png",
+                            fit: BoxFit.cover,
+                            height: 261.h,
+                            width: double.infinity,
+                          ),
+                        )
                       : Image.asset(
-                    "assets/logo/homegrid.png",
-                    fit: BoxFit.cover,
-                    height: 261.h,
-                    width: double.infinity,
-                  ),
+                          "assets/logo/homegrid.png",
+                          fit: BoxFit.cover,
+                          height: 261.h,
+                          width: double.infinity,
+                        ),
                 ),
                 // Back Button and Header Title
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 35.h),
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 16.w, vertical: 35.h),
                   child: Row(
                     children: [
                       GestureDetector(
                         onTap: () {
-                          final NavigationController navigationController = Get.find();
+                          final NavigationController navigationController =
+                              Get.find();
                           navigationController.navigateBack();
                         },
                         child: Icon(
@@ -253,7 +379,8 @@ class _RegisterEventState extends State<RegisterEvent> {
                   left: 16.w,
                   right: 16.w,
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16.r),
@@ -266,16 +393,22 @@ class _RegisterEventState extends State<RegisterEvent> {
                       ],
                     ),
                     child: Row(
-                      children: [ // Overlapping Circular Avatars
+                      children: [
+                        // Overlapping Circular Avatars
                         // **Dynamic "Going" Section**
                         FutureBuilder<List<dynamic>>(
-                          future: widget.eventId != null ? _fetchAttendees(widget.eventId!) : Future.value([]),
+                          future: widget.eventId != null
+                              ? _fetchAttendees(widget.eventId!)
+                              : Future.value([]),
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
                               return SizedBox(
                                 height: 24.h,
                                 width: 56.w,
-                                child: Center(child: CircularProgressIndicator(strokeWidth: 2.0)),
+                                child: Center(
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2.0)),
                               );
                             } else if (snapshot.hasError) {
                               return Text(
@@ -290,15 +423,15 @@ class _RegisterEventState extends State<RegisterEvent> {
                         ),
                         const Spacer(),
                         ElevatedButton(
-                          onPressed: () {
-                            // Implement invite functionality if needed
-                          },
+                          onPressed: _showInviteDialog, // Update this line
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color.fromARGB(255, 35, 94, 77),
+                            backgroundColor:
+                                const Color.fromARGB(255, 35, 94, 77),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8.r),
                             ),
-                            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 12.w, vertical: 8.h),
                           ),
                           child: Text(
                             "INVITE",
@@ -321,183 +454,190 @@ class _RegisterEventState extends State<RegisterEvent> {
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
             child: event != null
                 ? SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    event['title'] ?? "No Title",
-                    style: GoogleFonts.playfairDisplaySc(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black,
-                    ),
-                  ),
-                  SizedBox(height: 12.h),
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: Icon(
-                      Icons.calendar_today_outlined,
-                      size: 16.sp,
-                      color: Colors.grey,
-                    ),
-                    title: Text(
-                      event['event_date']?.split("T")[0] ?? "No Date",
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        color: Colors.black,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    subtitle: Text(
-                      "Time: ${event['event_date']?.split("T")[1]?.split("Z")[0] ?? "N/A"}",
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ),
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: Icon(
-                      Icons.location_on_outlined,
-                      size: 16.sp,
-                      color: Colors.grey,
-                    ),
-                    title: Text(
-                      event['location'] ?? "No Location",
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        color: Colors.black,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    subtitle: Text(
-                      "Event Type: ${event['event_type'] ?? "N/A"}",
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 12.h), // Add some spacing before creator details
-                  // **Dynamic Event Creator Details**
-                  if (creator != null)
-                    Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CircleAvatar(
-                          radius: 18.r,
-                          backgroundImage: creator['image'] != null && creator['image'] != ''
-                              ? NetworkImage('$baseUrl${creator['image']}')
-                              : AssetImage("assets/logo/member_group.png") as ImageProvider, // Fallback image
-                        ),
-                        SizedBox(width: 12.w),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              creator['name'] ?? "No Name",
-                              style: TextStyle(
-                                fontSize: 14.sp,
-                                color: Colors.black,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            Text(
-                              "Organizer",
-                              style: TextStyle(
-                                fontSize: 12.sp,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Spacer(),
-                        ElevatedButton(
-                          onPressed: () {
-                            // Implement follow functionality if needed
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color.fromARGB(255, 35, 94, 77),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.r),
-                            ),
+                        Text(
+                          event['title'] ?? "No Title",
+                          style: GoogleFonts.playfairDisplaySc(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black,
                           ),
-                          child: Text(
-                            "Follow",
+                        ),
+                        SizedBox(height: 12.h),
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Icon(
+                            Icons.calendar_today_outlined,
+                            size: 16.sp,
+                            color: Colors.grey,
+                          ),
+                          title: Text(
+                            event['event_date']?.split("T")[0] ?? "No Date",
                             style: TextStyle(
                               fontSize: 14.sp,
+                              color: Colors.black,
                               fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                            ),
+                          ),
+                          subtitle: Text(
+                            "Time: ${event['event_date']?.split("T")[1]?.split("Z")[0] ?? "N/A"}",
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: Colors.grey,
                             ),
                           ),
                         ),
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Icon(
+                            Icons.location_on_outlined,
+                            size: 16.sp,
+                            color: Colors.grey,
+                          ),
+                          title: Text(
+                            event['location'] ?? "No Location",
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              color: Colors.black,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          subtitle: Text(
+                            "Event Type: ${event['event_type'] ?? "N/A"}",
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                            height: 12
+                                .h), // Add some spacing before creator details
+                        // **Dynamic Event Creator Details**
+                        if (creator != null)
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 18.r,
+                                backgroundImage: creator['image'] != null &&
+                                        creator['image'] != ''
+                                    ? NetworkImage(
+                                        '$baseUrl${creator['image']}')
+                                    : AssetImage("assets/logo/member_group.png")
+                                        as ImageProvider, // Fallback image
+                              ),
+                              SizedBox(width: 12.w),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    creator['name'] ?? "No Name",
+                                    style: TextStyle(
+                                      fontSize: 14.sp,
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  Text(
+                                    "Organizer",
+                                    style: TextStyle(
+                                      fontSize: 12.sp,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Spacer(),
+                              ElevatedButton(
+                                onPressed: () {
+                                  // Implement follow functionality if needed
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                      const Color.fromARGB(255, 35, 94, 77),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8.r),
+                                  ),
+                                ),
+                                child: Text(
+                                  "Follow",
+                                  style: TextStyle(
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        else
+                          // If creator details are not available, show a placeholder or nothing
+                          Container(),
+                        SizedBox(height: 25.h),
+                        Text(
+                          "ABOUT",
+                          style: GoogleFonts.playfairDisplaySc(
+                            fontSize: 14.sp,
+                            color: const Color.fromARGB(255, 35, 94, 77),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        SizedBox(height: 10.h),
+                        Text(
+                          event['description'] ?? "No Description",
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w400,
+                            color: const Color.fromARGB(255, 143, 146, 137),
+                          ),
+                        ),
+
+                        SizedBox(height: 15.h),
+
+                        // **Register/Unregister Button**
+                        ElevatedButton(
+                          onPressed: isProcessing ? null : _handleRegistration,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                const Color.fromARGB(255, 35, 94, 77),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.r),
+                            ),
+                            minimumSize: Size(double.infinity, 56.h),
+                          ),
+                          child: isProcessing
+                              ? SizedBox(
+                                  width: 24.w,
+                                  height: 24.h,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2.0,
+                                  ),
+                                )
+                              : Text(
+                                  isRegistered ? "UNREGISTER" : "REGISTER",
+                                  style: TextStyle(
+                                    fontSize: 16.sp,
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                        ),
                       ],
-                    )
-                  else
-                  // If creator details are not available, show a placeholder or nothing
-                    Container(),
-                  SizedBox(height: 25.h),
-                  Text(
-                    "ABOUT",
-                    style: GoogleFonts.playfairDisplaySc(
-                      fontSize: 14.sp,
-                      color: const Color.fromARGB(255, 35, 94, 77),
-                      fontWeight: FontWeight.w700,
                     ),
-                  ),
-                  SizedBox(height: 10.h),
-                  Text(
-                    event['description'] ?? "No Description",
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w400,
-                      color: const Color.fromARGB(255, 143, 146, 137),
-                    ),
-                  ),
-
-                  SizedBox(height: 15.h),
-
-                  // **Register/Unregister Button**
-                  ElevatedButton(
-                    onPressed: isProcessing ? null : _handleRegistration,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 35, 94, 77),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                      ),
-                      minimumSize: Size(double.infinity, 56.h),
-                    ),
-                    child: isProcessing
-                        ? SizedBox(
-                      width: 24.w,
-                      height: 24.h,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2.0,
-                      ),
-                    )
-                        : Text(
-                      isRegistered ? "UNREGISTER" : "REGISTER",
+                  )
+                : Center(
+                    child: Text(
+                      "No event details available",
                       style: TextStyle(
                         fontSize: 16.sp,
                         fontWeight: FontWeight.w400,
-                        color: Colors.white,
+                        color: Colors.grey,
                       ),
                     ),
                   ),
-                ],
-              ),
-            )
-                : Center(
-              child: Text(
-                "No event details available",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w400,
-                  color: Colors.grey,
-                ),
-              ),
-            ),
           ),
         ],
       ),

@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:arabsocials/src/controllers/notification_controller.dart'; // Add this line
 
 class Homescreen extends StatefulWidget {
   const Homescreen({super.key});
@@ -28,6 +29,7 @@ class _HomescreenState extends State<Homescreen> {
   final ApprovedEvents approvedEventsService = ApprovedEvents();
   final RegisterEventController eventController =
   Get.put(RegisterEventController());
+  final NotificationController notificationController = Get.put(NotificationController());
 
   bool isLoading = true;
   List<dynamic> savedEvents = [];
@@ -243,7 +245,8 @@ class _HomescreenState extends State<Homescreen> {
                       ),
                     ),
                     InkWell(
-                      onTap: () {
+                      onTap: () async {
+                        await notificationController.fetchNotifications(); // Fetch notifications before navigating
                         navigationController.navigateToChild(Notificationscreen());
                       },
                       child: Image(

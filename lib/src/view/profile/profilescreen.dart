@@ -14,13 +14,15 @@ import '../../apis/visibility_toggle.dart' as visibilityPrefService;
 
 class Profilescreen extends StatefulWidget {
   const Profilescreen({super.key});
-  static final GlobalKey<ProfilescreenState> globalKey = GlobalKey<ProfilescreenState>();
+  static final GlobalKey<ProfilescreenState> globalKey =
+      GlobalKey<ProfilescreenState>();
 
   @override
   State<Profilescreen> createState() => ProfilescreenState();
 }
 
-class ProfilescreenState extends State<Profilescreen> with ShowEditProfileDialog {
+class ProfilescreenState extends State<Profilescreen>
+    with ShowEditProfileDialog {
   final AuthService _authService = AuthService();
 
   // Secure storage
@@ -120,7 +122,9 @@ class ProfilescreenState extends State<Profilescreen> with ShowEditProfileDialog
       // Process interests field safely
       if (userInfo['interests'] != null && userInfo['interests'] is List) {
         myInterest.assignAll(
-          (userInfo['interests'] as List<dynamic>).map((e) => e.toString().trim()).toList(),
+          (userInfo['interests'] as List<dynamic>)
+              .map((e) => e.toString().trim())
+              .toList(),
         );
       }
 
@@ -134,7 +138,8 @@ class ProfilescreenState extends State<Profilescreen> with ShowEditProfileDialog
       dobSwitch.value = !parseToBool(visibilitySettings['dob']);
       professionSwitch.value = !parseToBool(visibilitySettings['profession']);
       nationalitySwitch.value = !parseToBool(visibilitySettings['nationality']);
-      maritalStatusSwitch.value = !parseToBool(visibilitySettings['marital_status']);
+      maritalStatusSwitch.value =
+          !parseToBool(visibilitySettings['marital_status']);
       aboutMeSwitch.value = !parseToBool(visibilitySettings['about_me']);
       interestsSwitch.value = !parseToBool(visibilitySettings['interests']);
       locationSwitch.value = !parseToBool(visibilitySettings['location']);
@@ -210,7 +215,8 @@ class ProfilescreenState extends State<Profilescreen> with ShowEditProfileDialog
     return NetworkImage(rawPath);
   }
 
-  Future<void> _logout() async { // Add this method
+  Future<void> _logout() async {
+    // Add this method
     await _secureStorage.delete(key: 'email');
     await _secureStorage.delete(key: 'password');
     Get.offAll(() => Signinscreen());
@@ -218,7 +224,8 @@ class ProfilescreenState extends State<Profilescreen> with ShowEditProfileDialog
 
   @override
   Widget build(BuildContext context) {
-    final NavigationController navigationController = Get.put(NavigationController());
+    final NavigationController navigationController =
+        Get.put(NavigationController());
 
     return Scaffold(
         appBar: AppBar(
@@ -284,41 +291,45 @@ class ProfilescreenState extends State<Profilescreen> with ShowEditProfileDialog
                       child: Column(
                         children: [
                           Obx(() => Container(
-                            height: 96.h,
-                            width: 96.w,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle, // Makes the container circular
-                              image: DecorationImage(
-                                image: _resolveImagePath(profileImagePath.value),
-                                fit: BoxFit.cover, // Ensures the image covers the entire circle
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  spreadRadius: 2,
-                                  blurRadius: 5,
-                                  offset: const Offset(0, 3), // changes position of shadow
+                                height: 96.h,
+                                width: 96.w,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape
+                                      .circle, // Makes the container circular
+                                  image: DecorationImage(
+                                    image: _resolveImagePath(
+                                        profileImagePath.value),
+                                    fit: BoxFit
+                                        .cover, // Ensures the image covers the entire circle
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      spreadRadius: 2,
+                                      blurRadius: 5,
+                                      offset: const Offset(
+                                          0, 3), // changes position of shadow
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          )),
+                              )),
                           SizedBox(height: 4.h),
                           Obx(() => Text(
-                            name.value,
-                            style: GoogleFonts.playfairDisplaySc(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w700,
-                              color: const Color.fromARGB(255, 35, 94, 77),
-                            ),
-                          )),
+                                name.value,
+                                style: GoogleFonts.playfairDisplaySc(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color.fromARGB(255, 35, 94, 77),
+                                ),
+                              )),
                           Obx(() => Text(
-                            profession.value,
-                            style: TextStyle(
-                              fontSize: 10.sp,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.grey[400],
-                            ),
-                          )),
+                                profession.value,
+                                style: TextStyle(
+                                  fontSize: 10.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.grey[400],
+                                ),
+                              )),
                         ],
                       ),
                     ),
@@ -338,7 +349,9 @@ class ProfilescreenState extends State<Profilescreen> with ShowEditProfileDialog
                       SizedBox(width: 10.w),
                       GestureDetector(
                         onTap: () => _showParagraphDialog(context),
-                        child: Icon(Icons.edit, color: const Color.fromARGB(255, 35, 94, 77), size: 24),
+                        child: Icon(Icons.edit,
+                            color: const Color.fromARGB(255, 35, 94, 77),
+                            size: 24),
                       ),
                       Spacer(),
                       Transform.scale(
@@ -357,9 +370,10 @@ class ProfilescreenState extends State<Profilescreen> with ShowEditProfileDialog
                   Padding(
                     padding: const EdgeInsets.only(left: 15),
                     child: Obx(() => Text(
-                      aboutMe.value,
-                      style: TextStyle(fontSize: 14.sp, color: Colors.black),
-                    )),
+                          aboutMe.value,
+                          style:
+                              TextStyle(fontSize: 14.sp, color: Colors.black),
+                        )),
                   ),
                   SizedBox(height: 10.h),
                   // INTERESTS Section
@@ -388,15 +402,17 @@ class ProfilescreenState extends State<Profilescreen> with ShowEditProfileDialog
                     ],
                   ),
                   Obx(
-                        () => SizedBox(
+                    () => SizedBox(
                       height: 25.h,
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
                         itemCount: myInterest.length,
                         itemBuilder: (context, index) {
                           return CustomIntrestsContainer(
-                            text: Interest.fromApi(value: myInterest[index]).name,
-                            color: Interest.fromApi(value: myInterest[index]).color,
+                            text:
+                                Interest.fromApi(value: myInterest[index]).name,
+                            color: Interest.fromApi(value: myInterest[index])
+                                .color,
                           );
                         },
                       ),
@@ -416,124 +432,128 @@ class ProfilescreenState extends State<Profilescreen> with ShowEditProfileDialog
                   SizedBox(height: 8.h),
                   // Phone Toggle
                   Obx(() => CustomData(
-                    title: "Phone",
-                    subtitle: phone.value,
-                    showSwitch: true,
-                    switchValue: phoneSwitch.value,
-                    onSwitchChanged: (val) {
-                      final oldValue = phoneSwitch.value;
-                      phoneSwitch.value = val;
-                      _handleToggleChange(
-                        fieldName: 'phone',
-                        currentValue: !val, // Invert for API
-                        switchController: phoneSwitch,
-                      );
-                    },
-                  )),
+                        title: "Phone",
+                        subtitle: phone.value,
+                        showSwitch: true,
+                        switchValue: phoneSwitch.value,
+                        onSwitchChanged: (val) {
+                          final oldValue = phoneSwitch.value;
+                          phoneSwitch.value = val;
+                          _handleToggleChange(
+                            fieldName: 'phone',
+                            currentValue: !val, // Invert for API
+                            switchController: phoneSwitch,
+                          );
+                        },
+                      )),
                   // Email Toggle
                   Obx(() => CustomData(
-                    title: "Email",
-                    subtitle: email.value,
-                    showSwitch: true,
-                    switchValue: emailSwitch.value,
-                    onSwitchChanged: (val) {
-                      final oldValue = emailSwitch.value;
-                      emailSwitch.value = val;
-                      _handleToggleChange(
-                        fieldName: 'email',
-                        currentValue: !val, // Invert for API
-                        switchController: emailSwitch,
-                      );
-                    },
-                  )),
+                        title: "Email",
+                        subtitle: email.value,
+                        showSwitch: true,
+                        switchValue: emailSwitch.value,
+                        onSwitchChanged: (val) {
+                          final oldValue = emailSwitch.value;
+                          emailSwitch.value = val;
+                          _handleToggleChange(
+                            fieldName: 'email',
+                            currentValue: !val, // Invert for API
+                            switchController: emailSwitch,
+                          );
+                        },
+                      )),
                   // Location Toggle
-                  Obx(() => CustomData(title: "Location",subtitle: location.value,showSwitch: true,switchValue: false,onSwitchChanged: (value) {})),
+                  Obx(() => CustomData(
+                      title: "Location",
+                      subtitle: location.value,
+                      showSwitch: true,
+                      switchValue: false,
+                      onSwitchChanged: (value) {})),
 
                   // Gender Toggle
                   Obx(() => CustomData(
-                    title: "Gender",
-                    subtitle: gender.value,
-                    showSwitch: true,
-                    switchValue: genderSwitch.value,
-                    onSwitchChanged: (val) {
-                      final oldValue = genderSwitch.value;
-                      genderSwitch.value = val;
-                      _handleToggleChange(
-                        fieldName: 'gender',
-                        currentValue: !val, // Invert for API
-                        switchController: genderSwitch,
-                      );
-                    },
-                  )),
+                        title: "Gender",
+                        subtitle: gender.value,
+                        showSwitch: true,
+                        switchValue: genderSwitch.value,
+                        onSwitchChanged: (val) {
+                          final oldValue = genderSwitch.value;
+                          genderSwitch.value = val;
+                          _handleToggleChange(
+                            fieldName: 'gender',
+                            currentValue: !val, // Invert for API
+                            switchController: genderSwitch,
+                          );
+                        },
+                      )),
                   // DOB Toggle
                   Obx(() => CustomData(
-                    title: "DOB",
-                    subtitle: dob.value,
-                    showSwitch: true,
-                    switchValue: dobSwitch.value,
-                    onSwitchChanged: (val) {
-                      final oldValue = dobSwitch.value;
-                      dobSwitch.value = val;
-                      _handleToggleChange(
-                        fieldName: 'dob',
-                        currentValue: !val, // Invert for API
-                        switchController: dobSwitch,
-                      );
-                    },
-                  )),
+                        title: "DOB",
+                        subtitle: dob.value,
+                        showSwitch: true,
+                        switchValue: dobSwitch.value,
+                        onSwitchChanged: (val) {
+                          final oldValue = dobSwitch.value;
+                          dobSwitch.value = val;
+                          _handleToggleChange(
+                            fieldName: 'dob',
+                            currentValue: !val, // Invert for API
+                            switchController: dobSwitch,
+                          );
+                        },
+                      )),
                   // Profession Toggle
                   Obx(() => CustomData(
-                    title: "Profession",
-                    subtitle: profession.value,
-                    showSwitch: true,
-                    switchValue: professionSwitch.value,
-                    onSwitchChanged: (val) {
-                      final oldValue = professionSwitch.value;
-                      professionSwitch.value = val;
-                      _handleToggleChange(
-                        fieldName: 'profession',
-                        currentValue: !val, // Invert for API
-                        switchController: professionSwitch,
-                      );
-                    },
-                  )),
+                        title: "Profession",
+                        subtitle: profession.value,
+                        showSwitch: true,
+                        switchValue: professionSwitch.value,
+                        onSwitchChanged: (val) {
+                          final oldValue = professionSwitch.value;
+                          professionSwitch.value = val;
+                          _handleToggleChange(
+                            fieldName: 'profession',
+                            currentValue: !val, // Invert for API
+                            switchController: professionSwitch,
+                          );
+                        },
+                      )),
                   // Nationality Toggle
                   Obx(() => CustomData(
-                    title: "Nationality",
-                    subtitle: nationality.value,
-                    showSwitch: true,
-                    switchValue: nationalitySwitch.value,
-                    onSwitchChanged: (val) {
-                      final oldValue = nationalitySwitch.value;
-                      nationalitySwitch.value = val;
-                      _handleToggleChange(
-                        fieldName: 'nationality',
-                        currentValue: !val, // Invert for API
-                        switchController: nationalitySwitch,
-                      );
-                    },
-                  )),
+                        title: "Nationality",
+                        subtitle: nationality.value,
+                        showSwitch: true,
+                        switchValue: nationalitySwitch.value,
+                        onSwitchChanged: (val) {
+                          final oldValue = nationalitySwitch.value;
+                          nationalitySwitch.value = val;
+                          _handleToggleChange(
+                            fieldName: 'nationality',
+                            currentValue: !val, // Invert for API
+                            switchController: nationalitySwitch,
+                          );
+                        },
+                      )),
                   // Marital Status Toggle
                   Obx(() => CustomData(
-                    title: "Marital Status",
-                    subtitle: maritalStatus.value,
-                    showSwitch: true,
-                    switchValue: maritalStatusSwitch.value,
-                    onSwitchChanged: (val) {
-                      final oldValue = maritalStatusSwitch.value;
-                      maritalStatusSwitch.value = val;
-                      _handleToggleChange(
-                        fieldName: 'marital_status',
-                        currentValue: !val, // Invert for API
-                        switchController: maritalStatusSwitch,
-                      );
-                    },
-                  )),
+                        title: "Marital Status",
+                        subtitle: maritalStatus.value,
+                        showSwitch: true,
+                        switchValue: maritalStatusSwitch.value,
+                        onSwitchChanged: (val) {
+                          final oldValue = maritalStatusSwitch.value;
+                          maritalStatusSwitch.value = val;
+                          _handleToggleChange(
+                            fieldName: 'marital_status',
+                            currentValue: !val, // Invert for API
+                            switchController: maritalStatusSwitch,
+                          );
+                        },
+                      )),
                 ],
               ),
             ),
           );
-        })
-    );
+        }));
   }
 }
