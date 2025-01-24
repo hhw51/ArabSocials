@@ -7,7 +7,6 @@ class CustomContainer extends StatefulWidget {
   final IconData? icon;
   final String? image;
   final VoidCallback? onTap;
-  final bool isActive; // Add this parameter
 
   const CustomContainer({
     Key? key,
@@ -15,7 +14,6 @@ class CustomContainer extends StatefulWidget {
     this.icon,
     this.image,
     this.onTap,
-    this.isActive = false, // Default value
   }) : super(key: key);
 
   @override
@@ -23,17 +21,22 @@ class CustomContainer extends StatefulWidget {
 }
 
 class _CustomContainerState extends State<CustomContainer> {
+  bool _isTapped = false;
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
+        setState(() {
+          _isTapped = !_isTapped;
+        });
         widget.onTap?.call();
       },
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
         padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
         decoration: BoxDecoration(
-          color: widget.isActive ? Colors.green[800] : Colors.green[200],
+          color: _isTapped ? Colors.green[800] : Colors.green[200],
           borderRadius: BorderRadius.circular(10.r),
         ),
         child: Row(
@@ -42,7 +45,7 @@ class _CustomContainerState extends State<CustomContainer> {
             if (widget.icon != null)
               Icon(
                 widget.icon,
-                color: widget.isActive ? Colors.white : Colors.green,
+                color: _isTapped ? Colors.white : Colors.green,
                 size: 18,
               )
             else if (widget.image != null)
@@ -52,7 +55,7 @@ class _CustomContainerState extends State<CustomContainer> {
                   widget.image!,
                   height: 16.h,
                   width: 16.w,
-                  color: widget.isActive ? Colors.white : Colors.green,
+                  color: _isTapped ? Colors.white : Colors.green,
                   fit: BoxFit.cover,
                 ),
               ),
@@ -60,7 +63,7 @@ class _CustomContainerState extends State<CustomContainer> {
             Text(
               widget.text,
               style: TextStyle(
-                color: widget.isActive ? Colors.white : Colors.black,
+                color: _isTapped ? Colors.white : Colors.black,
                 fontWeight: FontWeight.w500,
                 fontSize: 10.sp,
               ),
@@ -71,8 +74,6 @@ class _CustomContainerState extends State<CustomContainer> {
     );
   }
 }
-
-
 ///////////////////////////////////EVENTSCREEN SPORTS, MUSIC OR.............BUTTON////////////////////////////
 
 class Custombutton extends StatefulWidget {

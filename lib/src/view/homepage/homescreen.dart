@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:arabsocials/src/apis/approved_events.dart';
 import 'package:arabsocials/src/apis/get_featured_business.dart';
 import 'package:arabsocials/src/apis/get_featured_events.dart';
@@ -7,7 +9,6 @@ import 'package:arabsocials/src/services/auth_services.dart';
 import 'package:arabsocials/src/view/events/promote_event.dart';
 import 'package:arabsocials/src/view/events/register_event.dart';
 import 'package:arabsocials/src/view/homepage/notification_screen.dart';
-import 'package:arabsocials/src/view/members/memberscreen.dart';
 import 'package:arabsocials/src/view/profile/ProfileDetailsScreen.dart';
 import 'package:arabsocials/src/widgets/custom_container.dart';
 import 'package:arabsocials/src/widgets/custombuttons.dart';
@@ -37,27 +38,125 @@ class _HomescreenState extends State<Homescreen> {
   List<dynamic> featuredBusinesses = [];
   bool isBusinessesLoading = true;
 
+    Map<int, List<dynamic>> _attendeesMap = {};
+
   static const String _baseImageUrl = 'http://35.222.126.155:8000';
   final String baseUrl = 'http://35.222.126.155:8000';
 
-  Set<int> _bookmarkedEventIds = {};
-  Set<int> _processingEventIds = {}; // Tracks events currently being processed
-  bool _showingSavedEvents = false; // Indicates if showing saved events
 
-  // Map to cache attendees per eventId
-  Map<int, List<dynamic>> _attendeesMap = {};
   @override
   void initState() {
     super.initState();
     fetchInitialData();
     fetchFeaturedEvents();
     fetchFeaturedBusinesses();
+    _searchController.addListener(_onSearchChanged);
+  }
+    @override
+  void dispose() {
+    _searchController.dispose();
+    _debounce?.cancel(); 
+    super.dispose();
   }
 
+  // Method to handle search input changes with debounce
+  void _onSearchChanged() {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      _applySearchFilter();
+    });
+  }
+
+  // Method to filter events based on search query
+  void _applySearchFilter() {
+    final query = _searchController.text.trim().toLowerCase();
+    setState(() {
+      if (query.isEmpty) {
+        _filteredEvents = List.from(featuredEvents); 
+      } else {
+        _filteredEvents = featuredEvents.where((event) {
+          final title = (event["title"] ?? "").toLowerCase();
+          final location = (event["location"] ?? "").toLowerCase();
+          return title.contains(query) || location.contains(query);
+        }).toList();
+      }
+    });
+  }
+
+  // Updated fetchFeaturedEvents to initialize _filteredEvents
+ void fetchFeaturedEvents() async {
+  try {
+    // Fetch the list of featured events
+    final events = await GetFeaturedEvents().getFeaturedEvents();
+
+    // Process events to add day and month fields
+    final processedEvents = events.map((event) {
+      final eventDate = DateTime.parse(event['event_date']);
+      final day = eventDate.day;
+      final month = _monthAbbreviation(eventDate.month);
+      return {
+        ...event,
+        'day': day,
+        'month': month,
+      };
+    }).toList();
+
+    // // Fetch attendees for each event and update the map
+    // for (var event in processedEvents) {
+    //   final eventId = event['id'];
+    //   if (eventId != null) {
+    //     try {
+    //       final attendees = await eventController.getRegisteredUsersByEventId(eventId);
+    //       _attendeesMap[eventId] = attendees ?? [];
+    //     } catch (e) {
+    //       print('Error fetching attendees for event $eventId: $e');
+    //       _attendeesMap[eventId] = []; // Default to empty if fetching fails
+    //     }
+    //   }
+    // }
+
+    // Update state
+    setState(() {
+      featuredEvents = processedEvents;
+      _filteredEvents = List.from(featuredEvents); // Initialize filtered list
+      isLoading = false;
+    });
+  } catch (e) {
+    setState(() {
+      isLoading = false;
+    });
+    print('Error fetching featured events: $e');
+  }
+}
+
+
+   final TextEditingController _searchController = TextEditingController();
+  List<dynamic> _filteredEvents = []; // To store filtered events
+  Timer? _debounce; // For debounce
+
+
+  /// Fetch attendees for a specific event and cache them
+  Future<List<dynamic>> _fetchAttendees(int eventId) async {
+    if (_attendeesMap.containsKey(eventId)) {
+      return _attendeesMap[eventId]!;
+    } else {
+      try {
+        final attendees =
+        await eventController.getRegisteredUsersByEventId(eventId);
+        setState(() {
+          _attendeesMap[eventId] = attendees!;
+        });
+        return attendees!;
+      } catch (e) {
+        print('Error fetching attendees for event $eventId: $e');
+        return [];
+      }
+    }
+  }
 
   Widget _buildGoingSection(List<dynamic> attendees) {
     if (attendees.isEmpty) {
-      return SizedBox(); // Show nothing for 0 attendees
+      return SizedBox(); 
     }
 
     int displayCount = attendees.length <= 3 ? attendees.length : 3;
@@ -68,11 +167,11 @@ class _HomescreenState extends State<Homescreen> {
         Container(
           height: 24.h,
           width: displayCount * 24.w +
-              (displayCount - 1) * 6.w, // Adjust width based on number of images
+              (displayCount - 1) * 6.w, 
           child: Stack(
             children: List.generate(displayCount, (i) {
               return Positioned(
-                left: i * 18.w, // Overlap images slightly
+                left: i * 18.w, 
                 child: CircleAvatar(
                   radius: 10.r,
                   backgroundImage: attendees[i]['image'] != null &&
@@ -97,7 +196,6 @@ class _HomescreenState extends State<Homescreen> {
       ],
     );
   }
-
 
   String _resolveImagePath(String? rawPath) {
     if (rawPath == null || rawPath.isEmpty) {
@@ -149,8 +247,6 @@ class _HomescreenState extends State<Homescreen> {
     ]);
   }
 
-
-
   Future<void> fetchFavoriteUsers() async {
     try {
       final users = await authService.getFavoriteUsers();
@@ -160,21 +256,6 @@ class _HomescreenState extends State<Homescreen> {
       });
     } catch (error) {
       print('Error fetching favorite users: $error');
-    }
-  }
-  void fetchFeaturedEvents() async {
-    try {
-      final events = await GetFeaturedEvents().getFeaturedEvents();
-      setState(() {
-        featuredEvents = events;
-        print("Featured Events are fetching 🌹🌹🌹🌹🌹$featuredEvents");
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-      print('Error fetching featured events: $e');
     }
   }
   void fetchFeaturedBusinesses() async {
@@ -223,8 +304,9 @@ class _HomescreenState extends State<Homescreen> {
                       size: 30.sp,
                     ),
                     SizedBox(width: 8.w),
-                    Expanded(
+                  Expanded(
                       child: TextField(
+                        controller: _searchController, // Attach controller
                         decoration: InputDecoration(
                           hintText: "Enter events, members, or business...",
                           hintStyle: TextStyle(
@@ -238,9 +320,6 @@ class _HomescreenState extends State<Homescreen> {
                           fontSize: 14.sp,
                           color: const Color.fromARGB(255, 190, 218, 165),
                         ),
-                        onChanged: (value) {
-                          print("Input: $value");
-                        },
                       ),
                     ),
                     InkWell(
@@ -278,7 +357,7 @@ class _HomescreenState extends State<Homescreen> {
                             : ListView.builder(
                             scrollDirection: Axis.horizontal,
                             padding: EdgeInsets.symmetric(horizontal: 12.w),
-                            itemCount: featuredEvents.length,
+                           itemCount: _filteredEvents.length, // Use filtered list
                             itemBuilder: (context, index) {
                               final event = featuredEvents[index];
                               final eventId = event['id'] as int;
@@ -637,15 +716,13 @@ class _HomescreenState extends State<Homescreen> {
                               ),
                             ),
                           ),
-                         SectionHeader(
-  title: "PEOPLE IM CONNECTED TO",
-  actionText: "See all",
-  onTap: () {
-    navigationController.currentIndex(
-      2,
-    );
-  },
-),
+                          SectionHeader(
+                            title: "PEOPLE IM CONNECTED TO",
+                            actionText: "See all",
+                            onTap: () {
+                              navigationController.currentIndex(2);
+                            },
+                          ),
                           Padding(
                             padding: const EdgeInsets.only(bottom: 10),
                             child: SizedBox(
@@ -748,22 +825,4 @@ class _HomescreenState extends State<Homescreen> {
     );
   }
 
-  /// Fetch attendees for a specific event and cache them
-  Future<List<dynamic>> _fetchAttendees(int eventId) async {
-    if (_attendeesMap.containsKey(eventId)) {
-      return _attendeesMap[eventId]!;
-    } else {
-      try {
-        final attendees =
-        await eventController.getRegisteredUsersByEventId(eventId);
-        setState(() {
-          _attendeesMap[eventId] = attendees!;
-        });
-        return attendees!;
-      } catch (e) {
-        print('Error fetching attendees for event $eventId: $e');
-        return [];
-      }
-    }
-  }
 }
